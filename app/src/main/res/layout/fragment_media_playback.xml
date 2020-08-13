@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/imgBackgroundMedia"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:scaleType="fitXY"
+        android:src="@drawable/chieu_hom_ay" />
+
+    <include
+        layout="@layout/layout_top_media"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="150dp"
+        android:scaleType="center"
+        android:src="@drawable/ic_repeat" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="150dp"
+        android:scaleType="center"
+        android:src="@drawable/ic_shuffle" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/colorBackground"
+        android:paddingBottom="30dp">
+
+        <SeekBar
+            android:id="@+id/seekBarTimeSong"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="5dp" />
+
+        <TextView
+            android:id="@+id/txtStartTimeSong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/seekBarTimeSong"
+            android:layout_marginStart="20dp"
+            android:text="@string/default_start_time_song"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/txtEndTimeSong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/seekBarTimeSong"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="20dp"
+            android:text="@string/default_time_song"
+            android:textSize="20sp" />
+
+        <ImageButton
+            android:id="@+id/imgButtonDislike"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/imgButtonPrevious"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="40dp"
+            android:background="@drawable/ic_dislike" />
+
+        <ImageButton
+            android:id="@+id/imgButtonLike"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/imgButtonPrevious"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="40dp"
+            android:background="@drawable/ic_like" />
+
+        <ImageButton
+            android:id="@+id/imgButtonPrevious"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtEndTimeSong"
+            android:layout_marginStart="40dp"
+            android:layout_toRightOf="@id/imgButtonLike"
+            android:background="@drawable/ic_previous" />
+
+        <ImageButton
+            android:id="@+id/imgButtonNext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtEndTimeSong"
+            android:layout_marginEnd="40dp"
+            android:layout_toLeftOf="@id/imgButtonDislike"
+            android:background="@drawable/ic_next" />
+
+        <ImageButton
+            android:id="@+id/imgButtonPause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtEndTimeSong"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/ic_button_pause" />
+    </RelativeLayout>
+
+</FrameLayout>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Music</string>
+    <string name="number_default">1</string>
+    <string name="default_time_song">5:34</string>
+    <string name="default_name_song">Chieu hom ay</string>
+    <string name="default_album_song">Jaykii</string>
+    <string name="default_start_time_song">0:0</string>
+    <string name="label_title">Music</string>
+</resources>

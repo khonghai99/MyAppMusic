@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="40dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="15dp"
+    android:paddingBottom="10dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/txtSTT"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="@string/number_default"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/txtNameSong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="30dp"
+            android:layout_toRightOf="@id/txtSTT"
+            android:text="@string/default_name_song"
+            android:textSize="22sp" />
+
+        <TextView
+            android:id="@+id/txtTimeSong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtNameSong"
+            android:layout_alignStart="@id/txtNameSong"
+            android:text="@string/default_time_song" />
+
+        <ImageButton
+            android:id="@+id/imgShowPopup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:adjustViewBounds="true"
+            android:background="@drawable/ic_click_show_popup"
+            android:scaleType="centerInside" />
+
+    </RelativeLayout>
+</RelativeLayout>

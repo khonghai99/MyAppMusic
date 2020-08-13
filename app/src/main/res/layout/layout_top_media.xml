@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutRelative"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentBottom="true"
+    android:background="@color/colorBackground"
+   android:padding="10dp">
+
+    <ImageView
+        android:id="@+id/imgSong"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:adjustViewBounds="true"
+        android:scaleType="centerCrop"
+        android:src="@drawable/chieu_hom_ay" />
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="8dp"
+        android:layout_toRightOf="@id/imgSong">
+
+        <TextView
+            android:id="@+id/txtNameSong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_name_song"
+            android:textSize="30sp" />
+
+        <TextView
+            android:id="@+id/txtNameAlbum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtNameSong"
+            android:layout_alignLeft="@id/txtNameSong"
+            android:text="@string/default_album_song"
+            android:textSize="20sp" />
+    </RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/imgPopupTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/ic_show_popup_media" />
+
+    <ImageButton
+        android:id="@+id/imgListMusic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="15dp"
+        android:layout_toLeftOf="@id/imgPopupTop"
+        android:background="@drawable/ic_list_music" />
+</RelativeLayout>
