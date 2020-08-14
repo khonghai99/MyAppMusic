@@ -5,14 +5,15 @@ import android.view.Menu;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.R;
+import com.bkav.android.mymusic.fragment.AllSongsFragment;
 
 
 public class MusicActivity extends AppCompatActivity {
     private Toolbar toolbar;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +21,13 @@ public class MusicActivity extends AppCompatActivity {
         setContentView(R.layout.activity_music);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setTitle("Music");
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        AllSongsFragment allSongsFragment = new AllSongsFragment();
+        fragmentTransaction.replace(R.id.fragmentLayout, allSongsFragment);
+        fragmentTransaction.commit();
+
     }
 
     @Override

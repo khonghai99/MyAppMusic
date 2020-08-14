@@ -12,7 +12,7 @@
     android:paddingBottom="10dp">
 
     <ImageView
-        android:id="@+id/imgSong"
+        android:id="@+id/ivSong"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:adjustViewBounds="true"
@@ -23,7 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toRightOf="@id/imgSong">
+        android:layout_toRightOf="@id/ivSong">
 
         <TextView
             android:id="@+id/txtNameSong"
@@ -43,8 +43,8 @@
             android:textSize="20sp" />
     </RelativeLayout>
 
-    <ImageButton
-        android:id="@+id/imgPause"
+    <ImageView
+        android:id="@+id/ivPause"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"

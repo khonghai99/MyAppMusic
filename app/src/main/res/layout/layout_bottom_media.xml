@@ -30,44 +30,44 @@
         android:text="@string/default_time_song"
         android:textSize="20sp" />
 
-    <ImageButton
-        android:id="@+id/imgButtonDislike"
+    <ImageView
+        android:id="@+id/ivDislike"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/imgButtonPrevious"
+        android:layout_alignBottom="@id/ivPrevious"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="40dp"
         android:background="@drawable/ic_dislike" />
 
-    <ImageButton
-        android:id="@+id/imgButtonLike"
+    <ImageView
+        android:id="@+id/ivLike"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/imgButtonPrevious"
+        android:layout_alignBottom="@id/ivPrevious"
         android:layout_alignParentStart="true"
         android:layout_marginStart="40dp"
         android:background="@drawable/ic_like" />
 
-    <ImageButton
-        android:id="@+id/imgButtonPrevious"
+    <ImageView
+        android:id="@+id/ivPrevious"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/txtEndTimeSong"
         android:layout_marginStart="40dp"
-        android:layout_toRightOf="@id/imgButtonLike"
+        android:layout_toRightOf="@id/ivLike"
         android:background="@drawable/ic_previous" />
 
-    <ImageButton
-        android:id="@+id/imgButtonNext"
+    <ImageView
+        android:id="@+id/ivNext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/txtEndTimeSong"
         android:layout_marginEnd="40dp"
-        android:layout_toLeftOf="@id/imgButtonDislike"
+        android:layout_toLeftOf="@id/ivDislike"
         android:background="@drawable/ic_next" />
 
-    <ImageButton
-        android:id="@+id/imgButtonPause"
+    <ImageView
+        android:id="@+id/ivPause"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/txtEndTimeSong"
