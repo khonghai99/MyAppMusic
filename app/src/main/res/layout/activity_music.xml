@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:measureAllChildren="true"
-    tools:context="com.bkav.android.mymusic.activity.MusicActivity">
+    tools:context="com.bkav.android.mymusic.activities.MusicActivity">
 
     <include
         android:id="@+id/toolbarID"

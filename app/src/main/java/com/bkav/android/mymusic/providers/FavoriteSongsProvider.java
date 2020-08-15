@@ -1,4 +1,4 @@
-package com.bkav.android.mymusic.provider;
+package com.bkav.android.mymusic.providers;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;

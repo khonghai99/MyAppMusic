@@ -1,4 +1,4 @@
-package com.bkav.android.mymusic.activity;
+package com.bkav.android.mymusic.activities;
 
 import android.os.Bundle;
 import android.view.Menu;
@@ -9,7 +9,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.R;
-import com.bkav.android.mymusic.fragment.AllSongsFragment;
+import com.bkav.android.mymusic.fragments.AllSongsFragment;
 
 
 public class MusicActivity extends AppCompatActivity {

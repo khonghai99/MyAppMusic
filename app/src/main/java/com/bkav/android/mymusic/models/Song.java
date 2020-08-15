@@ -1,4 +1,4 @@
-package com.bkav.android.mymusic.model;
+package com.bkav.android.mymusic.models;
 
 public class Song {
     private int mStt;

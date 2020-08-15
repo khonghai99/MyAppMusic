@@ -1,4 +1,4 @@
-package com.bkav.android.mymusic.fragment;
+package com.bkav.android.mymusic.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

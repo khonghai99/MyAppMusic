@@ -1,4 +1,4 @@
-package com.bkav.android.mymusic.service;
+package com.bkav.android.mymusic.services;
 
 import android.app.Service;
 import android.content.Intent;

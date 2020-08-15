@@ -1,4 +1,4 @@
-package com.bkav.android.mymusic.adapter;
+package com.bkav.android.mymusic.adapters;
 
 import android.content.Context;
 import android.media.MediaPlayer;
@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bkav.android.mymusic.OnNewClickListener;
 import com.bkav.android.mymusic.R;
-import com.bkav.android.mymusic.model.Song;
+import com.bkav.android.mymusic.models.Song;
 
 import java.util.List;
 

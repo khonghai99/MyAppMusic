@@ -1,4 +1,4 @@
-package com.bkav.android.mymusic.fragment;
+package com.bkav.android.mymusic.fragments;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bkav.android.mymusic.R;
-import com.bkav.android.mymusic.adapter.CustomRecycleAdapter;
-import com.bkav.android.mymusic.model.Song;
+import com.bkav.android.mymusic.adapters.CustomRecycleAdapter;
+import com.bkav.android.mymusic.models.Song;
 
 import java.util.ArrayList;
 
