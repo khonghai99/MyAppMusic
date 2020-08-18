@@ -7,28 +7,23 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/listSong"
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:layout_height="match_parent" />
+        android:layout_alignParentEnd="true" />
 
     <RelativeLayout
-        android:id="@+id/layoutRelativePlayingSong"
-        android:layout_width="wrap_content"
+
+        android:id="@+id/layoutBottomAllSong"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@color/colorBackground"
-        android:paddingStart="10dp"
-        android:paddingTop="16dp"
-        android:paddingEnd="10dp"
-        android:paddingRight="10dp"
-        android:paddingBottom="10dp"
-        android:visibility="gone">
-
+        android:padding="10dp">
 
         <ImageView
-            android:id="@+id/ivSong"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:id="@+id/ivSongBottomAllSong"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
             android:src="@drawable/chieu_hom_ay" />
@@ -37,28 +32,30 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toRightOf="@id/ivSong">
+            android:layout_toLeftOf="@id/ivPauseBottomAllSong"
+            android:layout_toRightOf="@id/ivSongBottomAllSong">
 
             <TextView
-                android:id="@+id/txtNameSong"
+                android:id="@+id/tvNameSongBottomAllSong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
+                android:maxLines="1"
                 android:text="@string/default_name_song"
-                android:textSize="30sp" />
+                android:textSize="25sp" />
 
             <TextView
-                android:id="@+id/txtNameAuthor"
+                android:id="@+id/tvNameAuthorBottomAllSong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/txtNameSong"
-                android:layout_alignLeft="@id/txtNameSong"
+                android:layout_below="@id/tvNameSongBottomAllSong"
+                android:layout_alignLeft="@id/tvNameSongBottomAllSong"
                 android:text="@string/default_album_song"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
         </RelativeLayout>
 
         <ImageView
-            android:id="@+id/ivPause"
+            android:id="@+id/ivPauseBottomAllSong"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"

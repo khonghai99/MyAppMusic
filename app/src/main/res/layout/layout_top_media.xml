@@ -23,18 +23,18 @@
         android:layout_toRightOf="@id/ivSong">
 
         <TextView
-            android:id="@+id/txtNameSong"
+            android:id="@+id/tvNameSong"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/default_name_song"
             android:textSize="30sp" />
 
         <TextView
-            android:id="@+id/txtNameAlbum"
+            android:id="@+id/tvNameAlbum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/txtNameSong"
-            android:layout_alignLeft="@id/txtNameSong"
+            android:layout_below="@id/tvNameSong"
+            android:layout_alignLeft="@id/tvNameSong"
             android:text="@string/default_album_song"
             android:textSize="20sp" />
     </RelativeLayout>

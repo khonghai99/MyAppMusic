@@ -7,21 +7,23 @@ public class Song {
     private String mAuthorSong;
     private int mImageSong;
     private int mSong;
+    private boolean play;
 
-    public Song(int mStt, String mNameSong, String mTimeSong, String mAuthorSong, int mImageSong, int mSong) {
+    public Song(int mStt, String mNameSong, String mTimeSong, String mAuthorSong, int mImageSong, int mSong, boolean play) {
         this.mStt = mStt;
         this.mNameSong = mNameSong;
         this.mTimeSong = mTimeSong;
         this.mAuthorSong = mAuthorSong;
         this.mImageSong = mImageSong;
         this.mSong = mSong;
+        this.play = play;
     }
 
     public int getmStt() {
         return mStt;
     }
 
-    public void setmOrdinalNumber(int mStt) {
+    public void setmStt(int mStt) {
         this.mStt = mStt;
     }
 
@@ -45,7 +47,7 @@ public class Song {
         return mAuthorSong;
     }
 
-    public void setmAuthorSong(String mAuthor) {
+    public void setmAuthorSong(String mAuthorSong) {
         this.mAuthorSong = mAuthorSong;
     }
 
@@ -63,5 +65,13 @@ public class Song {
 
     public void setmSong(int mSong) {
         this.mSong = mSong;
+    }
+
+    public boolean getPlay() {
+        return play;
+    }
+
+    public void setPlay(boolean play) {
+        this.play = play;
     }
 }
