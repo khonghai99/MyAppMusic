@@ -15,7 +15,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bkav.android.mymusic.OnShowMediaListener;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.activities.MusicActivity;
 import com.bkav.android.mymusic.adapters.CustomRecycleAdapter;
@@ -24,21 +23,24 @@ import com.bkav.android.mymusic.models.Song;
 import java.util.ArrayList;
 
 public class AllSongsFragment extends Fragment {
+    public RelativeLayout layoutBottomAllSong;
     private ArrayList<Song> mListSong;
     private CustomRecycleAdapter mAdapter;
     private OnShowMediaListener mOnShowMediaListener;
     private RecyclerView mRecyclerView;
-    public RelativeLayout layoutBottomAllSong;
     private ImageView ivSongBottomAllSong;
     private TextView tvNameSongBottomAllSong;
     private TextView tvNameAuthorBottomAllSong;
     private ImageView ivPauseBottomAllSong;
+    private Song mSong;
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (context instanceof MusicActivity){
-            mOnShowMediaListener= (OnShowMediaListener) context;
+        try {
+            mOnShowMediaListener = (OnShowMediaListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + " must implement OnShowMediaListener");
         }
 
     }
@@ -53,17 +55,18 @@ public class AllSongsFragment extends Fragment {
         tvNameAuthorBottomAllSong = view.findViewById(R.id.tvNameAuthorBottomAllSong);
         ivPauseBottomAllSong = view.findViewById(R.id.ivPauseBottomAllSong);
         layoutBottomAllSong = view.findViewById(R.id.layoutBottomAllSong);
-        layoutBottomAllSong.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mOnShowMediaListener.showMediaFragment();
-            }
-        });
+
         mRecyclerView = view.findViewById(R.id.listSong);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(layoutManager);
         addSong();
+        layoutBottomAllSong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mOnShowMediaListener.showMediaFragment(mSong);
+            }
+        });
         mAdapter = new CustomRecycleAdapter(getContext(), mListSong, (MusicActivity) getActivity());
         mRecyclerView.setAdapter(mAdapter);
         return view;
@@ -72,10 +75,10 @@ public class AllSongsFragment extends Fragment {
     public void addSong() {
         mListSong = new ArrayList<>();
         mListSong.add(new Song(1, "Chieu hom ay", "5:39",
-                "Jaykii", R.drawable.chieu_hom_ay, R.raw.chieu_hom_ay, true));
+                "Jaykii", R.drawable.chieu_hom_ay, R.raw.chieu_hom_ay, false));
         mListSong.add(new Song(2, "Co chang trai viet len cay",
                 "5:34", "Jaykii", R.drawable.co_chang_trai_viet_len_cay,
-                R.raw.co_chang_trai_viet_len_cay, false));
+                R.raw.co_chang_trai_viet_len_cay, true));
         mListSong.add(new Song(3, "Dung cho anh nua", "5:34",
                 "Jaykii", R.drawable.dung_cho_anh_nua, R.raw.dung_cho_anh_nua, false));
 
@@ -89,6 +92,11 @@ public class AllSongsFragment extends Fragment {
             mListSong.get(i).setPlay(false);
         }
         mListSong.get(position).setPlay(true);
+        mSong = song;
         mAdapter.notifyDataSetChanged();
+    }
+
+    public interface OnShowMediaListener {
+        void showMediaFragment(Song song);
     }
 }

@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bkav.android.mymusic.OnNewClickListener;
-import com.bkav.android.mymusic.OnShowMediaListener;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.models.Song;
 
@@ -90,7 +89,7 @@ public class CustomRecycleAdapter extends RecyclerView.Adapter<CustomRecycleAdap
             if (type == 0) {
                 tvStt = (TextView) itemView.findViewById(R.id.tvSTT);
             } else {
-                ivSong = (ImageView) itemView.findViewById(R.id.ivSong);
+                ivSong = (ImageView) itemView.findViewById(R.id.imgSTT);
             }
 
             tvNameSong = (TextView) itemView.findViewById(R.id.tvNameSong);

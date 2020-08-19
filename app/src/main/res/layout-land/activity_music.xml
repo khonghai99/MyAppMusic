@@ -17,13 +17,19 @@
 
     <FrameLayout
         android:id="@+id/fragmentLayoutOne"
-        android:layout_width="match_parent"
+        android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_below="@id/toolbarID"
         android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true" />
 
-
+    <FrameLayout
+        android:id="@+id/fragmentLayoutTwo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbarID"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@id/fragmentLayoutOne" />
 
 </RelativeLayout>
