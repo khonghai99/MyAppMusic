@@ -1,77 +1,47 @@
 package com.bkav.android.mymusic.models;
 
 public class Song {
-    private int mStt;
-    private String mNameSong;
-    private String mTimeSong;
-    private String mAuthorSong;
-    private int mImageSong;
-    private int mSong;
-    private boolean play;
+    private String mTitle;
+    private String mArtist;
+    private String mDuration;
+    private String mPath;
 
-    public Song(int mStt, String mNameSong, String mTimeSong, String mAuthorSong, int mImageSong, int mSong, boolean play) {
-        this.mStt = mStt;
-        this.mNameSong = mNameSong;
-        this.mTimeSong = mTimeSong;
-        this.mAuthorSong = mAuthorSong;
-        this.mImageSong = mImageSong;
-        this.mSong = mSong;
-        this.play = play;
+    public Song(String mTitle, String mArtist, String mDuration, String mPath) {
+        this.mTitle = mTitle;
+        this.mArtist = mArtist;
+        this.mDuration = mDuration;
+        this.mPath = mPath;
     }
 
-    public int getmStt() {
-        return mStt;
+    public String getmTitle() {
+        return mTitle;
     }
 
-    public void setmStt(int mStt) {
-        this.mStt = mStt;
+    public void setmTitle(String mTitle) {
+        this.mTitle = mTitle;
     }
 
-    public String getmNameSong() {
-        return mNameSong;
+    public String getmArtist() {
+        return mArtist;
     }
 
-    public void setmNameSong(String mNameSong) {
-        this.mNameSong = mNameSong;
+    public void setmArtist(String mArtist) {
+        this.mArtist = mArtist;
     }
 
-    public String getmTimeSong() {
-        return mTimeSong;
+    public String getmDuration() {
+        return mDuration;
     }
 
-    public void setmTimeSong(String mTimeSong) {
-        this.mTimeSong = mTimeSong;
+    public void setmDuration(String mDuration) {
+        this.mDuration = mDuration;
     }
 
-    public String getmAuthorSong() {
-        return mAuthorSong;
+    public String getmPath() {
+        return mPath;
     }
 
-    public void setmAuthorSong(String mAuthorSong) {
-        this.mAuthorSong = mAuthorSong;
-    }
-
-    public int getmImageSong() {
-        return mImageSong;
-    }
-
-    public void setmImageSong(int mImageSong) {
-        this.mImageSong = mImageSong;
-    }
-
-    public int getmSong() {
-        return mSong;
-    }
-
-    public void setmSong(int mSong) {
-        this.mSong = mSong;
-    }
-
-    public boolean getPlay() {
-        return play;
-    }
-
-    public void setPlay(boolean play) {
-        this.play = play;
+    public void setmPath(String mPath) {
+        this.mPath = mPath;
     }
 }

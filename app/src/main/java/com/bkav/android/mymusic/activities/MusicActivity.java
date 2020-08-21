@@ -1,12 +1,16 @@
 package com.bkav.android.mymusic.activities;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.Menu;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -19,6 +23,7 @@ import com.bkav.android.mymusic.models.Song;
 
 
 public class MusicActivity extends AppCompatActivity implements OnNewClickListener, AllSongsFragment.OnShowMediaListener {
+    private static final int MY_PERMISSION_REQUEST = 1;
     FragmentManager fragmentManager;
     FragmentTransaction fragmentTransaction;
     private Toolbar toolbar;
@@ -27,16 +32,30 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
+
+        //set toolbar
         setSupportActionBar(toolbar);
         toolbar.setTitle("Music");
+
+        //check permission
+        if (ContextCompat.checkSelfPermission(MusicActivity.this,
+                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MusicActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
+        } else {
+            //add fragment to frameLayout
+            AddFragmentOne();
+        }
+
+    }
+
+    private void AddFragmentOne() {
         fragmentManager = getSupportFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
         AllSongsFragment allSongsFragment = new AllSongsFragment();
         fragmentTransaction.replace(R.id.fragmentLayoutOne, allSongsFragment);
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         fragmentTransaction.commit();
-
     }
 
     @Override
@@ -49,6 +68,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     public void onNewClick(Song song, int position) {
         AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentLayoutOne);
         allSongsFragment.setDataBottom(song, position);
+        allSongsFragment.setVisibility();
     }
 
     @Override
@@ -61,5 +81,22 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSION_REQUEST: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(MusicActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(this, "No permission granted", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                return;
+            }
+        }
     }
 }

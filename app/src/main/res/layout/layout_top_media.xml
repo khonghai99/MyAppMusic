@@ -19,24 +19,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toLeftOf="@id/ivListMusic"
         android:layout_marginStart="8dp"
+        android:layout_toLeftOf="@id/ivListMusic"
         android:layout_toRightOf="@id/ivSongTopMedia">
 
         <TextView
-            android:id="@+id/tvNameSongTopMedia"
+            android:id="@+id/tvTitleSongTopMedia"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/default_name_song"
             android:maxLines="1"
+            android:text="@string/default_name_song"
             android:textSize="30sp" />
 
         <TextView
-            android:id="@+id/tvNameAlbumTopMedia"
+            android:id="@+id/tvArtistSongTopMedia"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvNameSongTopMedia"
-            android:layout_alignLeft="@id/tvNameSongTopMedia"
+            android:layout_below="@id/tvTitleSongTopMedia"
+            android:layout_alignLeft="@id/tvTitleSongTopMedia"
             android:text="@string/default_album_song"
             android:textSize="20sp" />
     </RelativeLayout>

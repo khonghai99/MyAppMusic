@@ -23,8 +23,8 @@ public class MediaPlaybackFragment extends Fragment {
     public static MediaPlaybackFragment getInstancesMedia(Song song){
         MediaPlaybackFragment fragment = new MediaPlaybackFragment();
         Bundle bundle = new Bundle();
-        bundle.putString("nameSong",song.getmNameSong());
-        bundle.putString("authorSong",song.getmAuthorSong());
+        bundle.putString("nameSong",song.getmTitle());
+        bundle.putString("authorSong",song.getmArtist());
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -35,8 +35,8 @@ public class MediaPlaybackFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_media_playback, container, false);
         ivSongTopMedia = view.findViewById(R.id.ivSongTopMedia);
         ivPopupTopMedia = view.findViewById(R.id.ivPopupTopMedia);
-        tvNameAlbumTopMedia = view.findViewById(R.id.tvNameAlbumTopMedia);
-        tvNameSongTopMedia = view.findViewById(R.id.tvNameSongTopMedia);
+        tvNameAlbumTopMedia = view.findViewById(R.id.tvArtistSongTopMedia);
+        tvNameSongTopMedia = view.findViewById(R.id.tvTitleSongTopMedia);
         setTopMedia(getArguments());
         return view;
     }

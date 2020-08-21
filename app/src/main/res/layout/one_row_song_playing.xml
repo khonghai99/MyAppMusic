@@ -22,7 +22,7 @@
             android:textSize="20sp" />
 
         <TextView
-            android:id="@+id/tvNameSong"
+            android:id="@+id/tvTitleSongOneRow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
@@ -34,11 +34,11 @@
             android:textSize="22sp" />
 
         <TextView
-            android:id="@+id/tvTimeSong"
+            android:id="@+id/tvTimeSongOneRow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvNameSong"
-            android:layout_alignStart="@id/tvNameSong"
+            android:layout_below="@id/tvTitleSongOneRow"
+            android:layout_alignStart="@id/tvTitleSongOneRow"
             android:text="@string/default_time_song" />
 
         <ImageView

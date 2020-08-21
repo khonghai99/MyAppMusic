@@ -13,33 +13,32 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/tvSTT"
+            android:id="@+id/tvID"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_centerVertical="true"
-            android:paddingStart="15dp"
-            android:paddingTop="5dp"
+            android:gravity="center"
             android:text="@string/number_default"
             android:textSize="20sp" />
 
         <TextView
-            android:id="@+id/tvNameSong"
+            android:id="@+id/tvTitleSongOneRow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_marginStart="10dp"
             android:layout_toLeftOf="@id/ivShowPopup"
-            android:layout_toRightOf="@id/tvSTT"
+            android:layout_toRightOf="@id/tvID"
             android:maxLines="1"
             android:text="@string/default_name_song"
             android:textSize="22sp" />
 
         <TextView
-            android:id="@+id/tvTimeSong"
+            android:id="@+id/tvDurationSongOneRow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvNameSong"
-            android:layout_alignStart="@id/tvNameSong"
+            android:layout_below="@id/tvTitleSongOneRow"
+            android:layout_alignStart="@id/tvTitleSongOneRow"
             android:text="@string/default_time_song" />
 
         <ImageView

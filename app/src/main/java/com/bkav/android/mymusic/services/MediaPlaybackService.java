@@ -12,4 +12,15 @@ public class MediaPlaybackService extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        return super.onUnbind(intent);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return super.onStartCommand(intent, flags, startId);
+    }
+
 }
