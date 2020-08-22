@@ -23,8 +23,8 @@ public class MediaPlaybackFragment extends Fragment {
     public static MediaPlaybackFragment getInstancesMedia(Song song){
         MediaPlaybackFragment fragment = new MediaPlaybackFragment();
         Bundle bundle = new Bundle();
-        bundle.putString("nameSong",song.getmTitle());
-        bundle.putString("authorSong",song.getmArtist());
+        bundle.putString("title",song.getmTitle());
+        bundle.putString("artist",song.getmArtist());
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -43,8 +43,8 @@ public class MediaPlaybackFragment extends Fragment {
 
 
     public void setTopMedia(Bundle bundle) {
-        tvNameSongTopMedia.setText(bundle.getString("nameSong"));
-        tvNameAlbumTopMedia.setText(bundle.getString("authorSong"));
+        tvNameSongTopMedia.setText(bundle.getString("title"));
+        tvNameAlbumTopMedia.setText(bundle.getString("artist"));
     }
 
 

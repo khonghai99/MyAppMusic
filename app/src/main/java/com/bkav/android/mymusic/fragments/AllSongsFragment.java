@@ -1,6 +1,8 @@
 package com.bkav.android.mymusic.fragments;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -32,8 +34,8 @@ public class AllSongsFragment extends Fragment {
     private RecyclerView mRecyclerView;
 
     private ImageView ivSongBottomAllSong;
-    private TextView tvNameSongBottomAllSong;
-    private TextView tvNameAuthorBottomAllSong;
+    private TextView tvTitleSongBottomAllSong;
+    private TextView tvArtistBottomAllSong;
     private ImageView ivPauseBottomAllSong;
     private Song mSong;
 
@@ -54,8 +56,8 @@ public class AllSongsFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
         ivSongBottomAllSong = view.findViewById(R.id.ivSongBottomAllSong);
-        tvNameSongBottomAllSong = view.findViewById(R.id.tvTitleSongBottomAllSong);
-        tvNameAuthorBottomAllSong = view.findViewById(R.id.tvNameAuthorBottomAllSong);
+        tvTitleSongBottomAllSong = view.findViewById(R.id.tvTitleSongBottomAllSong);
+        tvArtistBottomAllSong = view.findViewById(R.id.tvArtistBottomAllSong);
         ivPauseBottomAllSong = view.findViewById(R.id.ivPauseBottomAllSong);
         layoutBottomAllSong = view.findViewById(R.id.layoutBottomAllSong);
 
@@ -74,12 +76,27 @@ public class AllSongsFragment extends Fragment {
         return view;
     }
 
+    public byte[] getByteImageSong(Song song) {
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        retriever.setDataSource(song.getmPath());
+        byte[] art = retriever.getEmbeddedPicture();
+        return art;
+    }
 
     public void setDataBottom(Song song, int position) {
+        mSong = song;
+        byte[] art = getByteImageSong(song);
+        if (art != null) {
+            ivSongBottomAllSong.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+        } else {
+            ivSongBottomAllSong.setImageResource(R.drawable.ic_no_image);
+        }
+        tvTitleSongBottomAllSong.setText(song.getmTitle());
+        tvArtistBottomAllSong.setText(song.getmArtist());
 
     }
 
-    public void setVisibility() {
+    public void setLayoutVisible() {
         layoutBottomAllSong.setVisibility(View.VISIBLE);
     }
 

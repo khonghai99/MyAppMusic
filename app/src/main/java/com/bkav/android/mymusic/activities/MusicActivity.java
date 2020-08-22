@@ -64,11 +64,12 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         return super.onCreateOptionsMenu(menu);
     }
 
+    //event click recyclerView
     @Override
     public void onNewClick(Song song, int position) {
         AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentLayoutOne);
         allSongsFragment.setDataBottom(song, position);
-        allSongsFragment.setVisibility();
+        allSongsFragment.setLayoutVisible();
     }
 
     @Override
