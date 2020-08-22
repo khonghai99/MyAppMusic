@@ -7,6 +7,7 @@ import android.os.IBinder;
 import androidx.annotation.Nullable;
 
 public class MediaPlaybackService extends Service {
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {

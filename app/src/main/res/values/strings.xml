@@ -6,4 +6,5 @@
     <string name="default_album_song">Jaykii</string>
     <string name="default_start_time_song">0:0</string>
     <string name="label_title">Music</string>
+    <string name="description_service">Service play music</string>
 </resources>

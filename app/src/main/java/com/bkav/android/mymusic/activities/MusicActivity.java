@@ -26,13 +26,12 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     private static final int MY_PERMISSION_REQUEST = 1;
     FragmentManager fragmentManager;
     FragmentTransaction fragmentTransaction;
-    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
-        toolbar = findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
 
         //set toolbar
         setSupportActionBar(toolbar);
@@ -55,6 +54,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         AllSongsFragment allSongsFragment = new AllSongsFragment();
         fragmentTransaction.replace(R.id.fragmentLayoutOne, allSongsFragment);
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
 
@@ -68,8 +68,11 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     @Override
     public void onNewClick(Song song, int position) {
         AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentLayoutOne);
-        allSongsFragment.setDataBottom(song, position);
-        allSongsFragment.setLayoutVisible();
+        if (allSongsFragment != null) {
+            allSongsFragment.setDataBottom(song, position);
+            allSongsFragment.setVisible();
+        }
+
     }
 
     @Override
@@ -86,17 +89,14 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSION_REQUEST: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (ContextCompat.checkSelfPermission(MusicActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                        Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(this, "No permission granted", Toast.LENGTH_SHORT).show();
-                    finish();
+        if (requestCode == MY_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (ContextCompat.checkSelfPermission(MusicActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
                 }
-                return;
+            } else {
+                Toast.makeText(this, "No permission granted", Toast.LENGTH_SHORT).show();
+                finish();
             }
         }
     }

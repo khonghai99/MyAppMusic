@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bkav.android.mymusic.ImageSong;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.SongLoader;
 import com.bkav.android.mymusic.activities.MusicActivity;
@@ -31,12 +33,16 @@ public class AllSongsFragment extends Fragment {
     private ArrayList<Song> mListSong;
     private SongAdapter mSongAdapter;
     private OnShowMediaListener mOnShowMediaListener;
+
     private RecyclerView mRecyclerView;
 
-    private ImageView ivSongBottomAllSong;
+
     private TextView tvTitleSongBottomAllSong;
     private TextView tvArtistBottomAllSong;
+
+    private ImageView ivSongBottomAllSong;
     private ImageView ivPauseBottomAllSong;
+
     private Song mSong;
 
     @Override
@@ -54,6 +60,7 @@ public class AllSongsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.i("main","Create fragment one");
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
         ivSongBottomAllSong = view.findViewById(R.id.ivSongBottomAllSong);
         tvTitleSongBottomAllSong = view.findViewById(R.id.tvTitleSongBottomAllSong);
@@ -76,16 +83,9 @@ public class AllSongsFragment extends Fragment {
         return view;
     }
 
-    public byte[] getByteImageSong(Song song) {
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        retriever.setDataSource(song.getmPath());
-        byte[] art = retriever.getEmbeddedPicture();
-        return art;
-    }
-
     public void setDataBottom(Song song, int position) {
         mSong = song;
-        byte[] art = getByteImageSong(song);
+        byte[] art = ImageSong.getByteImageSong(song.getmPath());
         if (art != null) {
             ivSongBottomAllSong.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
         } else {
@@ -96,8 +96,9 @@ public class AllSongsFragment extends Fragment {
 
     }
 
-    public void setLayoutVisible() {
+    public void setVisible() {
         layoutBottomAllSong.setVisibility(View.VISIBLE);
+
     }
 
     public interface OnShowMediaListener {
@@ -122,4 +123,8 @@ public class AllSongsFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
 }
