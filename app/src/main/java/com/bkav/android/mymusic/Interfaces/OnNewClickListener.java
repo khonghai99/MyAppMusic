@@ -1,4 +1,4 @@
-package com.bkav.android.mymusic;
+package com.bkav.android.mymusic.Interfaces;
 
 import com.bkav.android.mymusic.models.Song;
 

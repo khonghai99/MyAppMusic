@@ -1,8 +1,13 @@
 package com.bkav.android.mymusic.activities;
 
 import android.Manifest;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.Menu;
 import android.widget.Toast;
 
@@ -15,17 +20,52 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.bkav.android.mymusic.OnNewClickListener;
+import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.models.Song;
+import com.bkav.android.mymusic.services.MediaPlaybackService;
+import com.bkav.android.mymusic.services.MediaPlaybackService.MusicBinder;
+
+import java.util.ArrayList;
 
 
 public class MusicActivity extends AppCompatActivity implements OnNewClickListener, AllSongsFragment.OnShowMediaListener {
     private static final int MY_PERMISSION_REQUEST = 1;
-    FragmentManager fragmentManager;
-    FragmentTransaction fragmentTransaction;
+    private FragmentManager fragmentManager;
+    private FragmentTransaction fragmentTransaction;
+    private MediaPlaybackService musicSrv;
+    private Intent playIntent;
+    private boolean musicBound = false;
+    private ArrayList<Song> songList;
+    //connect to the service
+    private ServiceConnection musicConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            MusicBinder binder = (MusicBinder) iBinder;
+            //get service
+            musicSrv = binder.getService();
+            //pass list
+            musicSrv.setList(songList);
+            musicBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            musicBound = false;
+        }
+    };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (playIntent == null) {
+            playIntent = new Intent(this, MediaPlaybackService.class);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            startService(playIntent);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +73,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         setContentView(R.layout.activity_music);
         Toolbar toolbar = findViewById(R.id.toolbar);
 
+        songList = new ArrayList<Song>();
         //set toolbar
         setSupportActionBar(toolbar);
         toolbar.setTitle("Music");
@@ -45,6 +86,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             //add fragment to frameLayout
             AddFragmentOne();
         }
+
 
     }
 

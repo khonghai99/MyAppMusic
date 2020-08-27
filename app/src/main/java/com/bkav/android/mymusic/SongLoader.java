@@ -41,7 +41,6 @@ public class SongLoader {
                         listSong.add(new Song(title, artist, duration, path));
                     }
                 }
-
             }
 
 

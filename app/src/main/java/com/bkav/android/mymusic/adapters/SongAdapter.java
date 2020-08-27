@@ -4,12 +4,13 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bkav.android.mymusic.OnNewClickListener;
+import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.models.Song;
 
@@ -44,17 +45,17 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         final Song song = mSongList.get(position);
         if (song != null) {
             holder.tvID.setText(String.valueOf(position + 1));
-            holder.tvNameSong.setText(mSongList.get(position).getmTitle());
-            holder.tvTimeSong.setText(mSongList.get(position).getmDuration());
+            holder.toBind(song);
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     mOnNewClickListener.onNewClick(song, position);
                 }
             });
+            //get position
+            holder.getLayoutPosition();
         }
     }
-
 
     @Override
     public int getItemCount() {
@@ -62,16 +63,23 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     }
 
     public static class SongHolder extends RecyclerView.ViewHolder {
-        public TextView tvID;
-        public TextView tvNameSong;
-        public TextView tvTimeSong;
+        private ImageView ivPlaying;
+        private TextView tvID;
+        private TextView tvTitleSong;
+        private TextView tvDuration;
 
         public SongHolder(@NonNull final View itemView) {
             super(itemView);
             tvID = itemView.findViewById(R.id.tvID);
-            tvNameSong = itemView.findViewById(R.id.tvTitleSongOneRow);
-            tvTimeSong = itemView.findViewById(R.id.tvDurationSongOneRow);
+            tvTitleSong = itemView.findViewById(R.id.tvTitleSongOneRow);
+            ivPlaying = itemView.findViewById(R.id.ivPlaying);
+            tvDuration = itemView.findViewById(R.id.tvDurationSongOneRow);
 
+        }
+
+        public void toBind(Song song) {
+            tvTitleSong.setText(song.getmTitle());
+            tvDuration.setText(song.getmDuration());
         }
     }
 }
