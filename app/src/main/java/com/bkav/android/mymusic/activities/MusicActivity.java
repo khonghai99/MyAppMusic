@@ -2,10 +2,10 @@ package com.bkav.android.mymusic.activities;
 
 import android.Manifest;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.Menu;
@@ -26,34 +26,39 @@ import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.models.Song;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
-import com.bkav.android.mymusic.services.MediaPlaybackService.MusicBinder;
 
 import java.util.ArrayList;
 
 
 public class MusicActivity extends AppCompatActivity implements OnNewClickListener, AllSongsFragment.OnShowMediaListener {
+    //sends broadcast intents to the MediaPlayerService
+    public static final String Broadcast_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
     private static final int MY_PERMISSION_REQUEST = 1;
     private FragmentManager fragmentManager;
     private FragmentTransaction fragmentTransaction;
-    private MediaPlaybackService musicSrv;
+    private MediaPlaybackService player;
     private Intent playIntent;
     private boolean musicBound = false;
     private ArrayList<Song> songList;
-    //connect to the service
-    private ServiceConnection musicConnection = new ServiceConnection() {
+    private boolean isVertical = false;
+    private boolean serviceBound = false;
+
+    // Ràng buộc Client này với MusicPlayer
+    private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            MusicBinder binder = (MusicBinder) iBinder;
-            //get service
-            musicSrv = binder.getService();
-            //pass list
-            musicSrv.setList(songList);
-            musicBound = true;
+        public void onServiceConnected(ComponentName name, IBinder service) {
+
+            // Đã liên kết với LocalService, truyền IBinder và nhận phiên bản LocalService
+            MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
+            player = binder.getService();
+            serviceBound = true;
+
+            Toast.makeText(MusicActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
         }
 
         @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            musicBound = false;
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
         }
     };
 
@@ -61,9 +66,9 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     protected void onStart() {
         super.onStart();
         if (playIntent == null) {
-            playIntent = new Intent(this, MediaPlaybackService.class);
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            startService(playIntent);
+//            playIntent = new Intent(this, MediaPlaybackService.class);
+//            bindService(playIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+//            startService(playIntent);
         }
     }
 
@@ -74,30 +79,49 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         Toolbar toolbar = findViewById(R.id.toolbar);
 
         songList = new ArrayList<Song>();
+
         //set toolbar
         setSupportActionBar(toolbar);
         toolbar.setTitle("Music");
+        AddFragment();
 
         //check permission
         if (ContextCompat.checkSelfPermission(MusicActivity.this,
                 Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MusicActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
-        } else {
-            //add fragment to frameLayout
-            AddFragmentOne();
         }
-
-
     }
 
-    private void AddFragmentOne() {
+    private void AddFragment() {
+        //add fragment to frameLayout
         fragmentManager = getSupportFragmentManager();
-        fragmentTransaction = fragmentManager.beginTransaction();
-        AllSongsFragment allSongsFragment = new AllSongsFragment();
-        fragmentTransaction.replace(R.id.fragmentLayoutOne, allSongsFragment);
-        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
+        int orientation = getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            // In landscape
+            isVertical = false;
+        } else {
+            // In portrait
+            isVertical = true;
+        }
+        if (isVertical) {
+            fragmentTransaction = fragmentManager.beginTransaction();
+            AllSongsFragment allSongsFragment = new AllSongsFragment();
+            fragmentTransaction.replace(R.id.fragmentLayoutOne, allSongsFragment);
+            fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            fragmentTransaction.commit();
+        } else {
+            AllSongsFragment allSongFragment = new AllSongsFragment();
+            fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.fragmentLayoutOne, allSongFragment);
+            fragmentTransaction.commit();
+
+            MediaPlaybackFragment mediaPlaybackFragment = new MediaPlaybackFragment();
+            FragmentTransaction transactionTow = fragmentManager.beginTransaction();
+            transactionTow.replace(R.id.fragmentLayoutTwo, mediaPlaybackFragment);
+            transactionTow.addToBackStack(null);
+            transactionTow.commit();
+        }
+
     }
 
     @Override
@@ -109,11 +133,18 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     //event click recyclerView
     @Override
     public void onNewClick(Song song, int position) {
-        AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentLayoutOne);
-        if (allSongsFragment != null) {
-            allSongsFragment.setDataBottom(song, position);
-            allSongsFragment.setVisible();
+        if (isVertical) {
+            AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentLayoutOne);
+            if (allSongsFragment != null) {
+                allSongsFragment.setDataBottom(song, position);
+                allSongsFragment.setVisible();
+            }
+        }else {
+            MediaPlaybackFragment player = (MediaPlaybackFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentLayoutTwo);
+            //player.setTile(musicManager.getSinpleSong(i));
+            player.setTitle(song);
         }
+
 
     }
 

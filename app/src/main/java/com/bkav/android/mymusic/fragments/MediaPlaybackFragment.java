@@ -61,4 +61,18 @@ public class MediaPlaybackFragment extends Fragment {
         tvTitleSongTopMedia.setText(bundle.getString("title"));
         tvArtistTopMedia.setText(bundle.getString("artist"));
     }
+
+    public void setTitle(Song song) {
+        String path = song.getmPath();
+        byte[] art = ImageSong.getByteImageSong(path);
+        if (art != null) {
+            ivSongTopMedia.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+            ivBackgroundMedia.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+        } else {
+            ivSongTopMedia.setImageResource(R.drawable.ic_no_image);
+            ivBackgroundMedia.setImageResource(R.drawable.ic_no_image);
+        }
+        tvArtistTopMedia.setText(song.getmArtist());
+        tvTitleSongTopMedia.setText(song.getmTitle());
+    }
 }
