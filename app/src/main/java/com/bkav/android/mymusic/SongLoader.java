@@ -13,7 +13,7 @@ import java.util.List;
 
 public class SongLoader {
 
-    public List<Song> getAllSongDevice(Context context) {
+    public ArrayList<Song> getAllSongDevice(Context context) {
         String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
         String[] projection = {
                 MediaStore.Audio.AudioColumns.TITLE,
@@ -22,7 +22,7 @@ public class SongLoader {
                 MediaStore.Audio.AudioColumns.DATA
 
         };
-        List<Song> listSong = new ArrayList<>();
+        ArrayList<Song> listSong = new ArrayList<>();
 
         Cursor cursor = null;
         try {

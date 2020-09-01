@@ -19,7 +19,7 @@
             android:layout_centerVertical="true"
             android:gravity="center"
             android:text="@string/number_default"
-            android:textSize="20sp"
+            android:textSize="14sp"
             android:visibility="visible"/>
 
         <ImageView

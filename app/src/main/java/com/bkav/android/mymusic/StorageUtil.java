@@ -2,6 +2,7 @@ package com.bkav.android.mymusic;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.bkav.android.mymusic.models.Song;
 import com.google.gson.Gson;
@@ -33,8 +34,10 @@ public class StorageUtil {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         Gson gson = new Gson();
         String json = preferences.getString("audioArrayList", null);
+        Log.i("json",json);
         Type type = new TypeToken<ArrayList<Song>>() {
         }.getType();
+        Log.i("gson",gson.fromJson(json,type).toString());
         return gson.fromJson(json, type);
     }
 

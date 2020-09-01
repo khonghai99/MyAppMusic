@@ -83,16 +83,16 @@ public class AllSongsFragment extends Fragment {
         return view;
     }
 
-    public void setDataBottom(Song song, int position) {
-        mSong = song;
-        byte[] art = ImageSong.getByteImageSong(song.getmPath());
+    public void setDataBottom(ArrayList<Song> songList, int position) {
+        mSong = songList.get(position);
+        byte[] art = ImageSong.getByteImageSong(songList.get(position).getmPath());
         if (art != null) {
             ivSongBottomAllSong.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
         } else {
             ivSongBottomAllSong.setImageResource(R.drawable.ic_no_image);
         }
-        tvTitleSongBottomAllSong.setText(song.getmTitle());
-        tvArtistBottomAllSong.setText(song.getmArtist());
+        tvTitleSongBottomAllSong.setText(songList.get(position).getmTitle());
+        tvArtistBottomAllSong.setText(songList.get(position).getmArtist());
 
     }
 

@@ -14,14 +14,15 @@ import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.models.Song;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     private OnNewClickListener mOnNewClickListener;
     private Context mContext;
-    private List<Song> mSongList;
+    private ArrayList<Song> mSongList;
 
-    public SongAdapter(Context mContext, List<Song> mSongList, OnNewClickListener mOnNewClickListener) {
+    public SongAdapter(Context mContext, ArrayList<Song> mSongList, OnNewClickListener mOnNewClickListener) {
         this.mContext = mContext;
         this.mSongList = mSongList;
         this.mOnNewClickListener = mOnNewClickListener;
@@ -49,7 +50,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    mOnNewClickListener.onNewClick(song, position);
+                    mOnNewClickListener.onNewClick(mSongList, position);
                 }
             });
             //get position

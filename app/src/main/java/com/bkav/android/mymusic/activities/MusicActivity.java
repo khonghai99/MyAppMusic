@@ -2,12 +2,14 @@ package com.bkav.android.mymusic.activities;
 
 import android.Manifest;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.Menu;
 import android.widget.Toast;
 
@@ -22,6 +24,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
 import com.bkav.android.mymusic.R;
+import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.models.Song;
@@ -30,16 +33,18 @@ import com.bkav.android.mymusic.services.MediaPlaybackService;
 import java.util.ArrayList;
 
 
-public class MusicActivity extends AppCompatActivity implements OnNewClickListener, AllSongsFragment.OnShowMediaListener {
+public class MusicActivity extends AppCompatActivity implements OnNewClickListener,
+        AllSongsFragment.OnShowMediaListener {
+
     //sends broadcast intents to the MediaPlayerService
     public static final String Broadcast_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
     private static final int MY_PERMISSION_REQUEST = 1;
+
     private FragmentManager fragmentManager;
     private FragmentTransaction fragmentTransaction;
     private MediaPlaybackService player;
-    private Intent playIntent;
-    private boolean musicBound = false;
     private ArrayList<Song> songList;
+    private int mCurrentPosition;
     private boolean isVertical = false;
     private boolean serviceBound = false;
 
@@ -53,7 +58,8 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             player = binder.getService();
             serviceBound = true;
 
-            Toast.makeText(MusicActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MusicActivity.this, "Service Bound", Toast.LENGTH_SHORT)
+                    .show();
         }
 
         @Override
@@ -61,16 +67,6 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             serviceBound = false;
         }
     };
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (playIntent == null) {
-//            playIntent = new Intent(this, MediaPlaybackService.class);
-//            bindService(playIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-//            startService(playIntent);
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +88,41 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         }
     }
 
+    private void playAudio(int audioIndex) {
+        mCurrentPosition = audioIndex;
+        //Check is service is active
+        StorageUtil storage = new StorageUtil(getApplicationContext());
+        if (!serviceBound) {
+            //Lưu danh sách âm thanh to SharedPreferences
+            storage.storeAudio(songList);
+            storage.storeAudioIndex(audioIndex);
+
+            Intent playerIntent = new Intent(this, MediaPlaybackService.class);
+            startService(playerIntent);
+            bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        } else {
+            //Lưu vị trí âm thanh mới to SharedPreferences
+            storage.storeAudioIndex(audioIndex);
+
+            //Service is active
+            //Send a broadcast to the service -> PLAY_NEW_AUDIO
+            Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
+            sendBroadcast(broadcastIntent);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putBoolean("ServiceState", serviceBound);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        serviceBound = savedInstanceState.getBoolean("ServiceState");
+    }
+
     private void AddFragment() {
         //add fragment to frameLayout
         fragmentManager = getSupportFragmentManager();
@@ -106,18 +137,18 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         if (isVertical) {
             fragmentTransaction = fragmentManager.beginTransaction();
             AllSongsFragment allSongsFragment = new AllSongsFragment();
-            fragmentTransaction.replace(R.id.fragmentLayoutOne, allSongsFragment);
+            fragmentTransaction.replace(R.id.frameLayoutAllSong, allSongsFragment);
             fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             fragmentTransaction.commit();
         } else {
             AllSongsFragment allSongFragment = new AllSongsFragment();
             fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.fragmentLayoutOne, allSongFragment);
+            fragmentTransaction.replace(R.id.frameLayoutOne, allSongFragment);
             fragmentTransaction.commit();
 
             MediaPlaybackFragment mediaPlaybackFragment = new MediaPlaybackFragment();
             FragmentTransaction transactionTow = fragmentManager.beginTransaction();
-            transactionTow.replace(R.id.fragmentLayoutTwo, mediaPlaybackFragment);
+            transactionTow.replace(R.id.frameLayoutTwo, mediaPlaybackFragment);
             transactionTow.addToBackStack(null);
             transactionTow.commit();
         }
@@ -132,17 +163,20 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
     //event click recyclerView
     @Override
-    public void onNewClick(Song song, int position) {
+    public void onNewClick(ArrayList<Song> songList, int position) {
         if (isVertical) {
-            AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentLayoutOne);
+            AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
             if (allSongsFragment != null) {
-                allSongsFragment.setDataBottom(song, position);
+                allSongsFragment.setDataBottom(songList, position);
                 allSongsFragment.setVisible();
+                this.songList = songList;
+                playAudio(position);
             }
-        }else {
-            MediaPlaybackFragment player = (MediaPlaybackFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentLayoutTwo);
-            //player.setTile(musicManager.getSinpleSong(i));
-            player.setTitle(song);
+        } else {
+            MediaPlaybackFragment player = (MediaPlaybackFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutTwo);
+            player.setTitle(songList.get(position));
+            this.songList = songList;
+            playAudio(position);
         }
 
 
@@ -150,14 +184,21 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
     @Override
     public void showMediaFragment(Song song) {
-        Fragment fragment = MediaPlaybackFragment.getInstancesMedia(song);
-        fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.fragmentLayoutOne, fragment);
+        MediaPlaybackFragment mediaPlaybackFragment;
+        if (isVertical) {
+            mediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(song);
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.frameLayoutMedia, mediaPlaybackFragment);
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
+        } else {
+            mediaPlaybackFragment = new MediaPlaybackFragment();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.frameLayoutTwo, mediaPlaybackFragment);
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
+        }
 
-        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
     }
 
     @Override

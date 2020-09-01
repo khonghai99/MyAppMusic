@@ -7,9 +7,9 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/listSong"
         android:layout_width="match_parent"
-        android:layout_above="@+id/layoutBottomAllSong"
-        android:layout_alignWithParentIfMissing="true"
         android:layout_height="match_parent"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_above="@+id/layoutBottomAllSong"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true" />
 
@@ -17,16 +17,16 @@
 
         android:id="@+id/layoutBottomAllSong"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="75dp"
         android:layout_alignParentBottom="true"
-        android:visibility="gone"
         android:background="@color/colorBackground"
-        android:padding="10dp">
+        android:padding="8dp"
+        android:visibility="visible">
 
         <ImageView
             android:id="@+id/ivSongBottomAllSong"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+            android:layout_width="57dp"
+            android:layout_height="57dp"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
             android:src="@drawable/chieu_hom_ay" />
@@ -42,10 +42,10 @@
                 android:id="@+id/tvTitleSongBottomAllSong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="9dp"
                 android:maxLines="1"
                 android:text="@string/default_name_song"
-                android:textSize="25sp" />
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/tvArtistBottomAllSong"

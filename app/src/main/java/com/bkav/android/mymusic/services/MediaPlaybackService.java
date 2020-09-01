@@ -1,6 +1,7 @@
 package com.bkav.android.mymusic.services;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -20,12 +21,14 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.bkav.android.mymusic.PlaybackStatus;
@@ -471,18 +474,16 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void updateMetaData() {
         Bitmap albumArt = BitmapFactory.decodeResource(getResources(),
-                R.drawable.ic_launcher_background); //replace with medias albumArt
+                R.drawable.ic_no_image); //replace with medias albumArt
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadata.Builder()
                 .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArt)
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, activeAudio.getmArtist())
-                .putString(MediaMetadata.METADATA_KEY_DURATION, activeAudio.getmDuration())
                 .putString(MediaMetadata.METADATA_KEY_TITLE, activeAudio.getmTitle())
                 .build());
     }
 
     private void skipToNext() {
-
         if (audioIndex == audioList.size() - 1) {
             //if last in playlist
             audioIndex = 0;
@@ -502,7 +503,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     }
 
     private void skipToPrevious() {
-
         if (audioIndex == 0) {
             //if first in playlist
             //set index to the last of audioList
@@ -522,6 +522,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         initMediaPlayer();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void buildNotification(PlaybackStatus playbackStatus) {
 
         int notificationAction = android.R.drawable.ic_media_pause;//needs to be initialized
@@ -541,31 +542,31 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
                 R.drawable.ic_launcher_background); //replace with your own image
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
-        // Create a new Notification
-//        Notification notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
-//                .setShowWhen(false)
-//                // Set the Notification style
-//                .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))
-//                .addAction(notificationAction, "pause", play_pauseAction)
-//                .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2))
-//                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle())
-//                // Attach our MediaSession token
-////                        .setMediaSession(MediaSessionCompat.Token.fromToken(mediaSession.getSessionToken()))
-////                        // Show our playback controls in the compact notification view.
-////                        .setShowActionsInCompactView(0, 1, 2))
-//                // Set the Notification color
-//                .setColor(getResources().getColor(R.color.colorPrimary))
-//                // Set the large and small icons
-//                .setLargeIcon(largeIcon)
-//                .setSmallIcon(android.R.drawable.stat_sys_headset)
-//                // Set Notification content information
-//                .setContentText(activeAudio.getArtist())
-//                .setContentTitle(activeAudio.getAlbum())
-//                .setContentInfo(activeAudio.getTitle())
-//                // Add playback actions
-//
-//                .build();
-//        notificationManagerCompat.notify(NOTIFICATION_ID, notificationBuilder);
+
+        Notification notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setShowWhen(false)
+                // Set the Notification style
+                .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))
+                .addAction(notificationAction, "pause", play_pauseAction)
+                .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2))
+                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                        // Attach our MediaSession token
+                        .setMediaSession(MediaSessionCompat.Token.fromToken(mediaSession.getSessionToken()))
+//                        // Show our playback controls in the compact notification view.
+                        .setShowActionsInCompactView(0, 1, 2))
+                // Set the Notification color
+                .setColor(getResources().getColor(R.color.colorPrimary))
+                // Set the large and small icons
+                .setLargeIcon(largeIcon)
+                .setSmallIcon(android.R.drawable.stat_sys_headset)
+                // Set Notification content information
+                .setContentText(activeAudio.getmArtist())
+                .setContentTitle(activeAudio.getmTitle())
+                //.setContentInfo(activeAudio.getTitle())
+                // Add playback actions
+
+                .build();
+        notificationManagerCompat.notify(NOTIFICATION_ID, notificationBuilder);
 
 
     }
