@@ -1,6 +1,7 @@
 package com.bkav.android.mymusic.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,12 +16,12 @@ import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.models.Song;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     private OnNewClickListener mOnNewClickListener;
     private Context mContext;
     private ArrayList<Song> mSongList;
+    private int mCurrentPos;
 
     public SongAdapter(Context mContext, ArrayList<Song> mSongList, OnNewClickListener mOnNewClickListener) {
         this.mContext = mContext;
@@ -51,10 +52,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
                 @Override
                 public void onClick(View view) {
                     mOnNewClickListener.onNewClick(mSongList, position);
+                    mCurrentPos = position;
+
                 }
             });
             //get position
-            holder.getLayoutPosition();
+            holder.getAdapterPosition();
         }
     }
 

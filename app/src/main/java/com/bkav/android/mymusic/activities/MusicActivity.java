@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.Toast;
@@ -214,4 +215,5 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             }
         }
     }
+
 }

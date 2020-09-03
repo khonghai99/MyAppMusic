@@ -2,6 +2,7 @@ package com.bkav.android.mymusic.services;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.media.MediaPlayer;
@@ -21,7 +23,6 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -29,7 +30,6 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
@@ -44,13 +44,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnSeekCompleteListener,
         MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener,
         AudioManager.OnAudioFocusChangeListener {
-
     public static final String CHANNEL_ID = "channel1";
     public static final String ACTION_PLAY = "com.bkav.musictest.ACTION_PLAY";
     public static final String ACTION_PAUSE = "com.bkav.musictest.ACTION_PAUSE";
     public static final String ACTION_PREVIOUS = "com.bkav.musictest.ACTION_PREVIOUS";
     public static final String ACTION_NEXT = "com.bkav.musictest.ACTION_NEXT";
     public static final String ACTION_STOP = "com.bkav.musictest.ACTION_STOP";
+    private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
     // Binder given to clients
@@ -68,7 +68,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
     private MediaPlayer mediaPlayer;
-
+    private NotificationManager mNotifyManager;
     //path to the audio file
     private String mediaFile;
 
@@ -179,6 +179,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+
         try {
             //Load data from SharedPreferences
             StorageUtil storage = new StorageUtil(getApplicationContext());
@@ -209,6 +211,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 e.printStackTrace();
                 stopSelf();
             }
+
             buildNotification(PlaybackStatus.PLAYING);
         }
 
@@ -216,6 +219,63 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         handleIncomingActions(intent);
         return super.onStartCommand(intent, flags, startId);
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void buildNotification(PlaybackStatus playbackStatus) {
+
+        int notificationAction = android.R.drawable.ic_media_pause;//needs to be initialized
+        PendingIntent play_pauseAction = null;
+
+        //Build a new notification according to the current state of the MediaPlayer
+        if (playbackStatus == PlaybackStatus.PLAYING) {
+            notificationAction = android.R.drawable.ic_media_pause;
+            //create the pause action
+            play_pauseAction = playbackAction(1);
+        } else if (playbackStatus == PlaybackStatus.PAUSED) {
+            notificationAction = android.R.drawable.ic_media_play;
+            //create the play action
+            play_pauseAction = playbackAction(0);
+        }
+
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
+                R.drawable.ic_launcher_background); //replace with your own image
+
+        mNotifyManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >=
+                android.os.Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(PRIMARY_CHANNEL_ID,
+                    "Mascot Notification", NotificationManager
+                    .IMPORTANCE_LOW);
+
+            mNotifyManager.createNotificationChannel(notificationChannel);
+
+            Notification notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setShowWhen(false)
+                    // Set the Notification style
+                    .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))
+                    .addAction(notificationAction, "pause", play_pauseAction)
+                    .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2))
+                    .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                            // Attach our MediaSession token
+                            //          .setMediaSession(MediaSessionCompat.Token.fromToken(mediaSession.getSessionToken()))
+//                        // Show our playback controls in the compact notification view.
+                            .setShowActionsInCompactView(0, 1, 2))
+                    // Set the large and small icons
+                    .setLargeIcon(largeIcon)
+                    .setSmallIcon(android.R.drawable.stat_sys_headset)
+                    // Set Notification content information
+                    .setContentText(activeAudio.getmArtist())
+                    .setContentTitle(activeAudio.getmTitle())
+                    //.setContentInfo(activeAudio.getTitle())
+                    // Add playback actions
+
+                    .build();
+            mNotifyManager.notify(NOTIFICATION_ID, notificationBuilder);
+        }
+
+
+    }
+
 
     private void register_playNewAudio() {
         //Register playNewMedia receiver
@@ -369,6 +429,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.i("Main1", "service create");
         // Thực hiện các thủ tục thiết lập một lần
         //
         // Quản lý các cuộc gọi đến trong khi phát lại.
@@ -522,54 +583,23 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         initMediaPlayer();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void buildNotification(PlaybackStatus playbackStatus) {
-
-        int notificationAction = android.R.drawable.ic_media_pause;//needs to be initialized
-        PendingIntent play_pauseAction = null;
-
-        //Build a new notification according to the current state of the MediaPlayer
-        if (playbackStatus == PlaybackStatus.PLAYING) {
-            notificationAction = android.R.drawable.ic_media_pause;
-            //create the pause action
-            play_pauseAction = playbackAction(1);
-        } else if (playbackStatus == PlaybackStatus.PAUSED) {
-            notificationAction = android.R.drawable.ic_media_play;
-            //create the play action
-            play_pauseAction = playbackAction(0);
+    // Create a NotificationChannel
+    public void createNotificationChannel() {
+        mNotifyManager = (NotificationManager)
+                getSystemService(NOTIFICATION_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >=
+                android.os.Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(PRIMARY_CHANNEL_ID,
+                    "Mascot Notification", NotificationManager
+                    .IMPORTANCE_HIGH);
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.enableVibration(true);
+            notificationChannel.setDescription("Notification from Mascot");
+            mNotifyManager.createNotificationChannel(notificationChannel);
         }
-
-        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
-                R.drawable.ic_launcher_background); //replace with your own image
-        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
-
-        Notification notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setShowWhen(false)
-                // Set the Notification style
-                .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))
-                .addAction(notificationAction, "pause", play_pauseAction)
-                .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2))
-                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                        // Attach our MediaSession token
-                        .setMediaSession(MediaSessionCompat.Token.fromToken(mediaSession.getSessionToken()))
-//                        // Show our playback controls in the compact notification view.
-                        .setShowActionsInCompactView(0, 1, 2))
-                // Set the Notification color
-                .setColor(getResources().getColor(R.color.colorPrimary))
-                // Set the large and small icons
-                .setLargeIcon(largeIcon)
-                .setSmallIcon(android.R.drawable.stat_sys_headset)
-                // Set Notification content information
-                .setContentText(activeAudio.getmArtist())
-                .setContentTitle(activeAudio.getmTitle())
-                //.setContentInfo(activeAudio.getTitle())
-                // Add playback actions
-
-                .build();
-        notificationManagerCompat.notify(NOTIFICATION_ID, notificationBuilder);
-
-
     }
+
 
     private void removeNotification() {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

@@ -19,7 +19,7 @@
             android:layout_centerVertical="true"
             android:gravity="center"
             android:text="@string/number_default"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:visibility="visible"/>
 
         <ImageView
@@ -29,7 +29,6 @@
             android:layout_centerVertical="true"
             android:src="@drawable/ic_playing_song"
             android:text="@string/number_default"
-            android:textSize="20sp"
             android:visibility="invisible" />
 
         <TextView
@@ -42,12 +41,13 @@
             android:layout_toRightOf="@id/tvID"
             android:maxLines="1"
             android:text="@string/default_name_song"
-            android:textSize="22sp" />
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/tvDurationSongOneRow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="15sp"
             android:layout_below="@id/tvTitleSongOneRow"
             android:layout_alignStart="@id/tvTitleSongOneRow"
             android:text="@string/default_time_song" />
