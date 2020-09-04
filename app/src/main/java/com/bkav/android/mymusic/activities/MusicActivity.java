@@ -190,6 +190,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             mediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(song);
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.frameLayoutMedia, mediaPlaybackFragment);
+            fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
         } else {

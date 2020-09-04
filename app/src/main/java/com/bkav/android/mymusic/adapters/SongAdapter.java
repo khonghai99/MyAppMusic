@@ -18,10 +18,10 @@ import com.bkav.android.mymusic.models.Song;
 import java.util.ArrayList;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
+    private int mCurrentSong;
     private OnNewClickListener mOnNewClickListener;
     private Context mContext;
     private ArrayList<Song> mSongList;
-    private int mCurrentPos;
 
     public SongAdapter(Context mContext, ArrayList<Song> mSongList, OnNewClickListener mOnNewClickListener) {
         this.mContext = mContext;
@@ -52,8 +52,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
                 @Override
                 public void onClick(View view) {
                     mOnNewClickListener.onNewClick(mSongList, position);
-                    mCurrentPos = position;
-
                 }
             });
             //get position

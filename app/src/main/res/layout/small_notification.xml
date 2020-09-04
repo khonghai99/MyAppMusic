@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:orientation="horizontal"
+    android:padding="6dp">
+
+    <ImageView
+        android:id="@+id/ivSmallPicture"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_centerVertical="true"
+        android:src="@drawable/chieu_hom_ay" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_marginEnd="34dp"
+        android:layout_centerVertical="true"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true">
+
+        <ImageView
+            android:id="@+id/ivSmallPrevious"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginEnd="23dp"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/ic_previous" />
+
+        <ImageView
+            android:id="@+id/ivSmallPause"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_button_pause" />
+
+        <ImageView
+            android:id="@+id/ivSmallNext"
+            android:layout_width="30dp"
+            android:layout_marginStart="23dp"
+            android:layout_marginTop="10dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_next" />
+
+
+    </LinearLayout>
+
+
+</RelativeLayout>

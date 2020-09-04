@@ -3,9 +3,9 @@
     android:id="@+id/layoutRelativeOnerow"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:paddingLeft="40dp"
+    android:paddingLeft="20dp"
     android:paddingTop="10dp"
-    android:paddingEnd="15dp"
+    android:paddingEnd="10dp"
     android:paddingBottom="10dp">
 
     <RelativeLayout
@@ -20,46 +20,37 @@
             android:gravity="center"
             android:text="@string/number_default"
             android:textSize="15sp"
-            android:visibility="visible"/>
-
-        <ImageView
-            android:id="@+id/ivPlaying"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_playing_song"
-            android:text="@string/number_default"
-            android:visibility="invisible" />
+            />
 
         <TextView
             android:id="@+id/tvTitleSongOneRow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="20dp"
             android:layout_toLeftOf="@id/ivShowPopup"
             android:layout_toRightOf="@id/tvID"
             android:maxLines="1"
             android:text="@string/default_name_song"
-            android:textSize="18sp" />
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/tvDurationSongOneRow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
             android:layout_below="@id/tvTitleSongOneRow"
             android:layout_alignStart="@id/tvTitleSongOneRow"
-            android:text="@string/default_time_song" />
+            android:text="@string/default_time_song"
+            android:textSize="15sp" />
 
         <ImageView
             android:id="@+id/ivShowPopup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:adjustViewBounds="true"
-            android:background="@drawable/ic_click_show_popup"
+            android:background="@drawable/ic_show_menu_top_media"
             android:scaleType="centerInside" />
 
     </RelativeLayout>
