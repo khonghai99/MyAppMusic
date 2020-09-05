@@ -2,7 +2,6 @@ package com.bkav.android.mymusic.fragments;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
-import android.media.MediaMetadataRetriever;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,19 +28,19 @@ import com.bkav.android.mymusic.models.Song;
 import java.util.ArrayList;
 
 public class AllSongsFragment extends Fragment {
-    public RelativeLayout layoutBottomAllSong;
-    private ArrayList<Song> mListSong;
+    public RelativeLayout mBottomAllSongRelativeLayout;
+    private ArrayList<Song> mSongList;
     private SongAdapter mSongAdapter;
     private OnShowMediaListener mOnShowMediaListener;
 
     private RecyclerView mRecyclerView;
 
 
-    private TextView tvTitleSongBottomAllSong;
-    private TextView tvArtistBottomAllSong;
+    private TextView mTitleBottomAllSongTextView;
+    private TextView mArtistBottomAllSongTextView;
 
-    private ImageView ivSongBottomAllSong;
-    private ImageView ivPauseBottomAllSong;
+    private ImageView mImageBottomAllSongImageView;
+    private ImageView mImagePauseBottomAllSongImageView;
 
     private Song mSong;
 
@@ -60,20 +59,19 @@ public class AllSongsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.i("main","Create fragment one");
+        Log.i("main", "Create fragment one");
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
-        ivSongBottomAllSong = view.findViewById(R.id.ivSongBottomAllSong);
-        tvTitleSongBottomAllSong = view.findViewById(R.id.tvTitleSongBottomAllSong);
-        tvArtistBottomAllSong = view.findViewById(R.id.tvArtistBottomAllSong);
-        ivPauseBottomAllSong = view.findViewById(R.id.ivPauseBottomAllSong);
-        layoutBottomAllSong = view.findViewById(R.id.layoutBottomAllSong);
+        mImageBottomAllSongImageView = view.findViewById(R.id.ivSongBottomAllSong);
+        mTitleBottomAllSongTextView = view.findViewById(R.id.tvTitleSongBottomAllSong);
+        mArtistBottomAllSongTextView = view.findViewById(R.id.tvArtistBottomAllSong);
+        mImagePauseBottomAllSongImageView = view.findViewById(R.id.ivPauseBottomAllSong);
+        mBottomAllSongRelativeLayout = view.findViewById(R.id.layoutBottomAllSong);
 
         mRecyclerView = view.findViewById(R.id.listSong);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(layoutManager);
-
-        layoutBottomAllSong.setOnClickListener(new View.OnClickListener() {
+        mBottomAllSongRelativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mOnShowMediaListener.showMediaFragment(mSong);
@@ -87,17 +85,18 @@ public class AllSongsFragment extends Fragment {
         mSong = songList.get(position);
         byte[] art = ImageSong.getByteImageSong(songList.get(position).getmPath());
         if (art != null) {
-            ivSongBottomAllSong.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+            mImageBottomAllSongImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
         } else {
-            ivSongBottomAllSong.setImageResource(R.drawable.ic_no_image);
+            mImageBottomAllSongImageView.setImageResource(R.drawable.ic_no_image);
         }
-        tvTitleSongBottomAllSong.setText(songList.get(position).getmTitle());
-        tvArtistBottomAllSong.setText(songList.get(position).getmArtist());
+        mTitleBottomAllSongTextView.setText(songList.get(position).getmTitle());
+        mArtistBottomAllSongTextView.setText(songList.get(position).getmArtist());
 
     }
 
-    public void setVisible() {
-        layoutBottomAllSong.setVisibility(View.VISIBLE);
+    public void setVisible(int current) {
+        mBottomAllSongRelativeLayout.setVisibility(View.VISIBLE);
+        mSongAdapter.setCurrentSong(current);
 
     }
 
@@ -123,8 +122,4 @@ public class AllSongsFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
 }

@@ -20,11 +20,11 @@ import com.bkav.android.mymusic.models.Song;
 
 public class MediaPlaybackFragment extends Fragment implements View.OnClickListener {
     private final String LOG_INFO = "appMusic";
-    private ImageView ivSongTopMedia;
-    private TextView tvTitleSongTopMedia;
-    private TextView tvArtistTopMedia;
-    private ImageView ivPopupTopMedia;
-    private ImageView ivBackgroundMedia;
+    private ImageView mImageTopMediaImageView;
+    private TextView mTitleTopMediaTextView;
+    private TextView mArtistTopMediaTextView;
+    private ImageView mPopupTopMediaImageView;
+    private ImageView mBackgroundMediaImageView;
 
     public static MediaPlaybackFragment getInstancesMedia(Song song) {
         MediaPlaybackFragment fragment = new MediaPlaybackFragment();
@@ -48,12 +48,12 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Log.i(LOG_INFO, "fragment media create view");
         View view = inflater.inflate(R.layout.fragment_media_playback, container, false);
-        ivSongTopMedia = view.findViewById(R.id.ivSongTopMedia);
-        ivPopupTopMedia = view.findViewById(R.id.ivPopupTopMedia);
-        tvArtistTopMedia = view.findViewById(R.id.tvArtistSongTopMedia);
-        tvTitleSongTopMedia = view.findViewById(R.id.tvTitleSongTopMedia);
-        ivBackgroundMedia = view.findViewById(R.id.ivBackgroundMedia);
-        ivBackgroundMedia.setOnClickListener(this);
+        mImageTopMediaImageView = view.findViewById(R.id.ivSongTopMedia);
+        mPopupTopMediaImageView = view.findViewById(R.id.ivPopupTopMedia);
+        mArtistTopMediaTextView = view.findViewById(R.id.tvArtistSongTopMedia);
+        mTitleTopMediaTextView = view.findViewById(R.id.tvTitleSongTopMedia);
+        mBackgroundMediaImageView = view.findViewById(R.id.ivBackgroundMedia);
+        mBackgroundMediaImageView.setOnClickListener(this);
         if (getArguments() != null) {
             setTopMedia(getArguments());
         }
@@ -88,28 +88,28 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         String path = bundle.getString("path");
         byte[] art = ImageSong.getByteImageSong(path);
         if (art != null) {
-            ivSongTopMedia.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
-            ivBackgroundMedia.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+            mImageTopMediaImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+            mBackgroundMediaImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
         } else {
-            ivSongTopMedia.setImageResource(R.drawable.no_image_music);
-            ivBackgroundMedia.setImageResource(R.drawable.no_image_music);
+            mImageTopMediaImageView.setImageResource(R.drawable.no_image_music);
+            mBackgroundMediaImageView.setImageResource(R.drawable.no_image_music);
         }
-        tvTitleSongTopMedia.setText(bundle.getString("title"));
-        tvArtistTopMedia.setText(bundle.getString("artist"));
+        mTitleTopMediaTextView.setText(bundle.getString("title"));
+        mArtistTopMediaTextView.setText(bundle.getString("artist"));
     }
 
     public void setTitle(Song song) {
         String path = song.getmPath();
         byte[] art = ImageSong.getByteImageSong(path);
         if (art != null) {
-            ivSongTopMedia.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
-            ivBackgroundMedia.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+            mImageTopMediaImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+            mBackgroundMediaImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
         } else {
-            ivSongTopMedia.setImageResource(R.drawable.no_image_music);
-            ivBackgroundMedia.setImageResource(R.drawable.no_image_music);
+            mImageTopMediaImageView.setImageResource(R.drawable.no_image_music);
+            mBackgroundMediaImageView.setImageResource(R.drawable.no_image_music);
         }
-        tvArtistTopMedia.setText(song.getmArtist());
-        tvTitleSongTopMedia.setText(song.getmTitle());
+        mArtistTopMediaTextView.setText(song.getmArtist());
+        mTitleTopMediaTextView.setText(song.getmTitle());
     }
 
     @Override

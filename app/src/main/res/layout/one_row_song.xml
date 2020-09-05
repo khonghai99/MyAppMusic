@@ -21,6 +21,15 @@
             android:text="@string/number_default"
             android:textSize="15sp"
             />
+        <ImageView
+            android:id="@+id/ivPlaying"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_playing_song"
+            android:text="@string/number_default"
+            android:visibility="invisible"/>
+
 
         <TextView
             android:id="@+id/tvTitleSongOneRow"

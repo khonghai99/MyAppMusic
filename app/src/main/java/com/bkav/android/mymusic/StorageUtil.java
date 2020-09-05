@@ -22,10 +22,11 @@ public class StorageUtil {
 
     public void storeAudio(ArrayList<Song> arrayList) {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
-
         SharedPreferences.Editor editor = preferences.edit();
+
         Gson gson = new Gson();
         String json = gson.toJson(arrayList);
+
         editor.putString("audioArrayList", json);
         editor.apply();
     }
@@ -44,6 +45,7 @@ public class StorageUtil {
     public void storeAudioIndex(int index) {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
+
         editor.putInt("audioIndex", index);
         editor.apply();
     }
