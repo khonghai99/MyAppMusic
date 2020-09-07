@@ -1,31 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="128dp"
-    android:padding="6dp">
-
-    <ImageView
-        android:id="@+id/ivBigPicture"
-        android:layout_width="112dp"
-        android:layout_height="match_parent"
-        android:layout_centerVertical="true"
-        android:src="@drawable/mai_mai_khong_phai_anh" />
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/layoutRelativeBelow"
-        android:layout_toRightOf="@id/ivBigPicture"
+        android:id="@+id/layoutRelative"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/ivBigPicture"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/mai_mai_khong_phai_anh" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/layoutRelativeAbove"
+        android:layout_width="wrap_content"
+        android:layout_height="80dp"
+        android:layout_toRightOf="@id/layoutRelative"
         android:paddingStart="6dp">
 
-        <View
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:layout_alignParentBottom="true"
-            android:background="#8F898B" />
+            android:background="#ACAAAB" />
 
         <TextView
             android:id="@+id/tvBigNameSong"
+            style="@style/TextAppearance.Compat.Notification.Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Name song"
@@ -33,8 +39,10 @@
             android:textStyle="bold" />
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:id="@+id/tvBigArtist"
+            style="@style/TextAppearance.Compat.Notification.Info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_below="@id/tvBigNameSong"
             android:text="Artist"
             android:textSize="20dp" />
@@ -44,10 +52,10 @@
     <RelativeLayout
         android:id="@+id/layoutRelativeBelow"
         android:layout_width="match_parent"
-        android:layout_height="46dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_toRightOf="@id/ivBigPicture">
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/layoutRelativeAbove"
+        android:layout_alignBottom="@+id/layoutRelative"
+        android:layout_toRightOf="@id/layoutRelative">
 
         <ImageView
 
@@ -61,13 +69,13 @@
 
         <ImageView
             android:id="@+id/ivBigPause"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_centerInParent="true"
             android:src="@drawable/ic_button_pause" />
 
         <ImageView
-            android:id="@+id/ivSmallNext"
+            android:id="@+id/ivBigNext"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_centerVertical="true"

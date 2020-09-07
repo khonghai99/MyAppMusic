@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
     android:id="@+id/layoutfragmentMedia"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <ImageView
@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_marginStart="20dp"
-        android:layout_marginBottom="150dp"
+        android:layout_marginBottom="110dp"
         android:scaleType="center"
         android:src="@drawable/ic_repeat" />
 
@@ -33,11 +33,13 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="150dp"
+        android:layout_marginBottom="110dp"
         android:scaleType="center"
         android:src="@drawable/ic_shuffle" />
 
     <RelativeLayout
+
+        android:id="@+id/layoutBottomMedia"
         android:layout_width="match_parent"
         android:layout_height="95dp"
         android:layout_gravity="bottom"
@@ -46,13 +48,13 @@
         <SeekBar
             android:id="@+id/seekBarTimeSong"
             android:layout_width="match_parent"
-            android:outlineSpotShadowColor="#FF3D00"
+            android:layout_height="5dp"
             android:layout_gravity="center"
-            android:minHeight="5dp"
             android:maxHeight="5dp"
+            android:minHeight="5dp"
+            android:outlineSpotShadowColor="#FF3D00"
             android:progressTint="#FF5722"
-            android:thumbTint="#FF5722"
-            android:layout_height="5dp" />
+            android:thumbTint="#FF5722" />
 
         <TextView
             android:id="@+id/tvStartTimeSong"

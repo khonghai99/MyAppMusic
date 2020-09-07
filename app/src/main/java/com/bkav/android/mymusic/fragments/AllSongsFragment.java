@@ -87,7 +87,7 @@ public class AllSongsFragment extends Fragment {
         if (art != null) {
             mImageBottomAllSongImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
         } else {
-            mImageBottomAllSongImageView.setImageResource(R.drawable.ic_no_image);
+            mImageBottomAllSongImageView.setImageResource(R.drawable.ic_music_not_picture);
         }
         mTitleBottomAllSongTextView.setText(songList.get(position).getmTitle());
         mArtistBottomAllSongTextView.setText(songList.get(position).getmArtist());
@@ -121,5 +121,4 @@ public class AllSongsFragment extends Fragment {
             }
         }
     }
-
 }

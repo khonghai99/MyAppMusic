@@ -25,11 +25,13 @@ import android.os.RemoteException;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.bkav.android.mymusic.ImageSong;
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
@@ -215,6 +217,18 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         return super.onStartCommand(intent, flags, startId);
     }
 
+    //set image when customContentView
+    private void setImageNotifySmall(RemoteViews remoteViews, int id, String path) {
+        byte[] art = ImageSong.getByteImageSong(mActiveAudio.getmPath());
+        if (art != null) {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(art, 0, art.length);
+            remoteViews.setImageViewBitmap(id, bitmap);
+
+        } else {
+            remoteViews.setImageViewResource(id, R.drawable.ic_music_not_picture);
+        }
+    }
+
     private void buildNotification(PlaybackStatus playbackStatus) {
         mNotifyManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
@@ -235,6 +249,19 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
                 R.drawable.ic_launcher_background); //replace with your own image
+        Bitmap largeIcon1 = BitmapFactory.decodeResource(getResources(),
+                R.drawable.mai_mai_khong_phai_anh); //replace with your own image
+
+        RemoteViews smallNotify = new RemoteViews(getPackageName(), R.layout.small_notification);
+        smallNotify.setOnClickPendingIntent(R.id.ivSmallPrevious, playbackAction(3));
+        smallNotify.setOnClickPendingIntent(R.id.ivSmallNext, playbackAction(2));
+        smallNotify.setOnClickPendingIntent(R.id.ivSmallPause, play_pauseAction);
+        setImageNotifySmall(smallNotify, R.id.ivSmallPicture, mActiveAudio.getmPath());
+
+        RemoteViews bigNotify = new RemoteViews(getPackageName(), R.layout.big_notification);
+        bigNotify.setOnClickPendingIntent(R.id.ivBigPrevious, playbackAction(3));
+        bigNotify.setOnClickPendingIntent(R.id.ivBigNext, playbackAction(2));
+        bigNotify.setOnClickPendingIntent(R.id.ivBigPause, play_pauseAction);
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             // Create a NotificationChannel
@@ -242,8 +269,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     "Mascot Notification", NotificationManager
                     .IMPORTANCE_HIGH);
             notificationChannel.enableLights(true);
+            notificationChannel.setSound(null, null);
             notificationChannel.setLightColor(Color.RED);
-            notificationChannel.enableVibration(true);
+            notificationChannel.enableVibration(false);
             notificationChannel.setDescription("Notification");
             mNotifyManager.createNotificationChannel(notificationChannel);
 
@@ -251,11 +279,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL_ID)
                     .setShowWhen(false)
                     // Set the Notification style
-                    .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-//                            // Attach our MediaSession token
-//                            //          .setMediaSession(MediaSessionCompat.Token.fromToken(mediaSession.getSessionToken()))
-//                       // Show our playback controls in the compact notification view.
-                            .setShowActionsInCompactView(0, 1, 2))
+                    .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                     // Set the Notification color
                     .setColor(getResources().getColor(R.color.colorPrimary, null))
                     // Set the large and small icons
@@ -263,12 +287,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     .setSmallIcon(android.R.drawable.stat_sys_headset)
                     // Set Notification content information
                     .setContentText(mActiveAudio.getmArtist())
-                    .setContentTitle(mActiveAudio.getmTitle())
-                    // Add playback actions
-                    .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))
-                    .addAction(notificationAction, "pause", play_pauseAction)
-                    .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2));
-
+                    .setCustomContentView(smallNotify)
+                    .setCustomBigContentView(bigNotify)
+                    .setContentTitle(mActiveAudio.getmTitle());
+            // Add playback actions
+//                    .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))
+//                    .addAction(notificationAction, "pause", play_pauseAction)
+//                    .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2));
             ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notificationBuilder.build());
         }
     }
@@ -530,7 +555,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void updateMetaData() {
         Bitmap albumArt = BitmapFactory.decodeResource(getResources(),
-                R.drawable.ic_no_image); //replace with medias albumArt
+                R.drawable.ic_music_not_picture); //replace with medias albumArt
         // Update the current metadata
         mMediaSession.setMetadata(new MediaMetadata.Builder()
                 .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArt)
