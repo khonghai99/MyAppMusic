@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="76dp"
     android:layout_alignParentBottom="true"
-    android:background="@color/colorBackground"
+    android:background="@color/backgroundTopMedia"
     android:padding="10dp">
 
     <ImageView
@@ -28,8 +28,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:maxLines="1"
+            android:textColor="@color/textDefault"
             android:text="@string/default_name_song"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tvArtistSongTopMedia"
@@ -38,21 +39,23 @@
             android:layout_below="@id/tvTitleSongTopMedia"
             android:layout_alignLeft="@id/tvTitleSongTopMedia"
             android:text="@string/default_album_song"
-            android:textSize="15sp" />
+            android:textColor="@color/timeDefault"
+            android:textSize="13sp" />
     </RelativeLayout>
 
     <ImageView
         android:id="@+id/ivPopupTopMedia"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
         android:layout_alignParentEnd="true"
+        android:layout_marginEnd="3dp"
         android:layout_centerVertical="true"
         android:background="@drawable/ic_show_menu_top_media" />
 
     <ImageView
         android:id="@+id/ivListMusic"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_centerVertical="true"
         android:layout_marginEnd="10dp"
         android:layout_toLeftOf="@id/ivPopupTopMedia"

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layoutfragmentMedia"
+    android:id="@+id/layoutFragmentMedia"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -38,17 +38,16 @@
         android:src="@drawable/ic_shuffle" />
 
     <RelativeLayout
-
         android:id="@+id/layoutBottomMedia"
         android:layout_width="match_parent"
         android:layout_height="95dp"
         android:layout_gravity="bottom"
-        android:background="@color/colorBackground">
+        android:background="#e3e3e3">
 
         <SeekBar
             android:id="@+id/seekBarTimeSong"
             android:layout_width="match_parent"
-            android:layout_height="5dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:maxHeight="5dp"
             android:minHeight="5dp"
@@ -61,9 +60,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/seekBarTimeSong"
-            android:layout_marginStart="17dp"
+            android:layout_marginStart="15dp"
             android:text="@string/default_start_time_song"
-            android:textSize="15sp" />
+            android:textSize="13sp" />
 
         <TextView
             android:id="@+id/tvEndTimeSong"
@@ -71,46 +70,44 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/seekBarTimeSong"
             android:layout_alignParentEnd="true"
-            android:layout_marginEnd="17dp"
+            android:layout_marginEnd="15dp"
             android:text="@string/default_time_song"
-            android:textSize="15sp" />
+            android:textSize="13sp" />
 
         <ImageView
             android:id="@+id/ivDislike"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:layout_alignTop="@id/ivLike"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="3dp"
+            android:layout_marginTop="45dp"
             android:layout_marginEnd="28dp"
             android:background="@drawable/ic_thumbs_down_default" />
 
         <ImageView
             android:id="@+id/ivLike"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:layout_below="@id/tvStartTimeSong"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignTop="@id/ivDislike"
             android:layout_alignParentStart="true"
             android:layout_marginStart="28dp"
-            android:layout_marginTop="3dp"
             android:background="@drawable/ic_thumbs_up_default" />
 
         <ImageView
             android:id="@+id/ivPrevious"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:layout_below="@id/tvEndTimeSong"
-            android:layout_marginEnd="40dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignTop="@id/ivDislike"
+            android:layout_marginEnd="35dp"
             android:layout_toStartOf="@+id/ivPause"
             android:layout_toRightOf="@id/ivLike"
             android:background="@drawable/ic_previous" />
 
         <ImageView
             android:id="@+id/ivNext"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:layout_alignTop="@id/ivLike"
-            android:layout_marginStart="40dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignTop="@id/ivDislike"
+            android:layout_marginStart="35dp"
             android:layout_toLeftOf="@id/ivDislike"
             android:layout_toEndOf="@+id/ivPause"
             android:background="@drawable/ic_next" />
@@ -119,7 +116,8 @@
             android:id="@+id/ivPause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="28dp"
             android:background="@drawable/ic_button_pause"
             android:scaleType="centerCrop" />
     </RelativeLayout>

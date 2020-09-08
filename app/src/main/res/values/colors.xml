@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimaryDark">#A8310C</color>
-    <color name="colorPrimary">#FF3D00</color>
+    <color name="colorPrimaryDark">#bd4200</color>
+    <color name="colorPrimary">#ff5722</color>
     <color name="colorAccent">#03DAC5</color>
     <color name="background">#7E7979</color>
-    <color name="colorBackground">#B3D6D5D5</color>
+    <color name="colorBackground">#fafafa</color>
+    <color name="textDefault">#010101</color>
+    <color name="timeDefault">#575757</color>
+    <color name="sttDefault">#434343</color>
+    <color name="backgroundTopMedia">#e1e1e1</color>
+
 </resources>

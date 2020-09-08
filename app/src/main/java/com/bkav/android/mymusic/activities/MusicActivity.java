@@ -7,9 +7,11 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.Menu;
 import android.widget.Toast;
 
@@ -73,12 +75,15 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
         Toolbar toolbar = findViewById(R.id.toolbar);
-
+        float density = getResources().getDisplayMetrics().density;
+        Log.i("den123",String.valueOf(density));
+        Log.d("HaiKH", "onCreate: "+String.valueOf(density));
         mSongList = new ArrayList<Song>();
 
         //set toolbar
         setSupportActionBar(toolbar);
         toolbar.setTitle("Music");
+        toolbar.setTitleTextColor(Color.WHITE);
         AddFragment();
 
         //check permission
@@ -90,7 +95,6 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
                 && ContextCompat.checkSelfPermission(this, Manifest.permission.WAKE_LOCK) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WAKE_LOCK},
                     MY_PERMISSION_REQUEST);
-
         }
     }
 

@@ -17,16 +17,17 @@
 
         android:id="@+id/layoutBottomAllSong"
         android:layout_width="match_parent"
-        android:layout_height="75dp"
+        android:layout_height="61dp"
         android:layout_alignParentBottom="true"
         android:background="@color/colorBackground"
         android:padding="8dp"
-        android:visibility="gone">
+        android:paddingStart="12dp"
+        android:visibility="visible">
 
         <ImageView
             android:id="@+id/ivSongBottomAllSong"
-            android:layout_width="57dp"
-            android:layout_height="57dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
             android:src="@drawable/chieu_hom_ay" />
@@ -34,7 +35,7 @@
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
+            android:layout_alignTop="@+id/ivSongBottomAllSong"
             android:layout_toLeftOf="@id/ivPauseBottomAllSong"
             android:layout_toRightOf="@id/ivSongBottomAllSong">
 
@@ -42,10 +43,11 @@
                 android:id="@+id/tvTitleSongBottomAllSong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="9dp"
+                android:layout_marginStart="12dp"
                 android:maxLines="1"
                 android:text="@string/default_name_song"
-                android:textSize="18sp" />
+                android:textColor="@color/textDefault"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/tvArtistBottomAllSong"
@@ -54,16 +56,17 @@
                 android:layout_below="@id/tvTitleSongBottomAllSong"
                 android:layout_alignLeft="@id/tvTitleSongBottomAllSong"
                 android:text="@string/default_album_song"
-                android:textSize="15sp" />
+                android:textColor="@color/timeDefault"
+                android:textSize="13sp" />
         </RelativeLayout>
 
         <ImageView
             android:id="@+id/ivPauseBottomAllSong"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/ic_pause_24" />
+            android:background="@drawable/ic_media_pause_light" />
     </RelativeLayout>
 
 

@@ -1,56 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layoutRelativeOnerow"
-    android:layout_width="wrap_content"
+    android:id="@+id/layoutRelativeOneRow"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingLeft="20dp"
-    android:paddingTop="10dp"
+
+    android:paddingTop="15dp"
     android:paddingEnd="10dp"
-    android:paddingBottom="10dp">
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/tvID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:paddingLeft="27dp"
+        android:text="@string/number_default"
+        android:textColor="@color/sttDefault"
+        android:textSize="15sp"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:id="@+id/ivPlaying"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:paddingLeft="15dp"
+        android:src="@drawable/ic_playing_song"
+        android:text="@string/number_default"
+        android:visibility="visible" />
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/tvID">
 
-        <TextView
-            android:id="@+id/tvID"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_centerVertical="true"
-            android:gravity="center"
-            android:text="@string/number_default"
-            android:textSize="15sp"
-            android:visibility="invisible" />
 
-        <ImageView
-            android:id="@+id/ivPlaying"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:src="@drawable/ic_playing_song"
-            android:text="@string/number_default" />
+            android:layout_toLeftOf="@id/ivShowPopup">
 
-        <TextView
-            android:id="@+id/tvTitleSongOneRow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_marginStart="20dp"
-            android:layout_toLeftOf="@id/ivShowPopup"
-            android:layout_toRightOf="@id/ivPlaying"
-            android:maxLines="1"
-            android:text="@string/default_name_song"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvTitleSongOneRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="33dp"
+                android:maxLines="1"
+                android:textStyle="bold"
+                android:text="@string/default_name_song"
+                android:textColor="@color/textDefault"
+                android:textSize="16sp" />
 
-        <TextView
-            android:id="@+id/tvDurationSongOneRow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/tvTitleSongOneRow"
-            android:layout_alignStart="@id/tvTitleSongOneRow"
-            android:text="@string/default_time_song"
-            android:textSize="15sp" />
+            <TextView
+                android:id="@+id/tvDurationSongOneRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tvTitleSongOneRow"
+                android:layout_alignStart="@id/tvTitleSongOneRow"
+                android:layout_marginTop="3dp"
+                android:text="@string/default_time_song"
+                android:textColor="@color/timeDefault"
+                android:textSize="13sp" />
+        </RelativeLayout>
 
         <ImageView
             android:id="@+id/ivShowPopup"
