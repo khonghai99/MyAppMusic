@@ -18,7 +18,10 @@ import com.bkav.android.mymusic.models.Song;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import es.claucookie.miniequalizerlibrary.EqualizerView;
+
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
+    boolean check = false;
     private StorageUtil mStorage;
     private int mCurrentSong;
     private OnNewClickListener mOnNewClickListener;
@@ -63,12 +66,18 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         if (song != null) {
             holder.tvID.setText(String.valueOf(position + 1));
             holder.toBind(song);
+
+            // Whenever you want to tart the animation
+            // equalizer.stopBars(); // When you want equalizer stops animating
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     mOnNewClickListener.onNewClick(mSongList, position);
+                    check = true;
                 }
             });
+            if (check) holder.equalizer.animateBars();
+            else holder.equalizer.stopBars();
         }
     }
 
@@ -83,6 +92,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     }
 
     public static class SongHolder extends RecyclerView.ViewHolder {
+        private EqualizerView equalizer;
         private TextView tvID;
         private TextView tvTitleSong;
         private TextView tvDuration;
@@ -92,6 +102,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             tvID = itemView.findViewById(R.id.tvID);
             tvTitleSong = itemView.findViewById(R.id.tvTitleSongOneRow);
             tvDuration = itemView.findViewById(R.id.tvDurationSongOneRow);
+            equalizer = (EqualizerView) itemView.findViewById(R.id.equalizer_view);
 
         }
 

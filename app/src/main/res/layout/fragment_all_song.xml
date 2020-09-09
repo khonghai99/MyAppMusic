@@ -22,12 +22,13 @@
         android:background="@color/colorBackground"
         android:padding="8dp"
         android:paddingStart="12dp"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <ImageView
             android:id="@+id/ivSongBottomAllSong"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:layout_alignParentBottom="true"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
             android:src="@drawable/chieu_hom_ay" />
@@ -44,7 +45,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
                 android:text="@string/default_name_song"
                 android:textColor="@color/textDefault"
                 android:textSize="16sp" />

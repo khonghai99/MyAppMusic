@@ -45,24 +45,31 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnSeekCompleteListener,
         MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener,
         AudioManager.OnAudioFocusChangeListener {
+
     public static final String ACTION_PLAY = "com.bkav.musictest.ACTION_PLAY";
     public static final String ACTION_PAUSE = "com.bkav.musictest.ACTION_PAUSE";
     public static final String ACTION_PREVIOUS = "com.bkav.musictest.ACTION_PREVIOUS";
     public static final String ACTION_NEXT = "com.bkav.musictest.ACTION_NEXT";
     public static final String ACTION_STOP = "com.bkav.musictest.ACTION_STOP";
+    private static final String AUDIO_PLAYER = "com.bkav.android.mymusic.services.AUDIO_PLAYER";
     private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
+
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
+
     // Binder given to clients
     private final IBinder mIBinder = new LocalBinder();
+
     //MediaSession
     private MediaSessionManager mMediaSessionManager;
     private MediaSession mMediaSession;
     private MediaController.TransportControls mTransportControls;
+
     //List of available Audio files
     private ArrayList<Song> mAudioList;
     private int mAudioIndex = -1;
     private Song mActiveAudio; //Đối tượng đang phát
+
     //Xử lý các cuộc gọi đến
     private boolean mOngoingCall = false;
     private PhoneStateListener mPhoneStateListener;
@@ -218,7 +225,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     }
 
     //set image when customContentView
-    private void setImageNotifySmall(RemoteViews remoteViews, int id, String path) {
+    private void setImageNotify(RemoteViews remoteViews, int id) {
         byte[] art = ImageSong.getByteImageSong(mActiveAudio.getmPath());
         if (art != null) {
             Bitmap bitmap = BitmapFactory.decodeByteArray(art, 0, art.length);
@@ -229,45 +236,52 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
+    //set image when customContentView
+    private void setTextNotify(RemoteViews remoteViews, int idTitle, int idArtist) {
+
+        remoteViews.setTextViewText(idTitle, mActiveAudio.getmTitle());
+        remoteViews.setTextViewText(idArtist, mActiveAudio.getmArtist());
+    }
+
     private void buildNotification(PlaybackStatus playbackStatus) {
         mNotifyManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
 
-        int notificationAction = android.R.drawable.ic_media_pause;//needs to be initialized
+        int notificationAction = R.drawable.ic_button_pause;//needs to be initialized
         PendingIntent play_pauseAction = null;
 
         //Build a new notification according to the current state of the MediaPlayer
         if (playbackStatus == PlaybackStatus.PLAYING) {
-//            notificationAction = android.R.drawable.ic_media_pause;
+            notificationAction = R.drawable.ic_button_pause;
             //create the pause action
             play_pauseAction = playbackAction(1);
         } else if (playbackStatus == PlaybackStatus.PAUSED) {
-            notificationAction = android.R.drawable.ic_media_play;
+            notificationAction = R.drawable.ic_button_playing;
             //create the play action
             play_pauseAction = playbackAction(0);
         }
 
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
                 R.drawable.ic_launcher_background); //replace with your own image
-        Bitmap largeIcon1 = BitmapFactory.decodeResource(getResources(),
-                R.drawable.mai_mai_khong_phai_anh); //replace with your own image
 
         RemoteViews smallNotify = new RemoteViews(getPackageName(), R.layout.small_notification);
         smallNotify.setOnClickPendingIntent(R.id.ivSmallPrevious, playbackAction(3));
         smallNotify.setOnClickPendingIntent(R.id.ivSmallNext, playbackAction(2));
-        smallNotify.setOnClickPendingIntent(R.id.ivSmallPause, play_pauseAction);
-        setImageNotifySmall(smallNotify, R.id.ivSmallPicture, mActiveAudio.getmPath());
+        smallNotify.setOnClickPendingIntent(notificationAction, play_pauseAction);
+        setImageNotify(smallNotify, R.id.ivSmallPicture);
 
         RemoteViews bigNotify = new RemoteViews(getPackageName(), R.layout.big_notification);
         bigNotify.setOnClickPendingIntent(R.id.ivBigPrevious, playbackAction(3));
         bigNotify.setOnClickPendingIntent(R.id.ivBigNext, playbackAction(2));
-        bigNotify.setOnClickPendingIntent(R.id.ivBigPause, play_pauseAction);
+        bigNotify.setOnClickPendingIntent(notificationAction, play_pauseAction);
+        setImageNotify(bigNotify, R.id.ivBigPicture);
+        setTextNotify(bigNotify, R.id.tvBigTitle, R.id.tvBigArtist);
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             // Create a NotificationChannel
             NotificationChannel notificationChannel = new NotificationChannel(PRIMARY_CHANNEL_ID,
                     "Mascot Notification", NotificationManager
-                    .IMPORTANCE_HIGH);
+                    .IMPORTANCE_LOW);
             notificationChannel.enableLights(true);
             notificationChannel.setSound(null, null);
             notificationChannel.setLightColor(Color.RED);
@@ -290,17 +304,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     .setCustomContentView(smallNotify)
                     .setCustomBigContentView(bigNotify)
                     .setContentTitle(mActiveAudio.getmTitle());
-            // Add playback actions
-//                    .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))
-//                    .addAction(notificationAction, "pause", play_pauseAction)
-//                    .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2));
             ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notificationBuilder.build());
         }
     }
 
     private void register_playNewAudio() {
         //Register playNewMedia receiver
-        IntentFilter filter = new IntentFilter(MusicActivity.Broadcast_PLAY_NEW_AUDIO);
+        IntentFilter filter = new IntentFilter(MusicActivity.BROADCAST_PLAY_NEW_AUDIO);
         registerReceiver(playNewAudio, filter);
     }
 
@@ -491,7 +501,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         mMediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
         // Create a new MediaSession
-        mMediaSession = new MediaSession(getApplicationContext(), "AudioPlayer");
+        mMediaSession = new MediaSession(getApplicationContext(), AUDIO_PLAYER);
         //Get MediaSessions transport controls
         mTransportControls = mMediaSession.getController().getTransportControls();
         //set MediaSession -> ready to receive media commands

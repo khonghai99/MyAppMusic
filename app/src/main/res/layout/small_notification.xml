@@ -2,8 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    >
+    android:orientation="horizontal">
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -11,8 +10,8 @@
 
         <ImageView
             android:id="@+id/ivSmallPicture"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_centerVertical="true"
             android:src="@drawable/chieu_hom_ay" />
     </RelativeLayout>
@@ -22,20 +21,20 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:layout_marginEnd="34dp">
+        android:layout_marginEnd="25dp">
 
         <ImageView
             android:id="@+id/ivSmallPrevious"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="5dp"
             android:layout_marginEnd="23dp"
             android:src="@drawable/ic_previous" />
 
         <ImageView
             android:id="@+id/ivSmallPause"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:src="@drawable/ic_button_pause" />
 
         <ImageView
@@ -43,7 +42,7 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginStart="23dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="5dp"
             android:src="@drawable/ic_next" />
 
 

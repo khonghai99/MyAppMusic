@@ -13,6 +13,8 @@ import java.util.ArrayList;
 
 public class StorageUtil {
     private final String STORAGE = " com.valdioveliu.valdio.audioplayer.STORAGE";
+    private final String AUDIO_LIST = "com.bkav.android.mymusic.AUDIO_LIST";
+    private final String AUDIO_INDEX = "com.bkav.android.mymusic.AUDIO_INDEX";
     private SharedPreferences preferences;
     private Context context;
 
@@ -27,14 +29,14 @@ public class StorageUtil {
         Gson gson = new Gson();
         String json = gson.toJson(arrayList);
 
-        editor.putString("audioArrayList", json);
+        editor.putString(AUDIO_LIST, json);
         editor.apply();
     }
 
     public ArrayList<Song> loadAudio() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         Gson gson = new Gson();
-        String json = preferences.getString("audioArrayList", null);
+        String json = preferences.getString(AUDIO_LIST, null);
         Log.i("json",json);
         Type type = new TypeToken<ArrayList<Song>>() {
         }.getType();
@@ -46,13 +48,13 @@ public class StorageUtil {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
 
-        editor.putInt("audioIndex", index);
+        editor.putInt(AUDIO_INDEX, index);
         editor.apply();
     }
 
     public int loadAudioIndex() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
-        return preferences.getInt("audioIndex", -1);//return -1 if no data found
+        return preferences.getInt(AUDIO_INDEX, -1);//return -1 if no data found
     }
 
     public void clearCachedAudioPlaylist() {

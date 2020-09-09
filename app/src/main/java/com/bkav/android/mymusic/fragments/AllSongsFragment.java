@@ -27,7 +27,7 @@ import com.bkav.android.mymusic.models.Song;
 
 import java.util.ArrayList;
 
-public class AllSongsFragment extends Fragment {
+public class AllSongsFragment extends Fragment implements View.OnClickListener{
     public RelativeLayout mBottomAllSongRelativeLayout;
     private ArrayList<Song> mSongList;
     private SongAdapter mSongAdapter;
@@ -66,17 +66,14 @@ public class AllSongsFragment extends Fragment {
         mArtistBottomAllSongTextView = view.findViewById(R.id.tvArtistBottomAllSong);
         mImagePauseBottomAllSongImageView = view.findViewById(R.id.ivPauseBottomAllSong);
         mBottomAllSongRelativeLayout = view.findViewById(R.id.layoutBottomAllSong);
-
+        mTitleBottomAllSongTextView.setSelected(true);
         mRecyclerView = view.findViewById(R.id.listSong);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(layoutManager);
-        mBottomAllSongRelativeLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mOnShowMediaListener.showMediaFragment(mSong);
-            }
-        });
+
+        mImagePauseBottomAllSongImageView.setOnClickListener(this);
+        mBottomAllSongRelativeLayout.setOnClickListener(this);
         new LoadData().execute("");
         return view;
     }
@@ -98,6 +95,18 @@ public class AllSongsFragment extends Fragment {
         mBottomAllSongRelativeLayout.setVisibility(View.VISIBLE);
         mSongAdapter.setCurrentSong(current);
 
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()){
+            case R.id.ivPauseBottomAllSong:
+
+            case R.id.layoutBottomAllSong:
+                mOnShowMediaListener.showMediaFragment(mSong);
+                break;
+
+        }
     }
 
     public interface OnShowMediaListener {

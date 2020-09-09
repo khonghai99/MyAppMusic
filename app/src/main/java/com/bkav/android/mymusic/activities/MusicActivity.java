@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bkav.android.mymusic.Interfaces.IServiceBound;
 import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
@@ -38,14 +39,17 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         AllSongsFragment.OnShowMediaListener {
 
     //sends broadcast intents to the MediaPlayerService
-    public static final String Broadcast_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
+    public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
     private static final int MY_PERMISSION_REQUEST = 1;
+
+    private boolean statePermission = false;
 
     private FragmentManager mFragmentManager;
     private FragmentTransaction mFragmentTransaction;
     private MediaPlaybackService mPlayer;
     private ArrayList<Song> mSongList;
     private int mCurrentPosition;
+    private IServiceBound mIServiceBound;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
 
@@ -76,19 +80,20 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         setContentView(R.layout.activity_music);
         Toolbar toolbar = findViewById(R.id.toolbar);
         float density = getResources().getDisplayMetrics().density;
-        Log.i("den123",String.valueOf(density));
-        Log.d("HaiKH", "onCreate: "+String.valueOf(density));
+        Log.d("HaiKH", String.valueOf(density));
+        Log.d("HaiKH", "onCreate: " + String.valueOf(density));
         mSongList = new ArrayList<Song>();
 
         //set toolbar
         setSupportActionBar(toolbar);
-        toolbar.setTitle("Music");
+        toolbar.setTitle(R.string.titleToolbar);
         toolbar.setTitleTextColor(Color.WHITE);
-        AddFragment();
+        addFragment();
 
         //check permission
         if (ContextCompat.checkSelfPermission(MusicActivity.this,
                 Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
             ActivityCompat.requestPermissions(MusicActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
@@ -116,7 +121,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
             //Service is active
             //Send a broadcast to the service -> PLAY_NEW_AUDIO
-            Intent broadcastIntent = new Intent(Broadcast_PLAY_NEW_AUDIO);
+            Intent broadcastIntent = new Intent(BROADCAST_PLAY_NEW_AUDIO);
             sendBroadcast(broadcastIntent);
         }
     }
@@ -133,7 +138,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         mServiceBound = savedInstanceState.getBoolean("ServiceState");
     }
 
-    private void AddFragment() {
+    private void addFragment() {
         //add fragment to frameLayout
         mFragmentManager = getSupportFragmentManager();
         int orientation = getResources().getConfiguration().orientation;
@@ -188,8 +193,6 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             this.mSongList = songList;
             playAudio(position);
         }
-
-
     }
 
     @Override
@@ -218,6 +221,8 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (ContextCompat.checkSelfPermission(MusicActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
+                    addFragment();
+                    statePermission = true;
                 }
             } else {
                 Toast.makeText(this, "No permission granted", Toast.LENGTH_SHORT).show();

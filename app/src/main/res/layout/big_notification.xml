@@ -30,10 +30,17 @@
             android:background="#ACAAAB" />
 
         <TextView
-            android:id="@+id/tvBigNameSong"
+            android:id="@+id/tvBigTitle"
             style="@style/TextAppearance.Compat.Notification.Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
             android:text="Name song"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -43,9 +50,10 @@
             style="@style/TextAppearance.Compat.Notification.Info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvBigNameSong"
+            android:layout_below="@id/tvBigTitle"
             android:text="Artist"
             android:textSize="20dp" />
+
 
     </RelativeLayout>
 
@@ -63,7 +71,7 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_centerVertical="true"
-            android:layout_marginEnd="38dp"
+            android:layout_marginEnd="30dp"
             android:layout_toLeftOf="@id/ivBigPause"
             android:src="@drawable/ic_previous" />
 
@@ -80,7 +88,7 @@
             android:layout_height="30dp"
             android:layout_centerVertical="true"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="38dp"
+            android:layout_marginStart="30dp"
             android:layout_toRightOf="@id/ivBigPause"
             android:src="@drawable/ic_next" />
 
