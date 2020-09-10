@@ -163,7 +163,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                 break;
             case R.id.ivPause:
                 Log.d("HaiKH", "onClick: pause click");
-                if (mediaPlaybackService().isPlaying() == PlaybackStatus.PLAYING) {
+                if (mediaPlaybackService().isPlaying()) {
                     mediaPlaybackService().pauseMedia();
                     mediaPlaybackService().updateMetaDataNotify();
                     mPauseImageView.setImageResource(R.drawable.ic_button_pause);

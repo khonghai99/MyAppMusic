@@ -89,7 +89,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         public void onReceive(Context context, Intent intent) {
             //pause audio on ACTION_AUDIO_BECOMING_NOISY Tạm dừng khi có cuộc gọi
             pauseMedia();
-            buildNotification(PlaybackStatus.PAUSED);
+            buildNotification();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH);
             }
@@ -115,7 +115,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             mMediaPlayer.reset();
             initMediaPlayer();
             updateMetaData();
-            buildNotification(PlaybackStatus.PLAYING);
+            buildNotification();
         }
     };
 
@@ -129,11 +129,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
-    public PlaybackStatus isPlaying() {
+    public boolean isPlaying() {
         if (mMediaPlayer.isPlaying()) {
-            return PlaybackStatus.PLAYING;
+            return true;
         } else {
-            return PlaybackStatus.PAUSED;
+            return false;
         }
     }
 
@@ -231,7 +231,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 stopSelf();
             }
 
-            buildNotification(PlaybackStatus.PLAYING);
+            buildNotification();
         }
 
         //Handle Intent action from MediaSession.TransportControls //Xử lý hành động có ý định từ MediaSession.TransportControls
@@ -258,26 +258,22 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         remoteViews.setTextViewText(idArtist, mActiveAudio.getmArtist());
     }
 
-    private void buildNotification(PlaybackStatus playbackStatus) {
+    private void buildNotification() {
         mNotifyManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
         RemoteViews smallNotify = new RemoteViews(getPackageName(), R.layout.small_notification);
         RemoteViews bigNotify = new RemoteViews(getPackageName(), R.layout.big_notification);
 
-        int notificationAction = R.drawable.ic_button_playing;//needs to be initialized
         PendingIntent play_pauseAction = null;
 
         //Build a new notification according to the current state of the MediaPlayer
-        if (playbackStatus == PlaybackStatus.PAUSED) {
-            notificationAction = R.drawable.ic_button_pause;
-            smallNotify.setImageViewResource(R.id.ivSmallPause, notificationAction);
+        if (!isPlaying()) {
+            smallNotify.setImageViewResource(R.id.ivSmallPause, R.drawable.ic_button_pause);
             Log.d("HaiKH", "buildNotification: pause");
             //create the pause action
             play_pauseAction = playbackAction(1);
-        } else if (playbackStatus == PlaybackStatus.PLAYING) {
-
-            notificationAction = R.drawable.ic_button_playing;
-            smallNotify.setImageViewResource(R.id.ivSmallPause, notificationAction);
+        } else if (isPlaying()) {
+            smallNotify.setImageViewResource(R.id.ivSmallPause, R.drawable.ic_button_playing);
             Log.d("HaiKH", "buildNotification: playing");
             //create the play action
             play_pauseAction = playbackAction(0);
@@ -290,14 +286,12 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         smallNotify.setOnClickPendingIntent(R.id.ivSmallPrevious, playbackAction(3));
         smallNotify.setOnClickPendingIntent(R.id.ivSmallNext, playbackAction(2));
         smallNotify.setOnClickPendingIntent(R.id.ivSmallPause, play_pauseAction);
-        smallNotify.setImageViewResource(R.id.ivSmallPause, notificationAction);
         setImageNotify(smallNotify, R.id.ivSmallPicture);
 
 
         bigNotify.setOnClickPendingIntent(R.id.ivBigPrevious, playbackAction(3));
         bigNotify.setOnClickPendingIntent(R.id.ivBigNext, playbackAction(2));
         bigNotify.setOnClickPendingIntent(R.id.ivBigPause, play_pauseAction);
-        bigNotify.setImageViewResource(R.id.ivBigPause, notificationAction);
         setImageNotify(bigNotify, R.id.ivBigPicture);
         setTextNotify(bigNotify, R.id.tvBigTitle, R.id.tvBigArtist);
 
@@ -328,8 +322,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     .setCustomContentView(smallNotify)
                     .setCustomBigContentView(bigNotify)
                     .setContentTitle(mActiveAudio.getmTitle());
-            startForeground(1, notificationBuilder.build());
-//            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notificationBuilder.build());
+            startForeground(NOTIFICATION_ID, notificationBuilder.build());
         }
     }
 
@@ -545,7 +538,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             public void onPlay() {
                 super.onPlay();
                 resumeMedia();
-                buildNotification(PlaybackStatus.PLAYING);
+                buildNotification();
             }
 
             @RequiresApi(api = Build.VERSION_CODES.N)
@@ -553,7 +546,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             public void onPause() {
                 super.onPause();
                 pauseMedia();
-                buildNotification(PlaybackStatus.PAUSED);
+                buildNotification();
                 stopForeground(STOP_FOREGROUND_DETACH);
             }
 
@@ -589,7 +582,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void updateMetaDataNotify() {
         updateMetaData();
-        buildNotification(isPlaying());
+        buildNotification();
     }
 
     @SuppressLint("WrongConstant")
@@ -637,6 +630,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
+        Log.d("HaiKH", "skipToNext: " + mAudioIndex);
 
         stopMedia();
         //reset mediaPlayer
