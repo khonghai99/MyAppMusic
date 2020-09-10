@@ -151,25 +151,25 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
 
             case R.id.ivNext:
                 mediaPlaybackService().skipToNext();
-                mediaPlaybackService().updateMetaDataNotify();
+                mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                 mSong = mediaPlaybackService().getActiveAudio();
                 setTitle(mSong);
                 break;
             case R.id.ivPrevious:
                 mediaPlaybackService().skipToPrevious();
-                mediaPlaybackService().updateMetaDataNotify();
+                mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                 mSong = mediaPlaybackService().getActiveAudio();
                 setTitle(mSong);
                 break;
             case R.id.ivPause:
                 Log.d("HaiKH", "onClick: pause click");
-                if (mediaPlaybackService().isPlaying()) {
+                if (mediaPlaybackService().isPlaying()==PlaybackStatus.PLAYING) {
                     mediaPlaybackService().pauseMedia();
-                    mediaPlaybackService().updateMetaDataNotify();
+                    mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PAUSED);
                     mPauseImageView.setImageResource(R.drawable.ic_button_pause);
                 } else {
                     mediaPlaybackService().playMedia();
-                    mediaPlaybackService().updateMetaDataNotify();
+                    mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                     mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 }
                 break;

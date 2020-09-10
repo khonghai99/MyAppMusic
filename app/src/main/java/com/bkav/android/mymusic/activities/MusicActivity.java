@@ -1,6 +1,7 @@
 package com.bkav.android.mymusic.activities;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -24,6 +25,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
+import com.bkav.android.mymusic.Playable;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
@@ -35,7 +37,7 @@ import java.util.ArrayList;
 
 
 public class MusicActivity extends AppCompatActivity implements OnNewClickListener,
-        AllSongsFragment.OnShowMediaListener {
+        AllSongsFragment.OnShowMediaListener, Playable {
 
     //sends broadcast intents to the MediaPlayerService
     public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
@@ -68,6 +70,19 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mServiceBound = false;
+        }
+    };
+    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getExtras().getString("actionname");
+
+            switch (action){
+                case MediaPlaybackService.ACTION_PREVIOUS:
+                    onTrackPrevious();
+                    break;
+
+            }
         }
     };
 
@@ -230,4 +245,23 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         }
     }
 
+    @Override
+    public void onTrackPrevious() {
+        mPlayer.skipToPrevious();
+    }
+
+    @Override
+    public void onTrackPlay() {
+
+    }
+
+    @Override
+    public void onTrackPause() {
+
+    }
+
+    @Override
+    public void onTrackNext() {
+
+    }
 }
