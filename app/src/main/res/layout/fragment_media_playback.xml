@@ -118,7 +118,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="28dp"
-            android:background="@drawable/ic_button_pause"
+            android:background="@drawable/ic_button_playing"
             android:scaleType="centerCrop" />
     </RelativeLayout>
 

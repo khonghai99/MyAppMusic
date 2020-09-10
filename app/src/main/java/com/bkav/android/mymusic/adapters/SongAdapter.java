@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 import es.claucookie.miniequalizerlibrary.EqualizerView;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
-    boolean check = false;
     private StorageUtil mStorage;
     private int mCurrentSong;
     private OnNewClickListener mOnNewClickListener;
@@ -41,7 +40,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     public int getItemViewType(int position) {
         StorageUtil storage = new StorageUtil(mContext);
         Log.i("main2", String.valueOf(storage.loadAudioIndex()));
-
         Log.i("main1", "getitemviewtype");
         if (position == mCurrentSong) return 1;
         return 0;
@@ -63,6 +61,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     public void onBindViewHolder(@NonNull final SongHolder holder, final int position) {
         Log.i("main1", "bind");
         final Song song = mSongList.get(position);
+
         if (song != null) {
             holder.tvID.setText(String.valueOf(position + 1));
             holder.toBind(song);
@@ -73,10 +72,9 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
                 @Override
                 public void onClick(View view) {
                     mOnNewClickListener.onNewClick(mSongList, position);
-                    check = true;
                 }
             });
-            if (check) holder.equalizer.animateBars();
+            if (position == mCurrentSong) holder.equalizer.animateBars();
             else holder.equalizer.stopBars();
         }
     }
@@ -129,6 +127,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
 
         public void toBind(Song song) {
             tvTitleSong.setText(song.getmTitle());
+            tvTitleSong.setSelected(true);
             tvDuration.setText(millisecondToFullTime(Long.parseLong(song.getmDuration())));
         }
     }

@@ -23,7 +23,6 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.bkav.android.mymusic.Interfaces.IServiceBound;
 import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
@@ -41,13 +40,14 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     //sends broadcast intents to the MediaPlayerService
     public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
     private static final int MY_PERMISSION_REQUEST = 1;
+    private static final String SERVICE_STATE = "ServiceState";
+    private static final String AUDIO_INDEX = "audioIndex";
 
     private FragmentManager mFragmentManager;
     private FragmentTransaction mFragmentTransaction;
     private MediaPlaybackService mPlayer;
-    private ArrayList<Song> mSongList;
+    private ArrayList<Song> mAudioList;
     private int mCurrentPosition;
-    private IServiceBound mIServiceBound;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
 
@@ -79,8 +79,8 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         Toolbar toolbar = findViewById(R.id.toolbar);
         float density = getResources().getDisplayMetrics().density;
         Log.d("HaiKH", String.valueOf(density));
-        Log.d("HaiKH", "onCreate: " + String.valueOf(density));
-        mSongList = new ArrayList<Song>();
+        Log.d("HaiKH", "onCreate: " + density);
+        mAudioList = new ArrayList<>();
 
         //set toolbar
         setSupportActionBar(toolbar);
@@ -101,13 +101,17 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         }
     }
 
+    public MediaPlaybackService getMediaPlayerService() {
+        return mPlayer;
+    }
+
     private void playAudio(int audioIndex) {
         mCurrentPosition = audioIndex;
         //Check is service is active
         StorageUtil storage = new StorageUtil(getApplicationContext());
         if (!mServiceBound) {
             //Lưu danh sách âm thanh to SharedPreferences
-            storage.storeAudio(mSongList);
+            storage.storeAudio(mAudioList);
             storage.storeAudioIndex(audioIndex);
 
             Intent playerIntent = new Intent(this, MediaPlaybackService.class);
@@ -126,27 +130,25 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putBoolean("ServiceState", mServiceBound);
         super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean(SERVICE_STATE, mServiceBound);
+        savedInstanceState.putInt(AUDIO_INDEX, mCurrentPosition);
     }
 
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        mServiceBound = savedInstanceState.getBoolean("ServiceState");
+        mServiceBound = savedInstanceState.getBoolean(SERVICE_STATE);
+        mCurrentPosition = savedInstanceState.getInt(AUDIO_INDEX);
     }
 
     private void addFragment() {
         //add fragment to frameLayout
         mFragmentManager = getSupportFragmentManager();
         int orientation = getResources().getConfiguration().orientation;
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            // In landscape
-            mIsVertical = false;
-        } else {
-            // In portrait
-            mIsVertical = true;
-        }
+
+        mIsVertical = orientation != Configuration.ORIENTATION_LANDSCAPE;
+
         if (mIsVertical) {
             mFragmentTransaction = mFragmentManager.beginTransaction();
             AllSongsFragment allSongsFragment = new AllSongsFragment();
@@ -182,13 +184,13 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             if (allSongsFragment != null) {
                 allSongsFragment.setDataBottom(songList, position);
                 allSongsFragment.setVisible(position);
-                this.mSongList = songList;
+                this.mAudioList = songList;
                 playAudio(position);
             }
         } else {
             MediaPlaybackFragment player = (MediaPlaybackFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutTwo);
             player.setTitle(songList.get(position));
-            this.mSongList = songList;
+            this.mAudioList = songList;
             playAudio(position);
         }
     }

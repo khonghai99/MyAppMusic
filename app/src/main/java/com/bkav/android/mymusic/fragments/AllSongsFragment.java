@@ -27,7 +27,7 @@ import com.bkav.android.mymusic.models.Song;
 
 import java.util.ArrayList;
 
-public class AllSongsFragment extends Fragment implements View.OnClickListener{
+public class AllSongsFragment extends Fragment implements View.OnClickListener {
     public RelativeLayout mBottomAllSongRelativeLayout;
     private ArrayList<Song> mSongList;
     private SongAdapter mSongAdapter;
@@ -73,6 +73,7 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener{
         mRecyclerView.setLayoutManager(layoutManager);
 
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
+        mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
         new LoadData().execute("");
         return view;
@@ -99,8 +100,9 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener{
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.ivPauseBottomAllSong:
+                break;
 
             case R.id.layoutBottomAllSong:
                 mOnShowMediaListener.showMediaFragment(mSong);

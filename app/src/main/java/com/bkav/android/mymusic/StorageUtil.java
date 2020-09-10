@@ -45,9 +45,9 @@ public class StorageUtil {
     }
 
     public void storeAudioIndex(int index) {
+        Log.d("HaiKH", "storeAudioIndex: on");
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-
         editor.putInt(AUDIO_INDEX, index);
         editor.apply();
     }

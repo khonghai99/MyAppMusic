@@ -22,7 +22,7 @@
         android:background="@drawable/border_shadow"
         android:padding="8dp"
         android:paddingStart="12dp"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <ImageView
             android:id="@+id/ivSongBottomAllSong"
