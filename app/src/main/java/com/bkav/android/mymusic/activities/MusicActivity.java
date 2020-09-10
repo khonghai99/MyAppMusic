@@ -42,8 +42,6 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
     private static final int MY_PERMISSION_REQUEST = 1;
 
-    private boolean statePermission = false;
-
     private FragmentManager mFragmentManager;
     private FragmentTransaction mFragmentTransaction;
     private MediaPlaybackService mPlayer;
@@ -63,8 +61,8 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             mPlayer = binder.getService();
             mServiceBound = true;
 
-            Toast.makeText(MusicActivity.this, "Service Bound", Toast.LENGTH_SHORT)
-                    .show();
+//            Toast.makeText(MusicActivity.this, "Service Bound", Toast.LENGTH_SHORT)
+//                    .show();
         }
 
         @Override
@@ -222,7 +220,6 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
                 if (ContextCompat.checkSelfPermission(MusicActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
                     addFragment();
-                    statePermission = true;
                 }
             } else {
                 Toast.makeText(this, "No permission granted", Toast.LENGTH_SHORT).show();

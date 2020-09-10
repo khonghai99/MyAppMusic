@@ -253,10 +253,12 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         //Build a new notification according to the current state of the MediaPlayer
         if (playbackStatus == PlaybackStatus.PLAYING) {
             notificationAction = R.drawable.ic_button_pause;
+            Log.d("HaiKH", "buildNotification: pause");
             //create the pause action
             play_pauseAction = playbackAction(1);
         } else if (playbackStatus == PlaybackStatus.PAUSED) {
             notificationAction = R.drawable.ic_button_playing;
+            Log.d("HaiKH", "buildNotification: playing");
             //create the play action
             play_pauseAction = playbackAction(0);
         }
@@ -267,13 +269,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         RemoteViews smallNotify = new RemoteViews(getPackageName(), R.layout.small_notification);
         smallNotify.setOnClickPendingIntent(R.id.ivSmallPrevious, playbackAction(3));
         smallNotify.setOnClickPendingIntent(R.id.ivSmallNext, playbackAction(2));
-        smallNotify.setOnClickPendingIntent(notificationAction, play_pauseAction);
+        smallNotify.setOnClickPendingIntent(R.id.ivSmallPause, play_pauseAction);
         setImageNotify(smallNotify, R.id.ivSmallPicture);
 
         RemoteViews bigNotify = new RemoteViews(getPackageName(), R.layout.big_notification);
         bigNotify.setOnClickPendingIntent(R.id.ivBigPrevious, playbackAction(3));
         bigNotify.setOnClickPendingIntent(R.id.ivBigNext, playbackAction(2));
-        bigNotify.setOnClickPendingIntent(notificationAction, play_pauseAction);
+        bigNotify.setOnClickPendingIntent(R.id.ivBigPause, play_pauseAction);
         setImageNotify(bigNotify, R.id.ivBigPicture);
         setTextNotify(bigNotify, R.id.tvBigTitle, R.id.tvBigArtist);
 

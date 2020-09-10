@@ -37,10 +37,10 @@ public class StorageUtil {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         Gson gson = new Gson();
         String json = preferences.getString(AUDIO_LIST, null);
-        Log.i("json",json);
+        Log.i("json", json);
         Type type = new TypeToken<ArrayList<Song>>() {
         }.getType();
-        Log.i("gson",gson.fromJson(json,type).toString());
+        Log.i("gson", gson.fromJson(json, type).toString());
         return gson.fromJson(json, type);
     }
 
@@ -54,6 +54,7 @@ public class StorageUtil {
 
     public int loadAudioIndex() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        Log.d("HaiKH", "loadAudioIndex: " + preferences.getInt(AUDIO_INDEX, -1));
         return preferences.getInt(AUDIO_INDEX, -1);//return -1 if no data found
     }
 
