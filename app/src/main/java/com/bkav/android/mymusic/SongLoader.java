@@ -21,7 +21,9 @@ public class SongLoader {
                 MediaStore.Audio.AudioColumns.DURATION,
                 MediaStore.Audio.AudioColumns.DATA
 
+
         };
+
         ArrayList<Song> listSong = new ArrayList<>();
 
         Cursor cursor = null;

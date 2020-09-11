@@ -72,7 +72,7 @@
             android:layout_height="30dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/ic_media_pause_light" />
+            android:src="@drawable/ic_media_pause_light" />
     </RelativeLayout>
 
 

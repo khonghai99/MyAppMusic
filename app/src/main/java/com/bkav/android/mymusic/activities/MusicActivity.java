@@ -26,6 +26,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
 import com.bkav.android.mymusic.Playable;
+import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
@@ -37,7 +38,7 @@ import java.util.ArrayList;
 
 
 public class MusicActivity extends AppCompatActivity implements OnNewClickListener,
-        AllSongsFragment.OnShowMediaListener, Playable {
+        AllSongsFragment.OnShowMediaListener, MediaPlaybackFragment.OnSetBottomAllSongListener {
 
     //sends broadcast intents to the MediaPlayerService
     public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
@@ -47,12 +48,12 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
     private FragmentManager mFragmentManager;
     private FragmentTransaction mFragmentTransaction;
-    private MediaPlaybackService mPlayer;
+    private PlaybackStatus playbackStatus;
+    private MediaPlaybackService mPlayerService;
     private ArrayList<Song> mAudioList;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
-
     // Ràng buộc Client này với MusicPlayer
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -60,7 +61,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
             // Đã liên kết với LocalService, truyền IBinder và nhận phiên bản LocalService
             MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
-            mPlayer = binder.getService();
+            mPlayerService = binder.getService();
             mServiceBound = true;
 
 //            Toast.makeText(MusicActivity.this, "Service Bound", Toast.LENGTH_SHORT)
@@ -72,20 +73,6 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             mServiceBound = false;
         }
     };
-    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getExtras().getString("actionname");
-
-            switch (action){
-                case MediaPlaybackService.ACTION_PREVIOUS:
-                    onTrackPrevious();
-                    break;
-
-            }
-        }
-    };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,7 +104,8 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     }
 
     public MediaPlaybackService getMediaPlayerService() {
-        return mPlayer;
+        Log.d("HaiKH", "getMediaPlayerService: on");
+        return mPlayerService;
     }
 
     private void playAudio(int audioIndex) {
@@ -197,7 +185,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         if (mIsVertical) {
             AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
             if (allSongsFragment != null) {
-                allSongsFragment.setDataBottom(songList, position);
+                allSongsFragment.setDataBottom(songList.get(position),playbackStatus);
                 allSongsFragment.setVisible(position);
                 this.mAudioList = songList;
                 playAudio(position);
@@ -211,10 +199,10 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     }
 
     @Override
-    public void showMediaFragment(Song song) {
+    public void showMediaFragment(Song song,PlaybackStatus playbackStatus) {
         MediaPlaybackFragment mediaPlaybackFragment;
         if (mIsVertical) {
-            mediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(song);
+            mediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(song,playbackStatus);
             FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.frameLayoutMedia, mediaPlaybackFragment);
             fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
@@ -227,6 +215,15 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
         }
+
+    }
+
+    @Override
+    public void setBottomAllSong(Song song, PlaybackStatus playbackStatus) {
+        this.playbackStatus = playbackStatus;
+        AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
+        allSongsFragment.setDataBottom(song, playbackStatus);
+
 
     }
 
@@ -245,23 +242,5 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         }
     }
 
-    @Override
-    public void onTrackPrevious() {
-        mPlayer.skipToPrevious();
-    }
 
-    @Override
-    public void onTrackPlay() {
-
-    }
-
-    @Override
-    public void onTrackPause() {
-
-    }
-
-    @Override
-    public void onTrackNext() {
-
-    }
 }

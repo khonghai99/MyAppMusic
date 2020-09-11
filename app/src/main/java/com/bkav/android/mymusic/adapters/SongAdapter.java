@@ -66,8 +66,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             holder.tvID.setText(String.valueOf(position + 1));
             holder.toBind(song);
 
-            // Whenever you want to tart the animation
-            // equalizer.stopBars(); // When you want equalizer stops animating
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

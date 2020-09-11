@@ -32,6 +32,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.bkav.android.mymusic.ImageSong;
+import com.bkav.android.mymusic.Interfaces.ListenerNotify;
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
@@ -53,13 +54,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public static final String ACTION_STOP = "com.bkav.musictest.ACTION_STOP";
     private static final String AUDIO_PLAYER = "com.bkav.android.mymusic.services.AUDIO_PLAYER";
     private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
-
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
-
     // Binder given to clients
     private final IBinder mIBinder = new LocalBinder();
-
+    private ListenerNotify mListenerNotify;
     //MediaSession
     private MediaSessionManager mMediaSessionManager;
     private MediaSession mMediaSession;
@@ -679,16 +678,25 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         String actionString = playbackAction.getAction();
         if (actionString.equalsIgnoreCase(ACTION_PLAY)) {
             mTransportControls.play();
+
+            mListenerNotify.clickPlay();
         } else if (actionString.equalsIgnoreCase(ACTION_PAUSE)) {
             mTransportControls.pause();
+
+            mListenerNotify.clickPause();
         } else if (actionString.equalsIgnoreCase(ACTION_NEXT)) {
             mTransportControls.skipToNext();
+
+            mListenerNotify.clickNext();
         } else if (actionString.equalsIgnoreCase(ACTION_PREVIOUS)) {
             mTransportControls.skipToPrevious();
+
+            mListenerNotify.clickPrevious();
         } else if (actionString.equalsIgnoreCase(ACTION_STOP)) {
             mTransportControls.stop();
         }
     }
+
 
     public class LocalBinder extends Binder {
         public MediaPlaybackService getService() {

@@ -3,6 +3,7 @@ package com.bkav.android.mymusic.fragments;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,11 +15,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bkav.android.mymusic.ImageSong;
+import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.SongLoader;
 import com.bkav.android.mymusic.activities.MusicActivity;
@@ -29,20 +32,17 @@ import com.bkav.android.mymusic.services.MediaPlaybackService;
 import java.util.ArrayList;
 
 public class AllSongsFragment extends Fragment implements View.OnClickListener {
+
     public RelativeLayout mBottomAllSongRelativeLayout;
+    PlaybackStatus playbackStatus;
     private ArrayList<Song> mSongList;
     private SongAdapter mSongAdapter;
     private OnShowMediaListener mOnShowMediaListener;
-
     private RecyclerView mRecyclerView;
-
-
     private TextView mTitleBottomAllSongTextView;
     private TextView mArtistBottomAllSongTextView;
-
     private ImageView mImageBottomAllSongImageView;
     private ImageView mImagePauseBottomAllSongImageView;
-
     private Song mSong;
 
     @Override
@@ -55,6 +55,7 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener {
         }
 
     }
+
 
     @Nullable
     @Override
@@ -74,22 +75,44 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener {
         mRecyclerView.setLayoutManager(layoutManager);
 
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
-        mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
         new LoadData().execute("");
         return view;
     }
 
-    public void setDataBottom(ArrayList<Song> songList, int position) {
-        mSong = songList.get(position);
-        byte[] art = ImageSong.getByteImageSong(songList.get(position).getmPath());
+    //get service from activity
+    private MediaPlaybackService mediaPlaybackService() {
+        return getMusicActivity().getMediaPlayerService();
+    }
+
+    //get activity
+    private MusicActivity getMusicActivity() {
+        if (getActivity() instanceof MusicActivity) {
+            return (MusicActivity) getActivity();
+        }
+        return null;
+    }
+
+    private PlaybackStatus getPlaybackStatus() {
+        return mediaPlaybackService().isPlaying();
+    }
+
+    public void setDataBottom(Song song, PlaybackStatus playbackStatus) {
+        this.playbackStatus = playbackStatus;
+        mSong = song;
+        byte[] art = ImageSong.getByteImageSong(song.getmPath());
         if (art != null) {
             mImageBottomAllSongImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
         } else {
             mImageBottomAllSongImageView.setImageResource(R.drawable.ic_music_not_picture);
         }
-        mTitleBottomAllSongTextView.setText(songList.get(position).getmTitle());
-        mArtistBottomAllSongTextView.setText(songList.get(position).getmArtist());
+        mTitleBottomAllSongTextView.setText(song.getmTitle());
+        mArtistBottomAllSongTextView.setText(song.getmArtist());
+        if (playbackStatus == PlaybackStatus.PLAYING) {
+            mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
+        } else {
+            mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
+        }
 
     }
 
@@ -99,21 +122,34 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.ivPauseBottomAllSong:
+                if (PlaybackStatus.PLAYING == getPlaybackStatus()) {
+                    mediaPlaybackService().pauseMedia();
+                    mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PAUSED);
+                    mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
+                }
+                else if (PlaybackStatus.PAUSED == getPlaybackStatus()) {
+                    mediaPlaybackService().playMedia();
+                    mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
+                    mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
+                }
+
                 break;
 
             case R.id.layoutBottomAllSong:
-                mOnShowMediaListener.showMediaFragment(mSong);
+                mOnShowMediaListener.showMediaFragment(mSong,getPlaybackStatus());
                 break;
-
+            default:
+                throw new IllegalStateException("Unexpected value: " + view.getId());
         }
     }
 
     public interface OnShowMediaListener {
-        void showMediaFragment(Song song);
+        void showMediaFragment(Song song,PlaybackStatus playbackStatus);
     }
 
     public class LoadData extends AsyncTask<String, Void, String> {
