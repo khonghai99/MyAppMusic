@@ -29,7 +29,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     private static final String KEY_TITLE = "com.bkav.android.mymusic.fragments.TITLE";
     private static final String KEY_ARTIST = "com.bkav.android.mymusic.fragments.ARTIST";
     private final String LOG_INFO = "appMusic";
-    private OnSetBottomAllSongListener mOnSetButtomAllSong;
+    private OnSetBottomAllSongListener mOnSetBottomAllSong;
     private ImageView mImageTopMediaImageView;
     private TextView mTitleTopMediaTextView;
     private TextView mArtistTopMediaTextView;
@@ -73,7 +73,8 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         try {
-            mOnSetButtomAllSong = (OnSetBottomAllSongListener) context;
+            mOnSetBottomAllSong = (OnSetBottomAllSongListener) context;
+            Log.i("TAG", "onAttach: on");
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement OnShowMediaListener");
         }
@@ -180,14 +181,15 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
             case R.id.ivNext:
                 mediaPlaybackService().skipToNext();
                 mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
-
+                mOnSetBottomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
+                mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitle(getSong());
-                mOnSetButtomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 break;
             case R.id.ivPrevious:
                 mediaPlaybackService().skipToPrevious();
                 mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
-                mOnSetButtomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PAUSED);
+                mOnSetBottomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
+                mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitle(getSong());
                 break;
             case R.id.ivPause:
@@ -196,12 +198,12 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                     mediaPlaybackService().pauseMedia();
                     mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PAUSED);
                     mPauseImageView.setImageResource(R.drawable.ic_button_pause);
-                    mOnSetButtomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PAUSED);
+                    mOnSetBottomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PAUSED);
                 } else {
                     mediaPlaybackService().playMedia();
                     mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                     mPauseImageView.setImageResource(R.drawable.ic_button_playing);
-                    mOnSetButtomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
+                    mOnSetBottomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 }
                 break;
         }

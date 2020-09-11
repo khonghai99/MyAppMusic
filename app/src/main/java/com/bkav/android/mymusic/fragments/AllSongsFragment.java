@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bkav.android.mymusic.ImageSong;
+import com.bkav.android.mymusic.Interfaces.ListenerNotify;
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.SongLoader;
@@ -31,10 +32,10 @@ import com.bkav.android.mymusic.services.MediaPlaybackService;
 
 import java.util.ArrayList;
 
-public class AllSongsFragment extends Fragment implements View.OnClickListener {
+public class AllSongsFragment extends Fragment implements View.OnClickListener, ListenerNotify {
 
     public RelativeLayout mBottomAllSongRelativeLayout;
-    PlaybackStatus playbackStatus;
+    private PlaybackStatus playbackStatus;
     private ArrayList<Song> mSongList;
     private SongAdapter mSongAdapter;
     private OnShowMediaListener mOnShowMediaListener;
@@ -50,10 +51,10 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener {
         super.onAttach(context);
         try {
             mOnShowMediaListener = (OnShowMediaListener) context;
+            Log.i("TAG", "onAttach: "+context);
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement OnShowMediaListener");
         }
-
     }
 
 
@@ -108,12 +109,29 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener {
         }
         mTitleBottomAllSongTextView.setText(song.getmTitle());
         mArtistBottomAllSongTextView.setText(song.getmArtist());
-        if (playbackStatus == PlaybackStatus.PLAYING) {
+//        if (playbackStatus == PlaybackStatus.PLAYING) {
             mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
+//        } else {
+//            mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
+//        }
+    }
+
+    public void setDataBottomFromMedia(Song song, PlaybackStatus playbackStatus) {
+        this.playbackStatus = playbackStatus;
+        mSong = song;
+        byte[] art = ImageSong.getByteImageSong(song.getmPath());
+        if (art != null) {
+            mImageBottomAllSongImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+        } else {
+            mImageBottomAllSongImageView.setImageResource(R.drawable.ic_music_not_picture);
+        }
+        mTitleBottomAllSongTextView.setText(song.getmTitle());
+        mArtistBottomAllSongTextView.setText(song.getmArtist());
+        if (playbackStatus == PlaybackStatus.PLAYING) {
+        mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
         } else {
             mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
         }
-
     }
 
     public void setVisible(int current) {
@@ -146,6 +164,26 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener {
             default:
                 throw new IllegalStateException("Unexpected value: " + view.getId());
         }
+    }
+
+    @Override
+    public void clickPrevious() {
+        mArtistBottomAllSongTextView.setText("123");
+    }
+
+    @Override
+    public void clickPlay() {
+
+    }
+
+    @Override
+    public void clickNext() {
+
+    }
+
+    @Override
+    public void clickPause() {
+
     }
 
     public interface OnShowMediaListener {

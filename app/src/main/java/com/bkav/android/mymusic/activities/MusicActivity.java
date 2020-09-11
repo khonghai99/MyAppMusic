@@ -222,7 +222,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     public void setBottomAllSong(Song song, PlaybackStatus playbackStatus) {
         this.playbackStatus = playbackStatus;
         AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
-        allSongsFragment.setDataBottom(song, playbackStatus);
+        allSongsFragment.setDataBottomFromMedia(song, playbackStatus);
 
 
     }

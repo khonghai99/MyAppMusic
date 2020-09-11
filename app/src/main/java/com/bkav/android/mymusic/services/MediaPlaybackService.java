@@ -696,6 +696,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             mTransportControls.stop();
         }
     }
+    // nạp listener
+    public void setOnListener(ListenerNotify listener){
+        this.mListenerNotify = listener;
+    }
 
 
     public class LocalBinder extends Binder {
