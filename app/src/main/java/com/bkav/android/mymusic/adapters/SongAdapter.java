@@ -124,9 +124,9 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         }
 
         public void toBind(Song song) {
-            tvTitleSong.setText(song.getmTitle());
+            tvTitleSong.setText(song.getTitle());
             tvTitleSong.setSelected(true);
-            tvDuration.setText(millisecondToFullTime(Long.parseLong(song.getmDuration())));
+            tvDuration.setText(millisecondToFullTime(Long.parseLong(song.getDuration())));
         }
     }
 }

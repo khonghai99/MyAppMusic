@@ -49,9 +49,9 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public static MediaPlaybackFragment getInstancesMedia(Song song, PlaybackStatus playbackStatus) {
         MediaPlaybackFragment fragment = new MediaPlaybackFragment();
         Bundle bundle = new Bundle();
-        bundle.putString(KEY_PATH, song.getmPath());
-        bundle.putString(KEY_TITLE, song.getmTitle());
-        bundle.putString(KEY_ARTIST, song.getmArtist());
+        bundle.putString(KEY_PATH, song.getPath());
+        bundle.putString(KEY_TITLE, song.getTitle());
+        bundle.putString(KEY_ARTIST, song.getArtist());
         bundle.putSerializable("play", playbackStatus);
         fragment.setArguments(bundle);
         return fragment;
@@ -85,6 +85,14 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
             return (MusicActivity) getActivity();
         }
         return null;
+    }
+
+    private MediaPlaybackService mediaPlaybackService() {
+        return getMusicActivity().getMediaPlayerService();
+    }
+
+    private Song getSong() {
+        return mediaPlaybackService().getActiveAudio();
     }
 
     @Nullable
@@ -146,7 +154,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
 
 
     public void setTitle(Song song) {
-        String path = song.getmPath();
+        String path = song.getPath();
         byte[] art = ImageSong.getByteImageSong(path);
         if (art != null) {
             mImageTopMediaImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
@@ -155,17 +163,10 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
             mImageTopMediaImageView.setImageResource(R.drawable.ic_music_not_picture);
             mBackgroundMediaImageView.setImageResource(R.drawable.ic_music_not_picture);
         }
-        mArtistTopMediaTextView.setText(song.getmArtist());
-        mTitleTopMediaTextView.setText(song.getmTitle());
+        mArtistTopMediaTextView.setText(song.getArtist());
+        mTitleTopMediaTextView.setText(song.getTitle());
     }
 
-    private MediaPlaybackService mediaPlaybackService() {
-        return getMusicActivity().getMediaPlayerService();
-    }
-
-    private Song getSong() {
-        return mediaPlaybackService().getActiveAudio();
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override

@@ -31,7 +31,10 @@ dependencies {
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.7'
 
     implementation 'com.github.claucookie.miniequalizer:library:1.0.0'
-    
+
+    // glide
+    implementation "com.github.bumptech.glide:glide:4.10.0"
+
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation "com.android.support:support-core-utils:28.0.0"

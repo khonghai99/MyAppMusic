@@ -1,7 +1,6 @@
 package com.bkav.android.mymusic.activities;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -21,11 +20,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
-import com.bkav.android.mymusic.Playable;
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
@@ -48,12 +47,15 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
     private FragmentManager mFragmentManager;
     private FragmentTransaction mFragmentTransaction;
-    private PlaybackStatus playbackStatus;
+    private PlaybackStatus mPlaybackStatus;
     private MediaPlaybackService mPlayerService;
     private ArrayList<Song> mAudioList;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
+
+    private Fragment mAllSongsFragment, mMediaPlaybackFragment;
+
     // Ràng buộc Client này với MusicPlayer
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -64,8 +66,12 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             mPlayerService = binder.getService();
             mServiceBound = true;
 
-//            Toast.makeText(MusicActivity.this, "Service Bound", Toast.LENGTH_SHORT)
-//                    .show();
+            mPlayerService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
+                @Override
+                public void onUpdate(int index) {
+                    update(index);
+                }
+            });
         }
 
         @Override
@@ -145,7 +151,17 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         mCurrentPosition = savedInstanceState.getInt(AUDIO_INDEX);
     }
 
+    public boolean getStateUI() {
+        return mIsVertical;
+    }
+
+    public void initFragment() {
+        mAllSongsFragment = new AllSongsFragment();
+        mMediaPlaybackFragment = new MediaPlaybackFragment();
+    }
+
     private void addFragment() {
+        initFragment();
         //add fragment to frameLayout
         mFragmentManager = getSupportFragmentManager();
         int orientation = getResources().getConfiguration().orientation;
@@ -154,23 +170,24 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
         if (mIsVertical) {
             mFragmentTransaction = mFragmentManager.beginTransaction();
-            AllSongsFragment allSongsFragment = new AllSongsFragment();
-            mFragmentTransaction.replace(R.id.frameLayoutAllSong, allSongsFragment);
+            mFragmentTransaction.replace(R.id.frameLayoutAllSong, mAllSongsFragment);
             mFragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             mFragmentTransaction.commit();
         } else {
-            AllSongsFragment allSongFragment = new AllSongsFragment();
             mFragmentTransaction = mFragmentManager.beginTransaction();
-            mFragmentTransaction.replace(R.id.frameLayoutOne, allSongFragment);
+            mFragmentTransaction.replace(R.id.frameLayoutOne, mAllSongsFragment);
             mFragmentTransaction.commit();
 
-            MediaPlaybackFragment mediaPlaybackFragment = new MediaPlaybackFragment();
             FragmentTransaction transactionTow = mFragmentManager.beginTransaction();
-            transactionTow.replace(R.id.frameLayoutTwo, mediaPlaybackFragment);
+            transactionTow.replace(R.id.frameLayoutTwo, mMediaPlaybackFragment);
             transactionTow.addToBackStack(null);
             transactionTow.commit();
         }
 
+    }
+
+    public void update(int index) {
+        ((AllSongsFragment) mAllSongsFragment).update(index);
     }
 
     @Override
@@ -185,7 +202,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         if (mIsVertical) {
             AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
             if (allSongsFragment != null) {
-                allSongsFragment.setDataBottom(songList.get(position),playbackStatus);
+                allSongsFragment.setDataBottom(songList, position, mPlaybackStatus);
                 allSongsFragment.setVisible(position);
                 this.mAudioList = songList;
                 playAudio(position);
@@ -199,10 +216,10 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     }
 
     @Override
-    public void showMediaFragment(Song song,PlaybackStatus playbackStatus) {
+    public void showMediaFragment(Song song, PlaybackStatus playbackStatus) {
         MediaPlaybackFragment mediaPlaybackFragment;
         if (mIsVertical) {
-            mediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(song,playbackStatus);
+            mediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(song, playbackStatus);
             FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.frameLayoutMedia, mediaPlaybackFragment);
             fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
@@ -220,7 +237,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
     @Override
     public void setBottomAllSong(Song song, PlaybackStatus playbackStatus) {
-        this.playbackStatus = playbackStatus;
+        this.mPlaybackStatus = playbackStatus;
         AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
         allSongsFragment.setDataBottomFromMedia(song, playbackStatus);
 

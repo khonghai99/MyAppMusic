@@ -54,7 +54,6 @@ public class StorageUtil {
 
     public int loadAudioIndex() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
-        Log.d("HaiKH", "loadAudioIndex: " + preferences.getInt(AUDIO_INDEX, -1));
         return preferences.getInt(AUDIO_INDEX, -1);//return -1 if no data found
     }
 

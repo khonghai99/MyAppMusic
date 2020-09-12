@@ -6,6 +6,7 @@ public class Song {
     private String mDuration;
     private String mPath;
 
+
     public Song(String mTitle, String mArtist, String mDuration, String mPath) {
         this.mTitle = mTitle;
         this.mArtist = mArtist;
@@ -13,35 +14,35 @@ public class Song {
         this.mPath = mPath;
     }
 
-    public String getmTitle() {
+    public String getTitle() {
         return mTitle;
     }
 
-    public void setmTitle(String mTitle) {
+    public void setTitle(String mTitle) {
         this.mTitle = mTitle;
     }
 
-    public String getmArtist() {
+    public String getArtist() {
         return mArtist;
     }
 
-    public void setmArtist(String mArtist) {
+    public void setArtist(String mArtist) {
         this.mArtist = mArtist;
     }
 
-    public String getmDuration() {
+    public String getDuration() {
         return mDuration;
     }
 
-    public void setmDuration(String mDuration) {
+    public void setDuration(String mDuration) {
         this.mDuration = mDuration;
     }
 
-    public String getmPath() {
+    public String getPath() {
         return mPath;
     }
 
-    public void setmPath(String mPath) {
+    public void setPath(String mPath) {
         this.mPath = mPath;
     }
 }

@@ -2,16 +2,25 @@ package com.bkav.android.mymusic;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.bkav.android.mymusic.models.Song;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SongLoader {
+    private Bitmap image;
 
     public ArrayList<Song> getAllSongDevice(Context context) {
         String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
@@ -28,6 +37,7 @@ public class SongLoader {
 
         Cursor cursor = null;
         try {
+
             Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
             cursor = context.getContentResolver().query(uri, projection, selection, null, null);
             if (cursor != null) {

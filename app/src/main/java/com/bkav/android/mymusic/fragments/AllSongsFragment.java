@@ -21,7 +21,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bkav.android.mymusic.ImageSong;
-import com.bkav.android.mymusic.Interfaces.ListenerNotify;
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.SongLoader;
@@ -29,10 +28,11 @@ import com.bkav.android.mymusic.activities.MusicActivity;
 import com.bkav.android.mymusic.adapters.SongAdapter;
 import com.bkav.android.mymusic.models.Song;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 
-public class AllSongsFragment extends Fragment implements View.OnClickListener, ListenerNotify {
+public class AllSongsFragment extends Fragment implements View.OnClickListener {
 
     public RelativeLayout mBottomAllSongRelativeLayout;
     private PlaybackStatus playbackStatus;
@@ -51,7 +51,7 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener, 
         super.onAttach(context);
         try {
             mOnShowMediaListener = (OnShowMediaListener) context;
-            Log.i("TAG", "onAttach: "+context);
+            Log.i("TAG", "onAttach: " + context);
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement OnShowMediaListener");
         }
@@ -98,37 +98,37 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener, 
         return mediaPlaybackService().isPlaying();
     }
 
-    public void setDataBottom(Song song, PlaybackStatus playbackStatus) {
+    public void setDataBottom(ArrayList<Song> songs, int position, PlaybackStatus playbackStatus) {
         this.playbackStatus = playbackStatus;
-        mSong = song;
-        byte[] art = ImageSong.getByteImageSong(song.getmPath());
-        if (art != null) {
-            mImageBottomAllSongImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
-        } else {
-            mImageBottomAllSongImageView.setImageResource(R.drawable.ic_music_not_picture);
-        }
-        mTitleBottomAllSongTextView.setText(song.getmTitle());
-        mArtistBottomAllSongTextView.setText(song.getmArtist());
-//        if (playbackStatus == PlaybackStatus.PLAYING) {
-            mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
-//        } else {
-//            mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
-//        }
+        mSong = songs.get(position);
+        mSongList = songs;
+        byte[] art = ImageSong.getByteImageSong(mSong.getPath());
+
+
+        Glide.with(getContext()).asBitmap()
+                .error(R.drawable.ic_music_not_picture)
+                .load(art)
+                .into(mImageBottomAllSongImageView);
+
+        mTitleBottomAllSongTextView.setText(mSong.getTitle());
+        mArtistBottomAllSongTextView.setText(mSong.getArtist());
+        mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
+
     }
 
     public void setDataBottomFromMedia(Song song, PlaybackStatus playbackStatus) {
         this.playbackStatus = playbackStatus;
         mSong = song;
-        byte[] art = ImageSong.getByteImageSong(song.getmPath());
+        byte[] art = ImageSong.getByteImageSong(song.getPath());
         if (art != null) {
             mImageBottomAllSongImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
         } else {
             mImageBottomAllSongImageView.setImageResource(R.drawable.ic_music_not_picture);
         }
-        mTitleBottomAllSongTextView.setText(song.getmTitle());
-        mArtistBottomAllSongTextView.setText(song.getmArtist());
+        mTitleBottomAllSongTextView.setText(song.getTitle());
+        mArtistBottomAllSongTextView.setText(song.getArtist());
         if (playbackStatus == PlaybackStatus.PLAYING) {
-        mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
+            mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
         } else {
             mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
         }
@@ -149,8 +149,7 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener, 
                     mediaPlaybackService().pauseMedia();
                     mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PAUSED);
                     mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
-                }
-                else if (PlaybackStatus.PAUSED == getPlaybackStatus()) {
+                } else if (PlaybackStatus.PAUSED == getPlaybackStatus()) {
                     mediaPlaybackService().playMedia();
                     mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                     mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
@@ -159,35 +158,30 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener, 
                 break;
 
             case R.id.layoutBottomAllSong:
-                mOnShowMediaListener.showMediaFragment(mSong,getPlaybackStatus());
+                mOnShowMediaListener.showMediaFragment(mSong, getPlaybackStatus());
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + view.getId());
         }
     }
 
-    @Override
-    public void clickPrevious() {
-        mArtistBottomAllSongTextView.setText("123");
-    }
-
-    @Override
-    public void clickPlay() {
-
-    }
-
-    @Override
-    public void clickNext() {
-
-    }
-
-    @Override
-    public void clickPause() {
-
+    public void update(int index, boolean isClickPlay) {
+        if (!isClickPlay) {
+            mTitleBottomAllSongTextView.setText(mSongList.get(index).getTitle());
+            mArtistBottomAllSongTextView.setText(mSongList.get(index).getArtist());
+            byte[] art = ImageSong.getByteImageSong(mSongList.get(index).getPath());
+            Glide.with(getContext()).asBitmap()
+                    .error(R.drawable.ic_music_not_picture)
+                    .load(art)
+                    .into(mImageBottomAllSongImageView);
+        }
+        else {
+            //change button
+        }
     }
 
     public interface OnShowMediaListener {
-        void showMediaFragment(Song song,PlaybackStatus playbackStatus);
+        void showMediaFragment(Song song, PlaybackStatus playbackStatus);
     }
 
     public class LoadData extends AsyncTask<String, Void, String> {

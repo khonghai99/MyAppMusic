@@ -32,7 +32,6 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.bkav.android.mymusic.ImageSong;
-import com.bkav.android.mymusic.Interfaces.ListenerNotify;
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
@@ -54,11 +53,16 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public static final String ACTION_STOP = "com.bkav.musictest.ACTION_STOP";
     private static final String AUDIO_PLAYER = "com.bkav.android.mymusic.services.AUDIO_PLAYER";
     private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
+
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
+
     // Binder given to clients
     private final IBinder mIBinder = new LocalBinder();
-    private ListenerNotify mListenerNotify;
+
+    //action notify
+    private OnNotificationListener mOnNotificationListener;
+
     //MediaSession
     private MediaSessionManager mMediaSessionManager;
     private MediaSession mMediaSession;
@@ -186,7 +190,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             // Set the data source to the mediaFile location
-            mMediaPlayer.setDataSource(mActiveAudio.getmPath());
+            mMediaPlayer.setDataSource(mActiveAudio.getPath());
         } catch (IOException e) {
             e.printStackTrace();
             stopSelf();
@@ -240,7 +244,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
     //set image when customContentView
     private void setImageNotify(RemoteViews remoteViews, int id) {
-        byte[] art = ImageSong.getByteImageSong(mActiveAudio.getmPath());
+        byte[] art = ImageSong.getByteImageSong(mActiveAudio.getPath());
         if (art != null) {
             Bitmap bitmap = BitmapFactory.decodeByteArray(art, 0, art.length);
             remoteViews.setImageViewBitmap(id, bitmap);
@@ -253,8 +257,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     //set image when customContentView
     private void setTextNotify(RemoteViews remoteViews, int idTitle, int idArtist) {
 
-        remoteViews.setTextViewText(idTitle, mActiveAudio.getmTitle());
-        remoteViews.setTextViewText(idArtist, mActiveAudio.getmArtist());
+        remoteViews.setTextViewText(idTitle, mActiveAudio.getTitle());
+        remoteViews.setTextViewText(idArtist, mActiveAudio.getArtist());
     }
 
     private void buildNotification(PlaybackStatus playbackStatus) {
@@ -317,10 +321,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     .setLargeIcon(largeIcon)
                     .setSmallIcon(android.R.drawable.stat_sys_headset)
                     // Set Notification content information
-                    .setContentText(mActiveAudio.getmArtist())
+                    .setContentText(mActiveAudio.getArtist())
                     .setCustomContentView(smallNotify)
                     .setCustomBigContentView(bigNotify)
-                    .setContentTitle(mActiveAudio.getmTitle());
+                    .setContentTitle(mActiveAudio.getTitle());
             startForeground(NOTIFICATION_ID, notificationBuilder.build());
         }
     }
@@ -538,6 +542,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             public void onPlay() {
                 super.onPlay();
                 resumeMedia();
+                mOnNotificationListener.onUpdate(mAudioIndex);
                 buildNotification(PlaybackStatus.PLAYING);
             }
 
@@ -546,6 +551,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             public void onPause() {
                 super.onPause();
                 pauseMedia();
+                mOnNotificationListener.onUpdate(mAudioIndex);
                 buildNotification(PlaybackStatus.PAUSED);
                 stopForeground(STOP_FOREGROUND_DETACH);
             }
@@ -555,6 +561,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 super.onSkipToNext();
                 skipToNext();
                 updateMetaData();
+                mOnNotificationListener.onUpdate(mAudioIndex);
                 buildNotification(PlaybackStatus.PLAYING);
             }
 
@@ -563,6 +570,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 super.onSkipToPrevious();
                 skipToPrevious();
                 updateMetaData();
+                mOnNotificationListener.onUpdate(mAudioIndex);
                 buildNotification(PlaybackStatus.PLAYING);
             }
 
@@ -595,8 +603,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         // Update the current metadata
         mMediaSession.setMetadata(new MediaMetadata.Builder()
                 .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArt)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, mActiveAudio.getmArtist())
-                .putString(MediaMetadata.METADATA_KEY_TITLE, mActiveAudio.getmTitle())
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, mActiveAudio.getArtist())
+                .putString(MediaMetadata.METADATA_KEY_TITLE, mActiveAudio.getTitle())
                 .build());
     }
 
@@ -620,6 +628,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     }
 
     public void skipToPrevious() {
+
         if (mAudioIndex == 0) {
             //if first in playlist
             //set index to the last of audioList
@@ -630,10 +639,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             mActiveAudio = mAudioList.get(--mAudioIndex);
         }
 
+
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
         Log.d("HaiKH", "skipToNext: " + mAudioIndex);
-
         stopMedia();
         //reset mediaPlayer
         mMediaPlayer.reset();
@@ -678,29 +687,26 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         String actionString = playbackAction.getAction();
         if (actionString.equalsIgnoreCase(ACTION_PLAY)) {
             mTransportControls.play();
-
-            mListenerNotify.clickPlay();
         } else if (actionString.equalsIgnoreCase(ACTION_PAUSE)) {
             mTransportControls.pause();
-
-            mListenerNotify.clickPause();
         } else if (actionString.equalsIgnoreCase(ACTION_NEXT)) {
             mTransportControls.skipToNext();
-
-            mListenerNotify.clickNext();
         } else if (actionString.equalsIgnoreCase(ACTION_PREVIOUS)) {
             mTransportControls.skipToPrevious();
-
-            mListenerNotify.clickPrevious();
         } else if (actionString.equalsIgnoreCase(ACTION_STOP)) {
             mTransportControls.stop();
         }
     }
+
     // nạp listener
-    public void setOnListener(ListenerNotify listener){
-        this.mListenerNotify = listener;
+    public void setOnNotificationListener(OnNotificationListener listener) {
+        this.mOnNotificationListener = listener;
     }
 
+
+    public interface OnNotificationListener {
+        void onUpdate(int index);
+    }
 
     public class LocalBinder extends Binder {
         public MediaPlaybackService getService() {
