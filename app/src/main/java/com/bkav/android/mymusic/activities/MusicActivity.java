@@ -68,8 +68,8 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
             mPlayerService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
                 @Override
-                public void onUpdate(int index) {
-                    update(index);
+                public void onUpdate(int index,boolean isClickPlay) {
+                    update(index,isClickPlay);
                 }
             });
         }
@@ -186,8 +186,8 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
     }
 
-    public void update(int index) {
-        ((AllSongsFragment) mAllSongsFragment).update(index);
+    public void update(int index,boolean isClickPlay) {
+        ((AllSongsFragment) mAllSongsFragment).update(index,isClickPlay);
     }
 
     @Override

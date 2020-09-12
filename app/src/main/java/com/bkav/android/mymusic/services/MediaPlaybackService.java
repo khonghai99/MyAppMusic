@@ -542,7 +542,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             public void onPlay() {
                 super.onPlay();
                 resumeMedia();
-                mOnNotificationListener.onUpdate(mAudioIndex);
+                mOnNotificationListener.onUpdate(mAudioIndex, true);
                 buildNotification(PlaybackStatus.PLAYING);
             }
 
@@ -551,7 +551,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             public void onPause() {
                 super.onPause();
                 pauseMedia();
-                mOnNotificationListener.onUpdate(mAudioIndex);
+                mOnNotificationListener.onUpdate(mAudioIndex, true);
                 buildNotification(PlaybackStatus.PAUSED);
                 stopForeground(STOP_FOREGROUND_DETACH);
             }
@@ -561,7 +561,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 super.onSkipToNext();
                 skipToNext();
                 updateMetaData();
-                mOnNotificationListener.onUpdate(mAudioIndex);
+                mOnNotificationListener.onUpdate(mAudioIndex, false);
                 buildNotification(PlaybackStatus.PLAYING);
             }
 
@@ -570,7 +570,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 super.onSkipToPrevious();
                 skipToPrevious();
                 updateMetaData();
-                mOnNotificationListener.onUpdate(mAudioIndex);
+                mOnNotificationListener.onUpdate(mAudioIndex, false);
                 buildNotification(PlaybackStatus.PLAYING);
             }
 
@@ -705,7 +705,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
 
     public interface OnNotificationListener {
-        void onUpdate(int index);
+        void onUpdate(int index, boolean isClickPlay);
     }
 
     public class LocalBinder extends Binder {
