@@ -1,7 +1,6 @@
 package com.bkav.android.mymusic.fragments;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -78,6 +77,7 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener {
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
         new LoadData().execute("");
+        Log.i("HaiKH", "onCreateView: "+getView());
         return view;
     }
 
@@ -120,11 +120,10 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener {
         this.playbackStatus = playbackStatus;
         mSong = song;
         byte[] art = ImageSong.getByteImageSong(song.getPath());
-        if (art != null) {
-            mImageBottomAllSongImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
-        } else {
-            mImageBottomAllSongImageView.setImageResource(R.drawable.ic_music_not_picture);
-        }
+        Glide.with(getContext()).asBitmap()
+                .error(R.drawable.ic_music_not_picture)
+                .load(art)
+                .into(mImageBottomAllSongImageView);
         mTitleBottomAllSongTextView.setText(song.getTitle());
         mArtistBottomAllSongTextView.setText(song.getArtist());
         if (playbackStatus == PlaybackStatus.PLAYING) {
@@ -135,6 +134,7 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener {
     }
 
     public void setVisible(int current) {
+        Log.i("HaiKH", "onCreateView: "+getView());
         mBottomAllSongRelativeLayout.setVisibility(View.VISIBLE);
         mSongAdapter.setCurrentSong(current);
 
@@ -165,19 +165,21 @@ public class AllSongsFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    public void update(int index, boolean isClickPlay) {
-        if (!isClickPlay) {
-            mTitleBottomAllSongTextView.setText(mSongList.get(index).getTitle());
-            mArtistBottomAllSongTextView.setText(mSongList.get(index).getArtist());
-            byte[] art = ImageSong.getByteImageSong(mSongList.get(index).getPath());
-            Glide.with(getContext()).asBitmap()
-                    .error(R.drawable.ic_music_not_picture)
-                    .load(art)
-                    .into(mImageBottomAllSongImageView);
+    public void update(int position, PlaybackStatus playbackStatus) {
+
+        mTitleBottomAllSongTextView.setText(mSongList.get(position).getTitle());
+        mArtistBottomAllSongTextView.setText(mSongList.get(position).getArtist());
+        byte[] art = ImageSong.getByteImageSong(mSongList.get(position).getPath());
+        Glide.with(getContext()).asBitmap()
+                .error(R.drawable.ic_music_not_picture)
+                .load(art)
+                .into(mImageBottomAllSongImageView);
+        if (playbackStatus == PlaybackStatus.PLAYING) {
+            mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
+        } else if (playbackStatus == PlaybackStatus.PAUSED) {
+            mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
         }
-        else {
-            //change button
-        }
+
     }
 
     public interface OnShowMediaListener {

@@ -68,8 +68,8 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
             mPlayerService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
                 @Override
-                public void onUpdate(int index,boolean isClickPlay) {
-                    update(index,isClickPlay);
+                public void onUpdate(int position, PlaybackStatus playbackStatus) {
+                    updateFragment(position, playbackStatus);
                 }
             });
         }
@@ -180,14 +180,14 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
 
             FragmentTransaction transactionTow = mFragmentManager.beginTransaction();
             transactionTow.replace(R.id.frameLayoutTwo, mMediaPlaybackFragment);
-            transactionTow.addToBackStack(null);
             transactionTow.commit();
         }
 
     }
 
-    public void update(int index,boolean isClickPlay) {
-        ((AllSongsFragment) mAllSongsFragment).update(index,isClickPlay);
+    public void updateFragment(int index, PlaybackStatus playbackStatus) {
+        ((AllSongsFragment) mAllSongsFragment).update(index, playbackStatus);
+        ((MediaPlaybackFragment) mMediaPlaybackFragment).update();
     }
 
     @Override
@@ -208,8 +208,8 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
                 playAudio(position);
             }
         } else {
-            MediaPlaybackFragment player = (MediaPlaybackFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutTwo);
-            player.setTitle(songList.get(position));
+            MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutTwo);
+            mediaPlaybackFragment.setTitle(songList.get(position));
             this.mAudioList = songList;
             playAudio(position);
         }
@@ -219,7 +219,7 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
     public void showMediaFragment(Song song, PlaybackStatus playbackStatus) {
         MediaPlaybackFragment mediaPlaybackFragment;
         if (mIsVertical) {
-            mediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(song, playbackStatus);
+            mediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(mPlayerService.getActiveAudio(), playbackStatus);
             FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.frameLayoutMedia, mediaPlaybackFragment);
             fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);

@@ -1,7 +1,6 @@
 package com.bkav.android.mymusic.fragments;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,11 +22,13 @@ import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.activities.MusicActivity;
 import com.bkav.android.mymusic.models.Song;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
+import com.bumptech.glide.Glide;
 
 public class MediaPlaybackFragment extends Fragment implements View.OnClickListener {
     private static final String KEY_PATH = "com.bkav.android.mymusic.fragments.PATH";
     private static final String KEY_TITLE = "com.bkav.android.mymusic.fragments.TITLE";
     private static final String KEY_ARTIST = "com.bkav.android.mymusic.fragments.ARTIST";
+    private static final String KEY_PLAYBACK = "com.bkav.android.mymusic.fragments.PLAY_BACK";
     private final String LOG_INFO = "appMusic";
     private OnSetBottomAllSongListener mOnSetBottomAllSong;
     private ImageView mImageTopMediaImageView;
@@ -52,7 +53,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         bundle.putString(KEY_PATH, song.getPath());
         bundle.putString(KEY_TITLE, song.getTitle());
         bundle.putString(KEY_ARTIST, song.getArtist());
-        bundle.putSerializable("play", playbackStatus);
+        bundle.putSerializable(KEY_PLAYBACK, playbackStatus);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -134,15 +135,16 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
 
     public void setTopMedia(Bundle bundle) {
         String path = bundle.getString(KEY_PATH);
-        PlaybackStatus playbackStatus = (PlaybackStatus) bundle.getSerializable("play");
+        PlaybackStatus playbackStatus = (PlaybackStatus) bundle.getSerializable(KEY_PLAYBACK);
         byte[] art = ImageSong.getByteImageSong(path);
-        if (art != null) {
-            mImageTopMediaImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
-            mBackgroundMediaImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
-        } else {
-            mImageTopMediaImageView.setImageResource(R.drawable.ic_music_not_picture);
-            mBackgroundMediaImageView.setImageResource(R.drawable.ic_music_not_picture);
-        }
+        Glide.with(getContext()).asBitmap()
+                .error(R.drawable.ic_music_not_picture)
+                .load(art)
+                .into(mImageTopMediaImageView);
+        Glide.with(getContext()).asBitmap()
+                .error(R.drawable.ic_music_not_picture)
+                .load(art)
+                .into(mBackgroundMediaImageView);
         mTitleTopMediaTextView.setText(bundle.getString(KEY_TITLE));
         mArtistTopMediaTextView.setText(bundle.getString(KEY_ARTIST));
         if (playbackStatus == PlaybackStatus.PAUSED) {
@@ -156,13 +158,14 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void setTitle(Song song) {
         String path = song.getPath();
         byte[] art = ImageSong.getByteImageSong(path);
-        if (art != null) {
-            mImageTopMediaImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
-            mBackgroundMediaImageView.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
-        } else {
-            mImageTopMediaImageView.setImageResource(R.drawable.ic_music_not_picture);
-            mBackgroundMediaImageView.setImageResource(R.drawable.ic_music_not_picture);
-        }
+        Glide.with(getContext()).asBitmap()
+                .error(R.drawable.ic_music_not_picture)
+                .load(art)
+                .into(mImageTopMediaImageView);
+        Glide.with(getContext()).asBitmap()
+                .error(R.drawable.ic_music_not_picture)
+                .load(art)
+                .into(mBackgroundMediaImageView);
         mArtistTopMediaTextView.setText(song.getArtist());
         mTitleTopMediaTextView.setText(song.getTitle());
     }
@@ -233,6 +236,14 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void onDestroy() {
         super.onDestroy();
         Log.i(LOG_INFO, "fragment media destroy");
+    }
+
+    public void update() {
+        if (getArguments() != null) {
+            setTopMedia(getArguments());
+        }
+
+
     }
 
     public interface OnSetBottomAllSongListener {
