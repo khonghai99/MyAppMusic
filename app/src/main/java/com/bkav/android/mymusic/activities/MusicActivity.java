@@ -40,23 +40,19 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
 
     //sends broadcast intents to the MediaPlayerService
     public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
-    private static final int MY_PERMISSION_REQUEST = 1;
+    private static final int MY_PERMISSION_REQUEST = 1;// FIXME: 15/09/2020 xin 1 quyền cụ thể thì em đặt tên cho rõ nghĩa hơn cho tường minh
     private static final String SERVICE_STATE = "ServiceState";
     private static final String AUDIO_INDEX = "audioIndex";
-
+    public Fragment mAllSongsFragment, mMediaPlaybackFragment;
     private FragmentManager mFragmentManager;
     private FragmentTransaction mFragmentTransaction;
-    private PlaybackStatus mPlaybackStatus;
     private MediaPlaybackService mPlayerService;
     private ArrayList<Song> mAudioList;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
-
-    private Fragment mAllSongsFragment, mMediaPlaybackFragment;
-
     // Ràng buộc Client này với MusicPlayer
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
 
@@ -79,14 +75,21 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
         }
     };
 
+    public void showMediaPlaybackFragment() {
+        FragmentManager mFragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.frameLayoutMedia, mMediaPlaybackFragment);
+        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        float density = getResources().getDisplayMetrics().density;
-        Log.d("HaiKH", String.valueOf(density));
-        Log.d("HaiKH", "onCreate: " + density);
+
         mAudioList = new ArrayList<>();
 
         //set toolbar
@@ -97,14 +100,11 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
 
         //check permission
         if (ContextCompat.checkSelfPermission(MusicActivity.this,
-                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
-            ActivityCompat.requestPermissions(MusicActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.WAKE_LOCK) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WAKE_LOCK},
-                    MY_PERMISSION_REQUEST);
+            ActivityCompat.requestPermissions(MusicActivity.this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
         }
     }
 
@@ -125,26 +125,26 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
      */
     private void playAudio(int audioIndex) {
         mCurrentPosition = audioIndex;
+
         //Check is service is active
         StorageUtil storage = new StorageUtil(getApplicationContext());
+
+        //Lưu vị trí âm thanh mới to SharedPreferences
+        storage.storeAudioIndex(audioIndex);
         if (!mServiceBound) {
             //Lưu danh sách âm thanh to SharedPreferences
             storage.storeAudio(mAudioList);
-            storage.storeAudioIndex(audioIndex);
-
             Intent playerIntent = new Intent(this, MediaPlaybackService.class);
             startService(playerIntent);
-            bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+            bindService(playerIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
         } else {
-            //Lưu vị trí âm thanh mới to SharedPreferences
-            storage.storeAudioIndex(audioIndex);
-
             //Service is active
             //Send a broadcast to the service -> PLAY_NEW_AUDIO
             Intent broadcastIntent = new Intent(BROADCAST_PLAY_NEW_AUDIO);
             sendBroadcast(broadcastIntent);
         }
     }
+
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -212,7 +212,9 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
      */
     public void updateFragment(int index, PlaybackStatus playbackStatus) {
         ((AllSongsFragment) mAllSongsFragment).update(index, playbackStatus);
-        ((MediaPlaybackFragment) mMediaPlaybackFragment).update(index, playbackStatus);
+        if (mMediaPlaybackFragment.getView() != null) {
+            ((MediaPlaybackFragment) mMediaPlaybackFragment).update(playbackStatus);
+        }
     }
 
     @Override
@@ -232,7 +234,7 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
         if (mIsVertical) {
             AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
             if (allSongsFragment != null) {
-                allSongsFragment.setDataBottom(songList, position, mPlaybackStatus);
+                allSongsFragment.setDataBottom(songList, position);
                 allSongsFragment.setVisible(position);
                 this.mAudioList = songList;
                 playAudio(position);

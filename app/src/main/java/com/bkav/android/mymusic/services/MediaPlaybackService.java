@@ -140,6 +140,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
+    public int getAudioIndex() {
+
+        return mAudioIndex;
+    }
+
     private void stopMedia() {
         if (mMediaPlayer == null) return;
         if (mMediaPlayer.isPlaying()) {
@@ -254,9 +259,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
-    //set image when customContentView
+    //set text when customContentView
     private void setTextNotify(RemoteViews remoteViews, int idTitle, int idArtist) {
-
         remoteViews.setTextViewText(idTitle, mActiveAudio.getTitle());
         remoteViews.setTextViewText(idArtist, mActiveAudio.getArtist());
     }

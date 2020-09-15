@@ -152,8 +152,8 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         }
     }
 
-
     public void setTitle(Song song) {
+
         String path = song.getPath();
         byte[] art = ImageSong.getByteImageSong(path);
         Glide.with(getContext()).asBitmap()
@@ -167,7 +167,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         mArtistTopMediaTextView.setText(song.getArtist());
         mTitleTopMediaTextView.setText(song.getTitle());
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -211,7 +210,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         }
     }
 
-
     @Override
     public void onPause() {
         super.onPause();
@@ -236,16 +234,17 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         Log.i(LOG_INFO, "fragment media destroy");
     }
 
-    public void update(int index, PlaybackStatus playbackStatus) {
-        Log.i("HaiKH", "update: on" + index);
-        //mArtistTopMediaTextView.setText(index + "");
+    public void update(PlaybackStatus playbackStatus) {
+        setTitle(getSong());
+        if (playbackStatus == PlaybackStatus.PLAYING) {
+            mPauseImageView.setImageResource(R.drawable.ic_button_playing);
+        } else if (playbackStatus == PlaybackStatus.PAUSED) {
+            mPauseImageView.setImageResource(R.drawable.ic_button_pause);
+        }
     }
 
     public void setBottomAllSong(Song song, PlaybackStatus playbackStatus) {
         AllSongsFragment allSongsFragment = (AllSongsFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
         allSongsFragment.setDataBottomFromMedia(song, playbackStatus);
     }
-
-
-
 }

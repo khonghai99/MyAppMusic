@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 import es.claucookie.miniequalizerlibrary.EqualizerView;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
+    private static final int VIEW_TYPE_TRUE = 1;
+    private static final int VIEW_TYPE_FALSE = 0;
     private StorageUtil mStorage;
     private PlaybackStatus playbackStatus;
     private int mCurrentSong;
@@ -29,7 +31,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     private ArrayList<Song> mSongList;
 
     public SongAdapter(Context mContext, ArrayList<Song> mSongList, OnNewClickListener mOnNewClickListener) {
-        Log.i("adapter", "create");
         this.mContext = mContext;
         this.mSongList = mSongList;
         this.mOnNewClickListener = mOnNewClickListener;
@@ -39,17 +40,13 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
 
     @Override
     public int getItemViewType(int position) {
-        StorageUtil storage = new StorageUtil(mContext);
-        Log.i("main2", String.valueOf(storage.loadAudioIndex()));
-        Log.i("main1", "getitemviewtype");
-        if (position == mCurrentSong) return 1;
-        return 0;
+        if (position == mCurrentSong) return VIEW_TYPE_TRUE;
+        return VIEW_TYPE_FALSE;
     }
 
     @NonNull
     @Override
     public SongAdapter.SongHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        Log.i("main1", "create");
         View view;
         if (viewType == 0) {
             view = LayoutInflater.from(mContext).inflate(R.layout.one_row_song, parent, false);
@@ -94,6 +91,10 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
 
     public void setPlaybackStatus(PlaybackStatus playbackStatus) {
         this.playbackStatus = playbackStatus;
+    }
+
+    public interface OnNewClickListener {
+        void onNewClick(ArrayList<Song> songList, int position);
     }
 
     public static class SongHolder extends RecyclerView.ViewHolder {
@@ -155,8 +156,5 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             tvTitleSong.setSelected(true);
             tvDuration.setText(millisecondToFullTime(Long.parseLong(song.getDuration())));
         }
-    }
-    public interface OnNewClickListener {
-        void onNewClick(ArrayList<Song> songList, int position);
     }
 }
