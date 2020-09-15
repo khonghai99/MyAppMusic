@@ -10,7 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
+import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.models.Song;
@@ -22,6 +22,7 @@ import es.claucookie.miniequalizerlibrary.EqualizerView;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     private StorageUtil mStorage;
+    private PlaybackStatus playbackStatus;
     private int mCurrentSong;
     private OnNewClickListener mOnNewClickListener;
     private Context mContext;
@@ -72,8 +73,8 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
                     mOnNewClickListener.onNewClick(mSongList, position);
                 }
             });
-            if (position == mCurrentSong) holder.equalizer.animateBars();
-            else holder.equalizer.stopBars();
+            holder.equalizer.animateBars();
+
         }
     }
 
@@ -82,9 +83,17 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         return mSongList != null ? mSongList.size() : 0;
     }
 
-    // sets the current song when clicked
+    /**
+     * sets the current song when clicked
+     *
+     * @param mCurrentSong the position when clicked
+     */
     public void setCurrentSong(int mCurrentSong) {
         this.mCurrentSong = mCurrentSong;
+    }
+
+    public void setPlaybackStatus(PlaybackStatus playbackStatus) {
+        this.playbackStatus = playbackStatus;
     }
 
     public static class SongHolder extends RecyclerView.ViewHolder {
@@ -102,11 +111,24 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
 
         }
 
-        // use timeUnit to convert from duration to minute
+        /**
+         * call timeUnitToFullTime to convert
+         *
+         * @param millisecond milliseconds to transfer
+         * @return "m:s"
+         */
+
         public static String millisecondToFullTime(long millisecond) {
             return timeUnitToFullTime(millisecond, TimeUnit.MILLISECONDS);
         }
 
+        /**
+         * convert time to string ("m:s")
+         *
+         * @param time     duration of song
+         * @param timeUnit Object TimeUnit
+         * @return time formatted
+         */
         public static String timeUnitToFullTime(long time, TimeUnit timeUnit) {
             long day = timeUnit.toDays(time);
             long hour = timeUnit.toHours(time) % 24;
@@ -123,10 +145,18 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             }
         }
 
+        /**
+         * set data for one row recyclerView
+         *
+         * @param song object Song
+         */
         public void toBind(Song song) {
             tvTitleSong.setText(song.getTitle());
             tvTitleSong.setSelected(true);
             tvDuration.setText(millisecondToFullTime(Long.parseLong(song.getDuration())));
         }
+    }
+    public interface OnNewClickListener {
+        void onNewClick(ArrayList<Song> songList, int position);
     }
 }

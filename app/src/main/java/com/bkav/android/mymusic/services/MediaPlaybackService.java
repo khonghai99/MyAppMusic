@@ -400,6 +400,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         skipToNext();
         updateMetaData();
         buildNotification(PlaybackStatus.PLAYING);
+        mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
     }
 
     @Override
@@ -421,7 +422,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
     @Override
     public boolean onInfo(MediaPlayer mediaPlayer, int i, int i1) {
-        //Được mời để giao tiếp một số thông tin.
         return false;
     }
 
@@ -442,7 +442,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         registerReceiver(becomingNoisyReceiver, intentFilter);
     }
 
-    //
+
     private void callStateListener() {
         // Get the telephony manager
         mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
@@ -608,6 +608,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 .build());
     }
 
+    /**
+     * Next song
+     */
     public void skipToNext() {
         if (mAudioIndex == mAudioList.size() - 1) {
             //if last in playlist
@@ -627,8 +630,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         initMediaPlayer();
     }
 
+    /**
+     * previous song
+     */
     public void skipToPrevious() {
-
         if (mAudioIndex == 0) {
             //if first in playlist
             //set index to the last of audioList
@@ -638,8 +643,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             //get previous in playlist
             mActiveAudio = mAudioList.get(--mAudioIndex);
         }
-
-
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
         Log.d("HaiKH", "skipToNext: " + mAudioIndex);
@@ -649,11 +652,20 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         initMediaPlayer();
     }
 
+    /**
+     * remove notification
+     */
     private void removeNotification() {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancel(NOTIFICATION_ID);
     }
 
+    /**
+     * Takes action that will be triggered to launch
+     *
+     * @param actionNumber number order will handling
+     * @return action to call control
+     */
     private PendingIntent playbackAction(int actionNumber) {
         Intent playbackAction = new Intent(this, MediaPlaybackService.class);
         switch (actionNumber) {
@@ -679,11 +691,15 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         return null;
     }
 
-    //Hàm này tìm ra hành động phát lại nào được kích hoạt
+    /**
+     * tìm ra hành động phát lại nào được kích hoạt
+     * get action from pending intent to run
+     *
+     * @param playbackAction Intent action
+     */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void handleIncomingActions(Intent playbackAction) {
         if (playbackAction == null || playbackAction.getAction() == null) return;
-
         String actionString = playbackAction.getAction();
         if (actionString.equalsIgnoreCase(ACTION_PLAY)) {
             mTransportControls.play();
@@ -698,7 +714,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
-    // nạp listener
+    /**
+     * set interface to listener
+     *
+     * @param listener
+     */
     public void setOnNotificationListener(OnNotificationListener listener) {
         this.mOnNotificationListener = listener;
     }

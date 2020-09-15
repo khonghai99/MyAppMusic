@@ -30,7 +30,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     private static final String KEY_ARTIST = "com.bkav.android.mymusic.fragments.ARTIST";
     private static final String KEY_PLAYBACK = "com.bkav.android.mymusic.fragments.PLAY_BACK";
     private final String LOG_INFO = "appMusic";
-    private OnSetBottomAllSongListener mOnSetBottomAllSong;
     private ImageView mImageTopMediaImageView;
     private TextView mTitleTopMediaTextView;
     private TextView mArtistTopMediaTextView;
@@ -74,7 +73,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         try {
-            mOnSetBottomAllSong = (OnSetBottomAllSongListener) context;
             Log.i("TAG", "onAttach: on");
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement OnShowMediaListener");
@@ -99,7 +97,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        Log.i(LOG_INFO, "fragment media create view");
+        Log.i("HaiKH", "onCreateView: fragment media create view");
         View view = inflater.inflate(R.layout.fragment_media_playback, container, false);
         mImageTopMediaImageView = view.findViewById(R.id.ivSongTopMedia);
         mPopupTopMediaImageView = view.findViewById(R.id.ivPopupTopMedia);
@@ -185,14 +183,14 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
             case R.id.ivNext:
                 mediaPlaybackService().skipToNext();
                 mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
-                mOnSetBottomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
+                setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitle(getSong());
                 break;
             case R.id.ivPrevious:
                 mediaPlaybackService().skipToPrevious();
                 mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
-                mOnSetBottomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
+                setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitle(getSong());
                 break;
@@ -202,12 +200,12 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                     mediaPlaybackService().pauseMedia();
                     mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PAUSED);
                     mPauseImageView.setImageResource(R.drawable.ic_button_pause);
-                    mOnSetBottomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PAUSED);
+                    setBottomAllSong(getSong(), PlaybackStatus.PAUSED);
                 } else {
                     mediaPlaybackService().playMedia();
                     mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                     mPauseImageView.setImageResource(R.drawable.ic_button_playing);
-                    mOnSetBottomAllSong.setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
+                    setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 }
                 break;
         }
@@ -238,16 +236,16 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         Log.i(LOG_INFO, "fragment media destroy");
     }
 
-    public void update() {
-        if (getArguments() != null) {
-            setTopMedia(getArguments());
-        }
-
-
+    public void update(int index, PlaybackStatus playbackStatus) {
+        Log.i("HaiKH", "update: on" + index);
+        //mArtistTopMediaTextView.setText(index + "");
     }
 
-    public interface OnSetBottomAllSongListener {
-        void setBottomAllSong(Song song, PlaybackStatus playbackStatus);
+    public void setBottomAllSong(Song song, PlaybackStatus playbackStatus) {
+        AllSongsFragment allSongsFragment = (AllSongsFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
+        allSongsFragment.setDataBottomFromMedia(song, playbackStatus);
     }
+
+
 
 }

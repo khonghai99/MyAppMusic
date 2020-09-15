@@ -24,10 +24,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.bkav.android.mymusic.Interfaces.OnNewClickListener;
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
+import com.bkav.android.mymusic.adapters.SongAdapter;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.models.Song;
@@ -36,8 +36,7 @@ import com.bkav.android.mymusic.services.MediaPlaybackService;
 import java.util.ArrayList;
 
 
-public class MusicActivity extends AppCompatActivity implements OnNewClickListener,
-        AllSongsFragment.OnShowMediaListener, MediaPlaybackFragment.OnSetBottomAllSongListener {
+public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNewClickListener {
 
     //sends broadcast intents to the MediaPlayerService
     public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
@@ -109,11 +108,21 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         }
     }
 
+    /**
+     * get service
+     *
+     * @return mPlayerService is Servive
+     */
     public MediaPlaybackService getMediaPlayerService() {
         Log.d("HaiKH", "getMediaPlayerService: on");
         return mPlayerService;
     }
 
+    /**
+     * run player and set storage
+     *
+     * @param audioIndex the position of the track
+     */
     private void playAudio(int audioIndex) {
         mCurrentPosition = audioIndex;
         //Check is service is active
@@ -151,15 +160,26 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         mCurrentPosition = savedInstanceState.getInt(AUDIO_INDEX);
     }
 
+    /**
+     * get state UI (vertical or landscape)
+     *
+     * @return mIsVertical ís state UI
+     */
     public boolean getStateUI() {
         return mIsVertical;
     }
 
+    /**
+     * initialization fragment
+     */
     public void initFragment() {
         mAllSongsFragment = new AllSongsFragment();
         mMediaPlaybackFragment = new MediaPlaybackFragment();
     }
 
+    /**
+     * add fragment to activity
+     */
     private void addFragment() {
         initFragment();
         //add fragment to frameLayout
@@ -182,12 +202,17 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
             transactionTow.replace(R.id.frameLayoutTwo, mMediaPlaybackFragment);
             transactionTow.commit();
         }
-
     }
 
+    /**
+     * update fragment when click change from notification
+     *
+     * @param index          playing song position
+     * @param playbackStatus state player
+     */
     public void updateFragment(int index, PlaybackStatus playbackStatus) {
         ((AllSongsFragment) mAllSongsFragment).update(index, playbackStatus);
-        ((MediaPlaybackFragment) mMediaPlaybackFragment).update();
+        ((MediaPlaybackFragment) mMediaPlaybackFragment).update(index, playbackStatus);
     }
 
     @Override
@@ -196,7 +221,12 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         return super.onCreateOptionsMenu(menu);
     }
 
-    //event click recyclerView
+    /**
+     * get event click recyclerView and play audio
+     *
+     * @param songList ArrayList of object Song
+     * @param position playing song position
+     */
     @Override
     public void onNewClick(ArrayList<Song> songList, int position) {
         if (mIsVertical) {
@@ -215,35 +245,13 @@ public class MusicActivity extends AppCompatActivity implements OnNewClickListen
         }
     }
 
-    @Override
-    public void showMediaFragment(Song song, PlaybackStatus playbackStatus) {
-        MediaPlaybackFragment mediaPlaybackFragment;
-        if (mIsVertical) {
-            mediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(mPlayerService.getActiveAudio(), playbackStatus);
-            FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.frameLayoutMedia, mediaPlaybackFragment);
-            fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            fragmentTransaction.addToBackStack(null);
-            fragmentTransaction.commit();
-        } else {
-            mediaPlaybackFragment = new MediaPlaybackFragment();
-            FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.frameLayoutTwo, mediaPlaybackFragment);
-            fragmentTransaction.addToBackStack(null);
-            fragmentTransaction.commit();
-        }
-
-    }
-
-    @Override
-    public void setBottomAllSong(Song song, PlaybackStatus playbackStatus) {
-        this.mPlaybackStatus = playbackStatus;
-        AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
-        allSongsFragment.setDataBottomFromMedia(song, playbackStatus);
-
-
-    }
-
+    /**
+     * grant audio access
+     *
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == MY_PERMISSION_REQUEST) {
