@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.Menu;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,12 +39,12 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
 
     //sends broadcast intents to the MediaPlayerService
     public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
-    private static final int MY_PERMISSION_REQUEST = 1;// FIXME: 15/09/2020 xin 1 quyền cụ thể thì em đặt tên cho rõ nghĩa hơn cho tường minh
+    private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 1;
     private static final String SERVICE_STATE = "ServiceState";
     private static final String AUDIO_INDEX = "audioIndex";
     public Fragment mAllSongsFragment, mMediaPlaybackFragment;
     private FragmentManager mFragmentManager;
-    private FragmentTransaction mFragmentTransaction;
+    private FragmentTransaction mFragmentTransactionOne, mFragmentTransactionTwo;
     private MediaPlaybackService mPlayerService;
     private ArrayList<Song> mAudioList;
     private int mCurrentPosition;
@@ -75,15 +74,6 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
         }
     };
 
-    public void showMediaPlaybackFragment() {
-        FragmentManager mFragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frameLayoutMedia, mMediaPlaybackFragment);
-        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,7 +94,7 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             ActivityCompat.requestPermissions(MusicActivity.this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
         }
     }
 
@@ -132,12 +122,16 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
         //Lưu vị trí âm thanh mới to SharedPreferences
         storage.storeAudioIndex(audioIndex);
         if (!mServiceBound) {
+
             //Lưu danh sách âm thanh to SharedPreferences
             storage.storeAudio(mAudioList);
             Intent playerIntent = new Intent(this, MediaPlaybackService.class);
             startService(playerIntent);
+
+            //kết nối với service
             bindService(playerIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
         } else {
+
             //Service is active
             //Send a broadcast to the service -> PLAY_NEW_AUDIO
             Intent broadcastIntent = new Intent(BROADCAST_PLAY_NEW_AUDIO);
@@ -151,6 +145,12 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putBoolean(SERVICE_STATE, mServiceBound);
         savedInstanceState.putInt(AUDIO_INDEX, mCurrentPosition);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mServiceConnection);
     }
 
     @Override
@@ -184,23 +184,22 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
         initFragment();
         //add fragment to frameLayout
         mFragmentManager = getSupportFragmentManager();
+        mFragmentTransactionOne = mFragmentManager.beginTransaction();
         int orientation = getResources().getConfiguration().orientation;
 
         mIsVertical = orientation != Configuration.ORIENTATION_LANDSCAPE;
 
         if (mIsVertical) {
-            mFragmentTransaction = mFragmentManager.beginTransaction();
-            mFragmentTransaction.replace(R.id.frameLayoutAllSong, mAllSongsFragment);
-            mFragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            mFragmentTransaction.commit();
+            mFragmentTransactionOne.replace(R.id.frameLayoutAllSong, mAllSongsFragment);
+            mFragmentTransactionOne.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            mFragmentTransactionOne.commit();
         } else {
-            mFragmentTransaction = mFragmentManager.beginTransaction();
-            mFragmentTransaction.replace(R.id.frameLayoutOne, mAllSongsFragment);
-            mFragmentTransaction.commit();
+            mFragmentTransactionOne.replace(R.id.frameLayoutOne, mAllSongsFragment);
+            mFragmentTransactionOne.commit();
 
-            FragmentTransaction transactionTow = mFragmentManager.beginTransaction();
-            transactionTow.replace(R.id.frameLayoutTwo, mMediaPlaybackFragment);
-            transactionTow.commit();
+            mFragmentTransactionTwo = mFragmentManager.beginTransaction();
+            mFragmentTransactionTwo.replace(R.id.frameLayoutTwo, mMediaPlaybackFragment);
+            mFragmentTransactionTwo.commit();
         }
     }
 
@@ -247,27 +246,60 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
         }
     }
 
-    /**
-     * grant audio access
-     *
-     * @param requestCode
-     * @param permissions
-     * @param grantResults
-     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == MY_PERMISSION_REQUEST) {
+        if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (ContextCompat.checkSelfPermission(MusicActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
                     addFragment();
                 }
             } else {
-                Toast.makeText(this, "No permission granted", Toast.LENGTH_SHORT).show();
                 finish();
             }
         }
     }
-
-
+//     @Override
+//    public void onSongItemClick(SongListAdapter.SongViewHolder holder, Song song) {
+//        int pos = holder.getAdapterPosition();
+//        if (isFavorite) {
+//            mediaPlaybackService.setSongList(SongData.getFavorAllSongs(mActivity));
+//            Log.d(TAG, "onSongItemClick: " + SongData.getFavorAllSongs(mActivity).size());
+//        } else mediaPlaybackService.setSongList(SongData.getAllSongs(mActivity));
+//        mediaPlaybackService.play(song);
+//        mediaPlaybackService.startForegroundService(pos, true);
+//        mBaseSongsFragment.setStateMusic(song.getPos(), song.getId(), true);
+//        mBaseSongsFragment.setFavorite(isFavorite);
+//        Log.d(TAG, "onSongItemClick: " + mediaPlaybackService.getCurrentSongId());
+//        mBaseSongsFragment.updateUI();
+//    }
+//    public void updateUI() {
+//        mSongData.setPlaying(isPlaying);
+//        if (mediaPlaybackService != null){
+//            mSongCurrentId = mediaPlaybackService.getCurrentSongId();
+//        }
+//        mSongData.setSongCurrentId(mSongCurrentId);
+////        mAdapter.setCurrentPos(mSongCurrentPosition);
+//        mRecyclerView.scrollToPosition(mSongCurrentPosition);
+//        mAdapter.notifyDataSetChanged();
+//        SongData songData = new SongData(getActivity().getApplicationContext());
+//        Song song = songData.getSongId(mSongCurrentId);
+//        Log.d(TAG, "updateUI: "+song.getId());
+//        if (isPortrait) updatePlaySongLayout(song);
+//    }
+//
+//    public void updatePlaySongLayout(Song mSong) {
+//        this.mSong = mSong;
+//        mRelativeLayout.setVisibility(View.VISIBLE);
+//        mSongName.setText(mSong.getTitle());
+//        mSongArtist.setText(mSong.getArtistName());
+//        if (isPlaying) {
+//            mSongPlayBtn.setImageResource(R.drawable.ic_media_pause_light);
+//        } else mSongPlayBtn.setImageResource(R.drawable.ic_media_play_light);
+//        Bitmap albumArt = SongData.getAlbumArt(mSong.getData());
+//        if (albumArt != null) {
+//            mSongImage.setImageBitmap(albumArt);
+//        } else {
+//            mSongImage.setImageResource(R.drawable.art_song_default);
+//        }
+//    }
 }

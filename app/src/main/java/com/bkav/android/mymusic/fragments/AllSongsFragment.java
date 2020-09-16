@@ -21,17 +21,13 @@ public class AllSongsFragment extends BaseSongListFragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         new LoadData().execute();
         return super.onCreateView(inflater, container, savedInstanceState);
-
     }
 
     public class LoadData extends AsyncTask<String, Void, String> {
-
-
-
         @Override
         protected String doInBackground(String... strings) {
             if (getActivity() != null) {
-                mSongAdapter = new SongAdapter(getContext(), new SongLoader().getAllSongDevice(getActivity()), (MusicActivity) getActivity());
+                mSongAdapter = new SongAdapter(getContext(), new SongLoader().getAllSongDevice(getActivity()));
             }
             return "Executed";
         }

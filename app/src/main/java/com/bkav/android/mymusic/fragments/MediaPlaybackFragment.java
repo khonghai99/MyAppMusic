@@ -23,13 +23,15 @@ import com.bkav.android.mymusic.activities.MusicActivity;
 import com.bkav.android.mymusic.models.Song;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.Objects;
 
 public class MediaPlaybackFragment extends Fragment implements View.OnClickListener {
-    private static final String KEY_PATH = "com.bkav.android.mymusic.fragments.PATH";
-    private static final String KEY_TITLE = "com.bkav.android.mymusic.fragments.TITLE";
-    private static final String KEY_ARTIST = "com.bkav.android.mymusic.fragments.ARTIST";
+    private static final String KEY_SONG = "com.bkav.android.mymusic.fragments.SONG";
     private static final String KEY_PLAYBACK = "com.bkav.android.mymusic.fragments.PLAY_BACK";
-    private final String LOG_INFO = "appMusic";
     private ImageView mImageTopMediaImageView;
     private TextView mTitleTopMediaTextView;
     private TextView mArtistTopMediaTextView;
@@ -44,14 +46,13 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     private ImageView mPauseImageView;
     private TextView mStartTimeTextView;
     private TextView mEndTimeTextView;
-    private Song mSong;
 
     public static MediaPlaybackFragment getInstancesMedia(Song song, PlaybackStatus playbackStatus) {
         MediaPlaybackFragment fragment = new MediaPlaybackFragment();
         Bundle bundle = new Bundle();
-        bundle.putString(KEY_PATH, song.getPath());
-        bundle.putString(KEY_TITLE, song.getTitle());
-        bundle.putString(KEY_ARTIST, song.getArtist());
+        Gson gson = new Gson();
+        String jsonSong = gson.toJson(song);
+        bundle.putString(KEY_SONG, jsonSong);
         bundle.putSerializable(KEY_PLAYBACK, playbackStatus);
         fragment.setArguments(bundle);
         return fragment;
@@ -87,7 +88,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     }
 
     private MediaPlaybackService mediaPlaybackService() {
-        return getMusicActivity().getMediaPlayerService();
+        return Objects.requireNonNull(getMusicActivity()).getMediaPlayerService();
     }
 
     private Song getSong() {
@@ -126,25 +127,23 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         mBackgroundMediaImageView.setOnClickListener(this);
         mTitleTopMediaTextView.setSelected(true);
         if (getArguments() != null) {
-            setTopMedia(getArguments());
+            setUIMedia(getArguments());
         }
         return view;
     }
 
-    public void setTopMedia(Bundle bundle) {
-        String path = bundle.getString(KEY_PATH);
+    public void setUIMedia(Bundle bundle) {
+
+
+        String jsonSong = bundle.getString(KEY_SONG);
+        Log.i("HaiKH", "setUIMedia: "+jsonSong);
         PlaybackStatus playbackStatus = (PlaybackStatus) bundle.getSerializable(KEY_PLAYBACK);
-        byte[] art = ImageSong.getByteImageSong(path);
-        Glide.with(getContext()).asBitmap()
-                .error(R.drawable.ic_music_not_picture)
-                .load(art)
-                .into(mImageTopMediaImageView);
-        Glide.with(getContext()).asBitmap()
-                .error(R.drawable.ic_music_not_picture)
-                .load(art)
-                .into(mBackgroundMediaImageView);
-        mTitleTopMediaTextView.setText(bundle.getString(KEY_TITLE));
-        mArtistTopMediaTextView.setText(bundle.getString(KEY_ARTIST));
+        Gson gson = new Gson();
+        Type type = new TypeToken<Song>() {
+        }.getType();
+        Song song = gson.fromJson(jsonSong, type);
+
+        setTitle(song);
         if (playbackStatus == PlaybackStatus.PAUSED) {
             mPauseImageView.setImageResource(R.drawable.ic_button_pause);
         } else if (playbackStatus == PlaybackStatus.PLAYING) {
@@ -156,7 +155,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
 
         String path = song.getPath();
         byte[] art = ImageSong.getByteImageSong(path);
-        Glide.with(getContext()).asBitmap()
+        Glide.with(Objects.requireNonNull(getContext())).asBitmap()
                 .error(R.drawable.ic_music_not_picture)
                 .load(art)
                 .into(mImageTopMediaImageView);
@@ -213,25 +212,25 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     @Override
     public void onPause() {
         super.onPause();
-        Log.i(LOG_INFO, "fragment media pause");
+        Log.i("HaiKH", "fragment media pause");
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        Log.i(LOG_INFO, "fragment media stop");
+        Log.i("HaiKH", "fragment media stop");
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.i(LOG_INFO, "fragment media destroy view");
+        Log.i("HaiKH", "fragment media destroy view");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.i(LOG_INFO, "fragment media destroy");
+        Log.i("HaiKH", "fragment media destroy");
     }
 
     public void update(PlaybackStatus playbackStatus) {
@@ -244,7 +243,9 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     }
 
     public void setBottomAllSong(Song song, PlaybackStatus playbackStatus) {
-        AllSongsFragment allSongsFragment = (AllSongsFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
-        allSongsFragment.setDataBottomFromMedia(song, playbackStatus);
+        AllSongsFragment allSongsFragment = (AllSongsFragment) Objects.requireNonNull(getMusicActivity()).getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
+        if (allSongsFragment != null) {
+            allSongsFragment.setDataBottomFromMedia(song, playbackStatus);
+        }
     }
 }

@@ -43,6 +43,9 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     private ImageView mImagePauseBottomAllSongImageView;
     private Song mSong;
 
+    public void updateAdapter(){
+        mSongAdapter = new SongAdapter(getContext(),mSongList);
+    }
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -108,8 +111,8 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     /**
      * set data for layout bottom allSongFragment when click recycler view
      *
-     * @param songs          arrayList of object Song
-     * @param position       playing song position
+     * @param songs    arrayList of object Song
+     * @param position playing song position
      */
     public void setDataBottom(ArrayList<Song> songs, int position) {
         mSong = songs.get(position);

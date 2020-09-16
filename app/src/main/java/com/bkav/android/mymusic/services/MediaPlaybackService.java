@@ -42,8 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class MediaPlaybackService extends Service implements MediaPlayer.OnCompletionListener,
-        MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnSeekCompleteListener,
-        MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener,
+        MediaPlayer.OnPreparedListener, MediaPlayer.OnSeekCompleteListener,
         AudioManager.OnAudioFocusChangeListener {
 
     public static final String ACTION_PLAY = "com.bkav.musictest.ACTION_PLAY";
@@ -56,6 +55,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
+
+    //number action
+    private static final int NUMBER_ACTION_PLAY = 0;
+    private static final int NUMBER_ACTION_PAUSE = 1;
+    private static final int NUMBER_ACTION_NEXT = 2;
+    private static final int NUMBER_ACTION_PREVIOUS = 3;
+
 
     // Binder given to clients
     private final IBinder mIBinder = new LocalBinder();
@@ -93,6 +99,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             //pause audio on ACTION_AUDIO_BECOMING_NOISY Tạm dừng khi có cuộc gọi
             pauseMedia();
             buildNotification(PlaybackStatus.PAUSED);
+            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH);
             }
@@ -110,6 +117,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 mActiveAudio = mAudioList.get(mAudioIndex);
             } else {
                 stopSelf();
+
             }
 
             //A PLAY_NEW_AUDIO action received
@@ -171,23 +179,14 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //Set up MediaPlayer event listeners
 
-        //được gọi khi đạt đến cuối nguồn phương tiện trong khi phát lại.
+        //được gọi khi bài hát chạy xong
         mMediaPlayer.setOnCompletionListener(this);
-
-        //được gọi khi một lỗi đã xảy ra trong một hoạt động không đồng bộ
-        mMediaPlayer.setOnErrorListener(this);
 
         //được gọi khi nguồn phương tiện sẵn sàng để phát lại
         mMediaPlayer.setOnPreparedListener(this);
 
-        //được gọi khi trạng thái của bộ đệm của luồng mạng đã thay đổi.
-        mMediaPlayer.setOnBufferingUpdateListener(this);
-
         //được gọi khi một hoạt động tìm kiếm đã hoàn thành.
         mMediaPlayer.setOnSeekCompleteListener(this);
-
-        //được gọi khi có thông tin / cảnh báo.
-        mMediaPlayer.setOnInfoListener(this);
 
         //Reset so that the MediaPlayer is not pointing to another data source
         mMediaPlayer.reset();
@@ -244,7 +243,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //Handle Intent action from MediaSession.TransportControls //Xử lý hành động có ý định từ MediaSession.TransportControls
         handleIncomingActions(intent);
-        return super.onStartCommand(intent, flags, startId);
+        return START_NOT_STICKY;
     }
 
     //set image when customContentView
@@ -266,38 +265,37 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     }
 
     private void buildNotification(PlaybackStatus playbackStatus) {
-        mNotifyManager = (NotificationManager)
-                getSystemService(NOTIFICATION_SERVICE);
+
         int notificationAction = R.drawable.ic_button_playing;//needs to be initialized
-        PendingIntent play_pauseAction = null;
+        PendingIntent playPauseAction = null;
 
         //Build a new notification according to the current state of the MediaPlayer
         if (playbackStatus == PlaybackStatus.PLAYING) {
             notificationAction = R.drawable.ic_button_playing;
             //create the pause action
-            play_pauseAction = playbackAction(1);
+            playPauseAction = playbackAction(NUMBER_ACTION_PAUSE);
         } else if (playbackStatus == PlaybackStatus.PAUSED) {
             notificationAction = R.drawable.ic_button_pause;
             //create the play action
-            play_pauseAction = playbackAction(0);
+            playPauseAction = playbackAction(NUMBER_ACTION_PLAY);
         }
 
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
                 R.drawable.ic_launcher_background); //replace with your own image
 
         RemoteViews smallNotify = new RemoteViews(getPackageName(), R.layout.small_notification);
-        smallNotify.setOnClickPendingIntent(R.id.ivSmallPrevious, playbackAction(3));
-        smallNotify.setOnClickPendingIntent(R.id.ivSmallNext, playbackAction(2));
-        smallNotify.setOnClickPendingIntent(R.id.ivSmallPause, play_pauseAction);
+        smallNotify.setOnClickPendingIntent(R.id.ivSmallPrevious, playbackAction(NUMBER_ACTION_PREVIOUS));
+        smallNotify.setOnClickPendingIntent(R.id.ivSmallNext, playbackAction(NUMBER_ACTION_NEXT));
+        smallNotify.setOnClickPendingIntent(R.id.ivSmallPause, playPauseAction);
         setImageNotify(smallNotify, R.id.ivSmallPicture);
-        smallNotify.setOnClickPendingIntent(R.id.ivSmallPause, play_pauseAction);
+        smallNotify.setOnClickPendingIntent(R.id.ivSmallPause, playPauseAction);
         smallNotify.setImageViewResource(R.id.ivSmallPause, notificationAction);
         setImageNotify(smallNotify, R.id.ivSmallPicture);
 
         RemoteViews bigNotify = new RemoteViews(getPackageName(), R.layout.big_notification);
         bigNotify.setOnClickPendingIntent(R.id.ivBigPrevious, playbackAction(3));
         bigNotify.setOnClickPendingIntent(R.id.ivBigNext, playbackAction(2));
-        bigNotify.setOnClickPendingIntent(R.id.ivBigPause, play_pauseAction);
+        bigNotify.setOnClickPendingIntent(R.id.ivBigPause, playPauseAction);
         bigNotify.setImageViewResource(R.id.ivBigPause, notificationAction);
         setImageNotify(bigNotify, R.id.ivBigPicture);
         setTextNotify(bigNotify, R.id.tvBigTitle, R.id.tvBigArtist);
@@ -333,7 +331,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
-    private void register_playNewAudio() {
+    private void registerPlayNewAudio() {
         //Register playNewMedia receiver
         IntentFilter filter = new IntentFilter(MusicActivity.BROADCAST_PLAY_NEW_AUDIO);
         registerReceiver(playNewAudio, filter);
@@ -392,11 +390,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         mAudioManager.abandonAudioFocus(this);
     }
 
-    @Override
-    public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
@@ -405,28 +398,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         updateMetaData();
         buildNotification(PlaybackStatus.PLAYING);
         mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        //Được gọi khi có lỗi trong quá trình hoạt động không đồng bộ.
-        switch (i) {
-            case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
-                Log.d("MediaPlayer Error", "MEDIA ERROR NOT VALID FOR PROGRESSIVE PLAYBACK " + i1);
-                break;
-            case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-                Log.d("MediaPlayer Error", "MEDIA ERROR SERVER DIED " + i1);
-                break;
-            case MediaPlayer.MEDIA_ERROR_UNKNOWN:
-                Log.d("MediaPlayer Error", "MEDIA ERROR UNKNOWN " + i1);
-                break;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean onInfo(MediaPlayer mediaPlayer, int i, int i1) {
-        return false;
     }
 
     @Override
@@ -457,7 +428,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 switch (state) {
                     //nếu có ít nhất một cuộc gọi hoặc điện thoại đang đổ chuông
                     //tạm dừng MediaPlayer
-                    case TelephonyManager.CALL_STATE_OFFHOOK:
                     case TelephonyManager.CALL_STATE_RINGING:
                         if (mMediaPlayer != null) {
                             pauseMedia();
@@ -465,7 +435,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                         }
                         break;
                     case TelephonyManager.CALL_STATE_IDLE:
-                        // Phone idle. Start playing.
+                        // Nếu không có hoạt động nào của cuộc gọi thì tiếp tục phát
                         if (mMediaPlayer != null) {
                             if (mOngoingCall) {
                                 mOngoingCall = false;
@@ -485,17 +455,22 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i("Main1", "service create");
+        Log.i("HaiKH", "service create");
+
         // Thực hiện các thủ tục thiết lập một lần
-        //
+        mNotifyManager = (NotificationManager)
+                getSystemService(NOTIFICATION_SERVICE);
+
         // Quản lý các cuộc gọi đến trong khi phát lại.
         // Tạm dừng MediaPlayer khi có cuộc gọi đến,
         // Tiếp tục khi cúp máy.
         callStateListener();
-        //ACTION_AUDIO_BECOMING_NOISY -- thay đổi đầu ra âm thanh khi có cuộc gọi đến -- BroadcastReceiver
+
+        //ACTION_AUDIO_BECOMING_NOISY -- thay đổi đầu ra âm thanh khi rút tai nghe -- BroadcastReceiver
         registerBecomingNoisyReceiver();
+
         //Listen for new Audio to play -- BroadcastReceiver
-        register_playNewAudio();
+        registerPlayNewAudio();
     }
 
     @Override
@@ -673,19 +648,19 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     private PendingIntent playbackAction(int actionNumber) {
         Intent playbackAction = new Intent(this, MediaPlaybackService.class);
         switch (actionNumber) {
-            case 0:
+            case NUMBER_ACTION_PLAY:
                 // Play
                 playbackAction.setAction(ACTION_PLAY);
                 return PendingIntent.getService(this, actionNumber, playbackAction, 0);
-            case 1:
+            case NUMBER_ACTION_PAUSE:
                 // Pause
                 playbackAction.setAction(ACTION_PAUSE);
                 return PendingIntent.getService(this, actionNumber, playbackAction, 0);
-            case 2:
+            case NUMBER_ACTION_NEXT:
                 // Next track
                 playbackAction.setAction(ACTION_NEXT);
                 return PendingIntent.getService(this, actionNumber, playbackAction, 0);
-            case 3:
+            case NUMBER_ACTION_PREVIOUS:
                 // Previous track
                 playbackAction.setAction(ACTION_PREVIOUS);
                 return PendingIntent.getService(this, actionNumber, playbackAction, 0);

@@ -1,5 +1,7 @@
 package com.bkav.android.mymusic.models;
 
+import java.util.concurrent.TimeUnit;
+
 public class Song {
     private String mTitle;
     private String mArtist;
@@ -12,6 +14,40 @@ public class Song {
         this.mArtist = mArtist;
         this.mDuration = mDuration;
         this.mPath = mPath;
+    }
+
+    /**
+     * call timeUnitToFullTime to convert
+     *
+     * @param millisecond milliseconds to transfer
+     * @return "m:s"
+     */
+
+    public static String millisecondToFullTime(long millisecond) {
+        return timeUnitToFullTime(millisecond, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * convert time to string ("m:s")
+     *
+     * @param time     duration of song
+     * @param timeUnit Object TimeUnit
+     * @return time formatted
+     */
+    public static String timeUnitToFullTime(long time, TimeUnit timeUnit) {
+        long day = timeUnit.toDays(time);
+        long hour = timeUnit.toHours(time) % 24;
+        long minute = timeUnit.toMinutes(time) % 60;
+        long second = timeUnit.toSeconds(time) % 60;
+        if (day > 0) {
+            return String.format("%dday %02d:%02d:%02d", day, hour, minute, second);
+        } else if (hour > 0) {
+            return String.format("%d:%02d:%02d", hour, minute, second);
+        } else if (minute > 0) {
+            return String.format("%d:%02d", minute, second);
+        } else {
+            return String.format("%d:%02d", minute, second);
+        }
     }
 
     public String getTitle() {
@@ -31,7 +67,7 @@ public class Song {
     }
 
     public String getDuration() {
-        return mDuration;
+        return millisecondToFullTime(Long.parseLong(mDuration));
     }
 
     public void setDuration(String mDuration) {
