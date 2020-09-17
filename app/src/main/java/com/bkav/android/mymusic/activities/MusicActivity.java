@@ -1,17 +1,11 @@
 package com.bkav.android.mymusic.activities;
 
 import android.Manifest;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.util.Log;
 import android.view.Menu;
 
 import androidx.annotation.NonNull;
@@ -25,54 +19,28 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
-import com.bkav.android.mymusic.StorageUtil;
-import com.bkav.android.mymusic.adapters.SongAdapter;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.models.Song;
-import com.bkav.android.mymusic.services.MediaPlaybackService;
 
 import java.util.ArrayList;
 
 
-public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNewClickListener {
+public class MusicActivity extends AppCompatActivity {
 
     //sends broadcast intents to the MediaPlayerService
-    public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
+
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 1;
     private static final String SERVICE_STATE = "ServiceState";
     private static final String AUDIO_INDEX = "audioIndex";
     public Fragment mAllSongsFragment, mMediaPlaybackFragment;
     private FragmentManager mFragmentManager;
     private FragmentTransaction mFragmentTransactionOne, mFragmentTransactionTwo;
-    private MediaPlaybackService mPlayerService;
+
     private ArrayList<Song> mAudioList;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
-    private boolean mServiceBound = false;
-    // Ràng buộc Client này với MusicPlayer
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
 
-            // Đã liên kết với LocalService, truyền IBinder và nhận phiên bản LocalService
-            MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
-            mPlayerService = binder.getService();
-            mServiceBound = true;
-
-            mPlayerService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
-                @Override
-                public void onUpdate(int position, PlaybackStatus playbackStatus) {
-                    updateFragment(position, playbackStatus);
-                }
-            });
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mServiceBound = false;
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,65 +66,24 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
         }
     }
 
-    /**
-     * get service
-     *
-     * @return mPlayerService is Servive
-     */
-    public MediaPlaybackService getMediaPlayerService() {
-        Log.d("HaiKH", "getMediaPlayerService: on");
-        return mPlayerService;
-    }
-
-    /**
-     * run player and set storage
-     *
-     * @param audioIndex the position of the track
-     */
-    private void playAudio(int audioIndex) {
-        mCurrentPosition = audioIndex;
-
-        //Check is service is active
-        StorageUtil storage = new StorageUtil(getApplicationContext());
-
-        //Lưu vị trí âm thanh mới to SharedPreferences
-        storage.storeAudioIndex(audioIndex);
-        if (!mServiceBound) {
-
-            //Lưu danh sách âm thanh to SharedPreferences
-            storage.storeAudio(mAudioList);
-            Intent playerIntent = new Intent(this, MediaPlaybackService.class);
-            startService(playerIntent);
-
-            //kết nối với service
-            bindService(playerIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
-        } else {
-
-            //Service is active
-            //Send a broadcast to the service -> PLAY_NEW_AUDIO
-            Intent broadcastIntent = new Intent(BROADCAST_PLAY_NEW_AUDIO);
-            sendBroadcast(broadcastIntent);
-        }
-    }
-
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putBoolean(SERVICE_STATE, mServiceBound);
+        //    savedInstanceState.putBoolean(SERVICE_STATE, mServiceBound);
         savedInstanceState.putInt(AUDIO_INDEX, mCurrentPosition);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(mServiceConnection);
+
     }
 
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        mServiceBound = savedInstanceState.getBoolean(SERVICE_STATE);
+        //    mServiceBound = savedInstanceState.getBoolean(SERVICE_STATE);
         mCurrentPosition = savedInstanceState.getInt(AUDIO_INDEX);
     }
 
@@ -220,30 +147,6 @@ public class MusicActivity extends AppCompatActivity implements SongAdapter.OnNe
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_search, menu);
         return super.onCreateOptionsMenu(menu);
-    }
-
-    /**
-     * get event click recyclerView and play audio
-     *
-     * @param songList ArrayList of object Song
-     * @param position playing song position
-     */
-    @Override
-    public void onNewClick(ArrayList<Song> songList, int position) {
-        if (mIsVertical) {
-            AllSongsFragment allSongsFragment = (AllSongsFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
-            if (allSongsFragment != null) {
-                allSongsFragment.setDataBottom(songList, position);
-                allSongsFragment.setVisible(position);
-                this.mAudioList = songList;
-                playAudio(position);
-            }
-        } else {
-            MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getSupportFragmentManager().findFragmentById(R.id.frameLayoutTwo);
-            mediaPlaybackFragment.setTitle(songList.get(position));
-            this.mAudioList = songList;
-            playAudio(position);
-        }
     }
 
     @Override

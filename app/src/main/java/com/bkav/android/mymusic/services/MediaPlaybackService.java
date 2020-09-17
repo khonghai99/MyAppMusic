@@ -45,6 +45,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         MediaPlayer.OnPreparedListener, MediaPlayer.OnSeekCompleteListener,
         AudioManager.OnAudioFocusChangeListener {
 
+    public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
     public static final String ACTION_PLAY = "com.bkav.musictest.ACTION_PLAY";
     public static final String ACTION_PAUSE = "com.bkav.musictest.ACTION_PAUSE";
     public static final String ACTION_PREVIOUS = "com.bkav.musictest.ACTION_PREVIOUS";
@@ -333,7 +334,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
     private void registerPlayNewAudio() {
         //Register playNewMedia receiver
-        IntentFilter filter = new IntentFilter(MusicActivity.BROADCAST_PLAY_NEW_AUDIO);
+        IntentFilter filter = new IntentFilter(BROADCAST_PLAY_NEW_AUDIO);
         registerReceiver(playNewAudio, filter);
     }
 

@@ -5,7 +5,7 @@
 
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/listSong"
+        android:id="@+id/rcListSong"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignWithParentIfMissing="true"

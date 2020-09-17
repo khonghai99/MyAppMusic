@@ -29,7 +29,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.Objects;
 
-public class MediaPlaybackFragment extends Fragment implements View.OnClickListener {
+public class MediaPlaybackFragment extends BaseSongListFragment implements View.OnClickListener {
     private static final String KEY_SONG = "com.bkav.android.mymusic.fragments.SONG";
     private static final String KEY_PLAYBACK = "com.bkav.android.mymusic.fragments.PLAY_BACK";
     private ImageView mImageTopMediaImageView;
@@ -88,7 +88,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     }
 
     private MediaPlaybackService mediaPlaybackService() {
-        return Objects.requireNonNull(getMusicActivity()).getMediaPlayerService();
+        return getMediaPlayerService();
     }
 
     private Song getSong() {
@@ -133,8 +133,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     }
 
     public void setUIMedia(Bundle bundle) {
-
-
         String jsonSong = bundle.getString(KEY_SONG);
         Log.i("HaiKH", "setUIMedia: "+jsonSong);
         PlaybackStatus playbackStatus = (PlaybackStatus) bundle.getSerializable(KEY_PLAYBACK);
@@ -179,8 +177,8 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
             case R.id.ivDislike:
 
             case R.id.ivNext:
-                mediaPlaybackService().skipToNext();
-                mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
+                mPlayerService.skipToNext();
+                mPlayerService.updateMetaDataNotify(PlaybackStatus.PLAYING);
                 setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitle(getSong());

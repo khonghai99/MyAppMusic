@@ -1,8 +1,12 @@
 package com.bkav.android.mymusic.fragments;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bkav.android.mymusic.ImageSong;
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
+import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.activities.MusicActivity;
 import com.bkav.android.mymusic.adapters.SongAdapter;
 import com.bkav.android.mymusic.models.Song;
@@ -30,6 +35,8 @@ import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
+
+import static com.bkav.android.mymusic.services.MediaPlaybackService.BROADCAST_PLAY_NEW_AUDIO;
 
 public class BaseSongListFragment extends Fragment implements View.OnClickListener {
     public RelativeLayout mBottomAllSongRelativeLayout;
@@ -42,10 +49,33 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     private ImageView mImageBottomAllSongImageView;
     private ImageView mImagePauseBottomAllSongImageView;
     private Song mSong;
+    private boolean mServiceBound = false;
+    protected MediaPlaybackService mPlayerService;
+    private ArrayList<Song> mAudioList;
+    // Ràng buộc Client này với MusicPlayer
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
 
-    public void updateAdapter(){
-        mSongAdapter = new SongAdapter(getContext(),mSongList);
-    }
+            // Đã liên kết với LocalService, truyền IBinder
+            MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
+            mPlayerService = binder.getService();
+            mServiceBound = true;
+
+            mPlayerService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
+                @Override
+                public void onUpdate(int position, PlaybackStatus playbackStatus) {
+                    getMusicActivity().updateFragment(position, playbackStatus);
+                }
+            });
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mServiceBound = false;
+        }
+    };
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -68,14 +98,74 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mImagePauseBottomAllSongImageView = view.findViewById(R.id.ivPauseBottomAllSong);
         mBottomAllSongRelativeLayout = view.findViewById(R.id.layoutBottomAllSong);
         mTitleBottomAllSongTextView.setSelected(true);
-        mRecyclerView = view.findViewById(R.id.listSong);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        mSongAdapter = new SongAdapter(getContext());
+        mRecyclerView = view.findViewById(R.id.rcListSong);
         mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
+
+        mSongAdapter.clickListener(new SongAdapter.OnNewClickListener() {
+            @Override
+            public void onNewClick(ArrayList<Song> songList, int position) {
+                mSongAdapter.updateSongList(songList);
+                if (getMusicActivity().getStateUI()) {
+                    AllSongsFragment allSongsFragment = (AllSongsFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
+                    if (allSongsFragment != null) {
+                        allSongsFragment.setDataBottom(songList, position);
+                        allSongsFragment.setVisible(position);
+                        mAudioList = songList;
+                        playAudio(position);
+                    }
+                } else {
+                    MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frameLayoutTwo);
+                    mediaPlaybackFragment.setTitle(songList.get(position));
+                    mAudioList = songList;
+                    playAudio(position);
+                }
+            }
+        });
         return view;
+    }
+
+    /**
+     * run player and set storage
+     *
+     * @param audioIndex the position of the track
+     */
+    public void playAudio(int audioIndex) {
+
+        //Check is service is active
+        StorageUtil storage = new StorageUtil(getContext().getApplicationContext());
+
+        //Lưu vị trí âm thanh mới to SharedPreferences
+        storage.storeAudioIndex(audioIndex);
+        if (!mServiceBound) {
+
+            //Lưu danh sách âm thanh to SharedPreferences
+            storage.storeAudio(mAudioList);
+            Intent playerIntent = new Intent(getContext(), MediaPlaybackService.class);
+            getActivity().startService(playerIntent);
+
+            //kết nối với service
+            getActivity().bindService(playerIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        } else {
+
+            //Service is active
+            //Send a broadcast to the service -> PLAY_NEW_AUDIO
+            Intent broadcastIntent = new Intent(BROADCAST_PLAY_NEW_AUDIO);
+            getActivity().sendBroadcast(broadcastIntent);
+        }
+    }
+    /**
+     * get service
+     *
+     * @return mPlayerService is Servive
+     */
+    public MediaPlaybackService getMediaPlayerService() {
+        Log.d("HaiKH", "getMediaPlayerService: on");
+        return mPlayerService;
     }
 
     /**
@@ -90,23 +180,23 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         return null;
     }
 
-    /**
-     * get service from activity
-     *
-     * @return service
-     */
-    private MediaPlaybackService mediaPlaybackService() {
-        return getMusicActivity().getMediaPlayerService();
-    }
-
-    /**
-     * get state of player from service
-     *
-     * @return state of player
-     */
-    private PlaybackStatus getPlaybackStatus() {
-        return mediaPlaybackService().isPlaying();
-    }
+//    /**
+//     * get service from activity
+//     *
+//     * @return service
+//     */
+//    private MediaPlaybackService mediaPlaybackService() {
+//        return getMediaPlayerService();
+//    }
+//
+//    /**
+//     * get state of player from service
+//     *
+//     * @return state of player
+//     */
+//    private PlaybackStatus getPlaybackStatus() {
+//        return mPlayerService.isPlaying();
+//    }
 
     /**
      * set data for layout bottom allSongFragment when click recycler view
@@ -162,7 +252,6 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public void setVisible(int current) {
         Log.i("HaiKH", "onCreateView: " + getView());
         mBottomAllSongRelativeLayout.setVisibility(View.VISIBLE);
-        mSongAdapter.setCurrentSong(current);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -170,20 +259,20 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.ivPauseBottomAllSong:
-                if (PlaybackStatus.PLAYING == getPlaybackStatus()) {
-                    mediaPlaybackService().pauseMedia();
-                    mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PAUSED);
+                if (PlaybackStatus.PLAYING == mPlayerService.isPlaying()) {
+                    mPlayerService.pauseMedia();
+                    mPlayerService.updateMetaDataNotify(PlaybackStatus.PAUSED);
                     mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
-                } else if (PlaybackStatus.PAUSED == getPlaybackStatus()) {
-                    mediaPlaybackService().playMedia();
-                    mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PLAYING);
+                } else if (PlaybackStatus.PAUSED == mPlayerService.isPlaying()) {
+                    mPlayerService.playMedia();
+                    mPlayerService.updateMetaDataNotify(PlaybackStatus.PLAYING);
                     mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
                 }
 
                 break;
 
             case R.id.layoutBottomAllSong:
-                showMediaFragment(getPlaybackStatus());
+                showMediaFragment(mPlayerService.isPlaying());
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + view.getId());
@@ -197,7 +286,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      */
     public void showMediaFragment(PlaybackStatus playbackStatus) {
         FragmentManager mFragmentManager = getMusicActivity().getSupportFragmentManager();
-        getMusicActivity().mMediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(mediaPlaybackService().getActiveAudio(), playbackStatus);
+        getMusicActivity().mMediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(mPlayerService.getActiveAudio(), playbackStatus);
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frameLayoutMedia, getMusicActivity().mMediaPlaybackFragment);
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
