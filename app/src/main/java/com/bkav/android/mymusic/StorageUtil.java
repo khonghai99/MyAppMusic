@@ -12,7 +12,9 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class StorageUtil {
-    private final String STORAGE = " com.valdioveliu.valdio.audioplayer.STORAGE";
+    private static final String AUDIO_ID = "com.bkav.android.mymusic..AUDIO_ID";
+    ;
+    private final String STORAGE = "com.bkav.android.mymusic..STORAGE";
     private final String AUDIO_LIST = "com.bkav.android.mymusic.AUDIO_LIST";
     private final String AUDIO_INDEX = "com.bkav.android.mymusic.AUDIO_INDEX";
     private SharedPreferences preferences;
@@ -55,6 +57,19 @@ public class StorageUtil {
     public int loadAudioIndex() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         return preferences.getInt(AUDIO_INDEX, -1);//return -1 if no data found
+    }
+
+    public void storeAudioId(int id) {
+        Log.d("HaiKH", "storeAudioIndex: on");
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt(AUDIO_ID, id);
+        editor.apply();
+    }
+
+    public int loadAudioId() {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        return preferences.getInt(AUDIO_ID, -1);
     }
 
     public void clearCachedAudioPlaylist() {

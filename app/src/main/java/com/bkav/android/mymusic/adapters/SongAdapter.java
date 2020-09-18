@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bkav.android.mymusic.R;
+import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.models.Song;
 
 import java.util.ArrayList;
@@ -19,17 +20,23 @@ import java.util.ArrayList;
 import es.claucookie.miniequalizerlibrary.EqualizerView;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
-    private int mCurrentSong;
     private Context mContext;
+    private int mCurrentSong;
     private ArrayList<Song> mSongList;
     private OnNewClickListener mOnNewClickListener;
+    private int mSongID;
+    private StorageUtil storageUtil;
 
-    public SongAdapter(Context context) {
+    public SongAdapter(Context context, ArrayList<Song> mSongList, OnNewClickListener onNewClickListener) {
         this.mContext = context;
+        this.mSongList = mSongList;
+        this.mOnNewClickListener = onNewClickListener;
+
     }
 
-    public void updateSongList(ArrayList<Song> songs) {
-        mSongList = songs;
+    public void updateSongList(ArrayList<Song> songs,int position) {
+        this.mSongList = songs;
+        this.mCurrentSong = position;
         notifyDataSetChanged();
     }
 
@@ -44,8 +51,11 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     @Override
     public void onBindViewHolder(@NonNull final SongHolder holder, final int position) {
         final Song song = mSongList.get(position);
+        storageUtil = new StorageUtil(mContext.getApplicationContext());
         if (song != null) {
-            if (position == mCurrentSong) {
+//            Log.d("HaiKH", "onBindViewHolder: "+song.getId()+"||"+storageUtil.loadAudioId());
+            if (song.getId() == storageUtil.loadAudioId()){
+                Log.d("HaiKH", "onBindViewHolder: 123");
                 holder.isClick();
             }
             holder.tvID.setText(String.valueOf(position + 1));
@@ -56,9 +66,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
                     mOnNewClickListener.onNewClick(mSongList, position);
                 }
             });
-            Log.i("HaiKH", "onBindViewHolder: " + mCurrentSong);
-
-
         }
     }
 
@@ -67,14 +74,14 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         return mSongList != null ? mSongList.size() : 0;
     }
 
-//    /**
-//     * sets the current song when clicked
-//     *
-//     * @param mCurrentSong the position when clicked
-//     */
-//    public void setCurrentSong(int mCurrentSong) {
-//        this.mCurrentSong = mCurrentSong;
-//    }
+    /**
+     * sets the current song when clicked
+     *
+     * @param mSongID the id song when clicked
+     */
+    public void setSongID(int mSongID) {
+        this.mSongID = mSongID;
+    }
 
     public void clickListener(OnNewClickListener onNewClickListener) {
         this.mOnNewClickListener = onNewClickListener;

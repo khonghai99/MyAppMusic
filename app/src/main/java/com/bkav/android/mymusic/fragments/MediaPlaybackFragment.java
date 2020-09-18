@@ -14,7 +14,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.fragment.app.Fragment;
 
 import com.bkav.android.mymusic.ImageSong;
 import com.bkav.android.mymusic.PlaybackStatus;
@@ -134,7 +133,7 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
 
     public void setUIMedia(Bundle bundle) {
         String jsonSong = bundle.getString(KEY_SONG);
-        Log.i("HaiKH", "setUIMedia: "+jsonSong);
+        Log.i("HaiKH", "setUIMedia: " + jsonSong);
         PlaybackStatus playbackStatus = (PlaybackStatus) bundle.getSerializable(KEY_PLAYBACK);
         Gson gson = new Gson();
         Type type = new TypeToken<Song>() {
@@ -177,8 +176,8 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
             case R.id.ivDislike:
 
             case R.id.ivNext:
-                mPlayerService.skipToNext();
-                mPlayerService.updateMetaDataNotify(PlaybackStatus.PLAYING);
+                getMediaPlayerService().skipToNext();
+                getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                 setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitle(getSong());

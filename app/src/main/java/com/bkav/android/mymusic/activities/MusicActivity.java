@@ -1,11 +1,14 @@
 package com.bkav.android.mymusic.activities;
 
 import android.Manifest;
+import android.content.ComponentName;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.Menu;
 
 import androidx.annotation.NonNull;
@@ -22,6 +25,7 @@ import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.models.Song;
+import com.bkav.android.mymusic.services.MediaPlaybackService;
 
 import java.util.ArrayList;
 
@@ -34,12 +38,36 @@ public class MusicActivity extends AppCompatActivity {
     private static final String SERVICE_STATE = "ServiceState";
     private static final String AUDIO_INDEX = "audioIndex";
     public Fragment mAllSongsFragment, mMediaPlaybackFragment;
+    protected MediaPlaybackService mPlayerService;
     private FragmentManager mFragmentManager;
     private FragmentTransaction mFragmentTransactionOne, mFragmentTransactionTwo;
-
     private ArrayList<Song> mAudioList;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
+    private boolean mServiceBound = false;
+    // Ràng buộc Client này với MusicPlayer
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+
+            // Đã liên kết với LocalService, truyền IBinder
+            MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
+            mPlayerService = binder.getService();
+            mServiceBound = true;
+
+            mPlayerService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
+                @Override
+                public void onUpdate(int position, PlaybackStatus playbackStatus) {
+                    updateFragment(position, playbackStatus);
+                }
+            });
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mServiceBound = false;
+        }
+    };
 
 
     @Override
@@ -70,7 +98,7 @@ public class MusicActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        //    savedInstanceState.putBoolean(SERVICE_STATE, mServiceBound);
+        savedInstanceState.putBoolean(SERVICE_STATE, mServiceBound);
         savedInstanceState.putInt(AUDIO_INDEX, mCurrentPosition);
     }
 
@@ -83,7 +111,7 @@ public class MusicActivity extends AppCompatActivity {
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        //    mServiceBound = savedInstanceState.getBoolean(SERVICE_STATE);
+        mServiceBound = savedInstanceState.getBoolean(SERVICE_STATE);
         mCurrentPosition = savedInstanceState.getInt(AUDIO_INDEX);
     }
 
@@ -161,48 +189,13 @@ public class MusicActivity extends AppCompatActivity {
             }
         }
     }
-//     @Override
-//    public void onSongItemClick(SongListAdapter.SongViewHolder holder, Song song) {
-//        int pos = holder.getAdapterPosition();
-//        if (isFavorite) {
-//            mediaPlaybackService.setSongList(SongData.getFavorAllSongs(mActivity));
-//            Log.d(TAG, "onSongItemClick: " + SongData.getFavorAllSongs(mActivity).size());
-//        } else mediaPlaybackService.setSongList(SongData.getAllSongs(mActivity));
-//        mediaPlaybackService.play(song);
-//        mediaPlaybackService.startForegroundService(pos, true);
-//        mBaseSongsFragment.setStateMusic(song.getPos(), song.getId(), true);
-//        mBaseSongsFragment.setFavorite(isFavorite);
-//        Log.d(TAG, "onSongItemClick: " + mediaPlaybackService.getCurrentSongId());
-//        mBaseSongsFragment.updateUI();
-//    }
-//    public void updateUI() {
-//        mSongData.setPlaying(isPlaying);
-//        if (mediaPlaybackService != null){
-//            mSongCurrentId = mediaPlaybackService.getCurrentSongId();
-//        }
-//        mSongData.setSongCurrentId(mSongCurrentId);
-////        mAdapter.setCurrentPos(mSongCurrentPosition);
-//        mRecyclerView.scrollToPosition(mSongCurrentPosition);
-//        mAdapter.notifyDataSetChanged();
-//        SongData songData = new SongData(getActivity().getApplicationContext());
-//        Song song = songData.getSongId(mSongCurrentId);
-//        Log.d(TAG, "updateUI: "+song.getId());
-//        if (isPortrait) updatePlaySongLayout(song);
-//    }
-//
-//    public void updatePlaySongLayout(Song mSong) {
-//        this.mSong = mSong;
-//        mRelativeLayout.setVisibility(View.VISIBLE);
-//        mSongName.setText(mSong.getTitle());
-//        mSongArtist.setText(mSong.getArtistName());
-//        if (isPlaying) {
-//            mSongPlayBtn.setImageResource(R.drawable.ic_media_pause_light);
-//        } else mSongPlayBtn.setImageResource(R.drawable.ic_media_play_light);
-//        Bitmap albumArt = SongData.getAlbumArt(mSong.getData());
-//        if (albumArt != null) {
-//            mSongImage.setImageBitmap(albumArt);
-//        } else {
-//            mSongImage.setImageResource(R.drawable.art_song_default);
-//        }
-//    }
+
+    public MediaPlaybackService getPlayerService() {
+        return mPlayerService;
+    }
+
+    public ServiceConnection getServiceConnection() {
+        return mServiceConnection;
+    }
+
 }

@@ -4,6 +4,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
+import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.adapters.SongAdapter;
 import com.bkav.android.mymusic.models.Song;
 
@@ -51,11 +53,12 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
         ArrayList<Song> songList = new ArrayList<>();
+
         if (cursor != null) {
             cursor.moveToFirst();
 
             while (!cursor.isAfterLast()) {
-                String id = cursor.getString(NUMBER_ID);
+                int id = cursor.getInt(NUMBER_ID);
                 String title = cursor.getString(NUMBER_TITLE);
                 String artist = cursor.getString(NUMBER_ARTIST);
                 String duration = cursor.getString(NUMBER_DURATION);
@@ -66,7 +69,10 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
                 }
             }
         }
-        mSongAdapter.updateSongList(songList);
+        StorageUtil storageUtil = new StorageUtil(getContext());
+        storageUtil.storeAudio(songList);
+
+        mSongAdapter = new SongAdapter(getContext(),songList,this);
         mRecyclerView.setAdapter(mSongAdapter);
     }
 

@@ -42,7 +42,7 @@
         android:layout_width="match_parent"
         android:layout_height="95dp"
         android:layout_gravity="bottom"
-        android:background="#e3e3e3">
+        android:background="@color/backgroundBottomMedia">
 
         <SeekBar
             android:id="@+id/seekBarTimeSong"
@@ -51,9 +51,9 @@
             android:layout_gravity="center"
             android:maxHeight="5dp"
             android:minHeight="5dp"
-            android:outlineSpotShadowColor="#FF3D00"
-            android:progressTint="#FF5722"
-            android:thumbTint="#FF5722" />
+            android:outlineSpotShadowColor="@color/outlineSpotShadowColor"
+            android:progressTint="@color/progressTintSeekBar"
+            android:thumbTint="@color/thumbTintSeekBar" />
 
         <TextView
             android:id="@+id/tvStartTimeSong"
