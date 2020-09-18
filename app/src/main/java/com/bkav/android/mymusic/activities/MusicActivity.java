@@ -198,4 +198,8 @@ public class MusicActivity extends AppCompatActivity {
         return mServiceConnection;
     }
 
+    public boolean getServiceBound() {
+        return mServiceBound;
+    }
+
 }

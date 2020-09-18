@@ -129,6 +129,8 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
             setUIMedia(getArguments());
         }
         return view;
+
+
     }
 
     public void setUIMedia(Bundle bundle) {
@@ -149,7 +151,6 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
     }
 
     public void setTitle(Song song) {
-
         String path = song.getPath();
         byte[] art = ImageSong.getByteImageSong(path);
         Glide.with(Objects.requireNonNull(getContext())).asBitmap()
@@ -191,7 +192,7 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
                 break;
             case R.id.ivPause:
                 Log.d("HaiKH", "onClick: pause click");
-                if (mediaPlaybackService().isPlaying() == PlaybackStatus.PLAYING) {
+                if (mediaPlaybackService().isPlayingState() == PlaybackStatus.PLAYING) {
                     mediaPlaybackService().pauseMedia();
                     mediaPlaybackService().updateMetaDataNotify(PlaybackStatus.PAUSED);
                     mPauseImageView.setImageResource(R.drawable.ic_button_pause);

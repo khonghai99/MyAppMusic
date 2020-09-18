@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -91,7 +90,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         storage.storeAudioId(mAudioList.get(audioIndex).getId());
 
         //Check is service is active
-        if (!mServiceBound) {
+        if (!getMusicActivity().getServiceBound()) {
 
             //Lưu danh sách âm thanh to SharedPreferences
             storage.storeAudio(mAudioList);
@@ -112,6 +111,8 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     @Override
     public void onNewClick(ArrayList<Song> songList, int position) {
         mSongAdapter.updateSongList(songList, position);
+        mSongList = storage.loadAudio();
+        mSong = storage.loadAudio().get(position);
         if (getMusicActivity().getStateUI()) {
             setDataBottom();
             setVisible();
@@ -178,18 +179,18 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.ivPauseBottomAllSong:
-                if (PlaybackStatus.PLAYING == getMediaPlayerService().isPlaying()) {
+                if (PlaybackStatus.PLAYING == getMediaPlayerService().isPlayingState()) {
                     getMediaPlayerService().pauseMedia();
                     getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PAUSED);
                     mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
-                } else if (PlaybackStatus.PAUSED == getMediaPlayerService().isPlaying()) {
+                } else if (PlaybackStatus.PAUSED == getMediaPlayerService().isPlayingState()) {
                     getMediaPlayerService().playMedia();
                     getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                     mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
                 }
                 break;
             case R.id.layoutBottomAllSong:
-                showMediaFragment(getMediaPlayerService().isPlaying());
+                showMediaFragment(getMediaPlayerService().isPlayingState());
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + view.getId());

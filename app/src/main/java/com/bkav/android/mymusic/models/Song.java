@@ -78,6 +78,9 @@ public class Song {
     public String getDuration() {
         return millisecondToFullTime(Long.parseLong(mDuration));
     }
+    public int getTimeEnd(){
+        return Integer.parseInt(mDuration);
+    }
 
     public void setDuration(String mDuration) {
         this.mDuration = mDuration;

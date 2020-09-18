@@ -35,7 +35,6 @@ import com.bkav.android.mymusic.ImageSong;
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
-import com.bkav.android.mymusic.activities.MusicActivity;
 import com.bkav.android.mymusic.models.Song;
 
 import java.io.IOException;
@@ -141,7 +140,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
-    public PlaybackStatus isPlaying() {
+    public PlaybackStatus isPlayingState() {
         if (mMediaPlayer.isPlaying()) {
             return PlaybackStatus.PLAYING;
         } else {
@@ -173,6 +172,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             mMediaPlayer.seekTo(mResumePosition);
             mMediaPlayer.start();
         }
+    }
+
+    public MediaPlayer getMediaPlayer() {
+        return mMediaPlayer;
     }
 
     private void initMediaPlayer() {
