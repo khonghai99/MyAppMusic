@@ -53,10 +53,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         final Song song = mSongList.get(position);
         storageUtil = new StorageUtil(mContext.getApplicationContext());
         if (song != null) {
-//            Log.d("HaiKH", "onBindViewHolder: "+song.getId()+"||"+storageUtil.loadAudioId());
+           Log.d("HaiKH", "onBindViewHolder: "+song.getId()+"||"+storageUtil.loadAudioId());
             if (song.getId() == storageUtil.loadAudioId()){
                 Log.d("HaiKH", "onBindViewHolder: 123");
                 holder.isClick();
+            }else{holder.isNotClick();
+
             }
             holder.tvID.setText(String.valueOf(position + 1));
             holder.toBind(song);
@@ -121,6 +123,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             equalizer.setVisibility(View.VISIBLE);
             equalizer.animateBars();
             tvTitleSong.setTypeface(Typeface.DEFAULT_BOLD);
+        }
+        public void isNotClick() {
+            tvID.setVisibility(View.VISIBLE);
+            equalizer.setVisibility(View.INVISIBLE);
+            equalizer.animateBars();
+            tvTitleSong.setTypeface(Typeface.DEFAULT);
         }
 
     }

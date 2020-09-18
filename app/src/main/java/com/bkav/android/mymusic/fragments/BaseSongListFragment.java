@@ -58,8 +58,8 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
 
         storage = new StorageUtil(getContext().getApplicationContext());
 
-        mSongList = storage.loadAudio();
-        mSong = storage.loadAudio().get(storage.loadAudioIndex());
+//        mSongList = storage.loadAudio();
+//        mSong = storage.loadAudio().get(storage.loadAudioIndex());
 
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
