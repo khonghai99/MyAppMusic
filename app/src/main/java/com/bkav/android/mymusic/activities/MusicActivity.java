@@ -2,6 +2,8 @@ package com.bkav.android.mymusic.activities;
 
 import android.Manifest;
 import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -9,14 +11,15 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.Menu;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -24,27 +27,23 @@ import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
-import com.bkav.android.mymusic.models.Song;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
 
-import java.util.ArrayList;
+import java.util.Objects;
 
 
 public class MusicActivity extends AppCompatActivity {
 
-    //sends broadcast intents to the MediaPlayerService
-
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 1;
-    private static final String SERVICE_STATE = "ServiceState";
-    private static final String AUDIO_INDEX = "audioIndex";
-    public Fragment mAllSongsFragment, mMediaPlaybackFragment;
+    private static final String SERVICE_STATE = "com.bkav.android.mymusic.activities.SERVICE_STATE";
+    private static final String AUDIO_INDEX = "com.bkav.android.mymusic.activities.AUDIO_INDEX";
+    public AllSongsFragment mAllSongsFragment;
+    public MediaPlaybackFragment mMediaPlaybackFragment;
     protected MediaPlaybackService mPlayerService;
-    private FragmentManager mFragmentManager;
-    private FragmentTransaction mFragmentTransactionOne, mFragmentTransactionTwo;
-    private ArrayList<Song> mAudioList;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
+
     // Ràng buộc Client này với MusicPlayer
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -69,6 +68,18 @@ public class MusicActivity extends AppCompatActivity {
         }
     };
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!mServiceBound) {
+            Intent playerIntent = new Intent(this, MediaPlaybackService.class);
+            Objects.requireNonNull(startService(playerIntent));
+            //kết nối với service
+            bindService(playerIntent, getServiceConnection(), Context.BIND_AUTO_CREATE);
+            Toast.makeText(this, "service bound", Toast.LENGTH_SHORT).show();
+        }
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,14 +87,12 @@ public class MusicActivity extends AppCompatActivity {
         setContentView(R.layout.activity_music);
         Toolbar toolbar = findViewById(R.id.toolbar);
 
-        mAudioList = new ArrayList<>();
-
         //set toolbar
         setSupportActionBar(toolbar);
         toolbar.setTitle(R.string.titleToolbar);
         toolbar.setTitleTextColor(Color.WHITE);
-        addFragment();
-
+        createFragment();
+        mAllSongsFragment.setMedia(mPlayerService);
         //check permission
         if (ContextCompat.checkSelfPermission(MusicActivity.this,
                 Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
@@ -93,7 +102,6 @@ public class MusicActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
         }
     }
-
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -105,7 +113,15 @@ public class MusicActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.i("HaiKH", "onDestroy: Main destroy");
+        if (mPlayerService != null) {
+            unbindService(mServiceConnection);
+        }
 
+    }
+
+    public void setMediaService(MediaPlaybackService mediaService) {
+        mMediaPlaybackFragment.setMediaPlaybackService(mediaService);
     }
 
     @Override
@@ -135,11 +151,12 @@ public class MusicActivity extends AppCompatActivity {
     /**
      * add fragment to activity
      */
-    private void addFragment() {
+    private void createFragment() {
         initFragment();
+
         //add fragment to frameLayout
-        mFragmentManager = getSupportFragmentManager();
-        mFragmentTransactionOne = mFragmentManager.beginTransaction();
+        FragmentManager mFragmentManager = getSupportFragmentManager();
+        FragmentTransaction mFragmentTransactionOne = mFragmentManager.beginTransaction();
         int orientation = getResources().getConfiguration().orientation;
 
         mIsVertical = orientation != Configuration.ORIENTATION_LANDSCAPE;
@@ -152,7 +169,7 @@ public class MusicActivity extends AppCompatActivity {
             mFragmentTransactionOne.replace(R.id.frameLayoutOne, mAllSongsFragment);
             mFragmentTransactionOne.commit();
 
-            mFragmentTransactionTwo = mFragmentManager.beginTransaction();
+            FragmentTransaction mFragmentTransactionTwo = mFragmentManager.beginTransaction();
             mFragmentTransactionTwo.replace(R.id.frameLayoutTwo, mMediaPlaybackFragment);
             mFragmentTransactionTwo.commit();
         }
@@ -165,9 +182,9 @@ public class MusicActivity extends AppCompatActivity {
      * @param playbackStatus state player
      */
     public void updateFragment(int index, PlaybackStatus playbackStatus) {
-        ((AllSongsFragment) mAllSongsFragment).update(index, playbackStatus);
+        mAllSongsFragment.update(index, playbackStatus);
         if (mMediaPlaybackFragment.getView() != null) {
-            ((MediaPlaybackFragment) mMediaPlaybackFragment).update(playbackStatus);
+            mMediaPlaybackFragment.update(playbackStatus);
         }
     }
 
@@ -182,7 +199,7 @@ public class MusicActivity extends AppCompatActivity {
         if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (ContextCompat.checkSelfPermission(MusicActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                    addFragment();
+                    createFragment();
                 }
             } else {
                 finish();
@@ -201,5 +218,6 @@ public class MusicActivity extends AppCompatActivity {
     public boolean getServiceBound() {
         return mServiceBound;
     }
+
 
 }

@@ -3,14 +3,12 @@ package com.bkav.android.mymusic.models;
 import java.util.concurrent.TimeUnit;
 
 public class Song {
-    private int mId;
     private String mTitle;
     private String mArtist;
     private String mDuration;
     private String mPath;
 
-    public Song(int mId, String mTitle, String mArtist, String mDuration, String mPath) {
-        this.mId = mId;
+    public Song(String mTitle, String mArtist, String mDuration, String mPath) {
         this.mTitle = mTitle;
         this.mArtist = mArtist;
         this.mDuration = mDuration;
@@ -51,14 +49,6 @@ public class Song {
         }
     }
 
-    public int getId() {
-        return mId;
-    }
-
-    public void setId(int mId) {
-        this.mId = mId;
-    }
-
     public String getTitle() {
         return mTitle;
     }
@@ -78,12 +68,13 @@ public class Song {
     public String getDuration() {
         return millisecondToFullTime(Long.parseLong(mDuration));
     }
-    public int getTimeEnd(){
-        return Integer.parseInt(mDuration);
-    }
 
     public void setDuration(String mDuration) {
         this.mDuration = mDuration;
+    }
+
+    public long getTimeEnd() {
+        return Long.parseLong(mDuration);
     }
 
     public String getPath() {

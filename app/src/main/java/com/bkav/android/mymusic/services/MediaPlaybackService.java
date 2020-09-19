@@ -61,6 +61,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     private static final int NUMBER_ACTION_PAUSE = 1;
     private static final int NUMBER_ACTION_NEXT = 2;
     private static final int NUMBER_ACTION_PREVIOUS = 3;
+    private static final int TIME_LIMIT = 3000;
 
 
     // Binder given to clients
@@ -153,6 +154,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         return mAudioIndex;
     }
 
+    public long getCurrentPosition() {
+        return mMediaPlayer.getCurrentPosition();
+    }
+
     private void stopMedia() {
         if (mMediaPlayer == null) return;
         if (mMediaPlayer.isPlaying()) {
@@ -211,6 +216,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("HaiKH", "onStartCommand: on");
+
         try {
             //Load data from SharedPreferences
             StorageUtil storage = new StorageUtil(getApplicationContext());
@@ -402,6 +408,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         updateMetaData();
         buildNotification(PlaybackStatus.PLAYING);
         mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+        new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
     }
 
     @Override
@@ -545,6 +552,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 skipToNext();
                 updateMetaData();
                 mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
                 buildNotification(PlaybackStatus.PLAYING);
             }
 
@@ -554,6 +562,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 skipToPrevious();
                 updateMetaData();
                 mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
                 buildNotification(PlaybackStatus.PLAYING);
             }
 
@@ -617,6 +626,17 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
      * previous song
      */
     public void skipToPrevious() {
+        if (mMediaPlayer.getCurrentPosition() <= TIME_LIMIT) {
+            if (mAudioIndex == 0) {
+                //if first in playlist
+                //set index to the last of audioList
+                mAudioIndex = mAudioList.size() - 1;
+                mActiveAudio = mAudioList.get(mAudioIndex);
+            } else {
+                //get previous in playlist
+                mActiveAudio = mAudioList.get(--mAudioIndex);
+            }
+        }
         if (mAudioIndex == 0) {
             //if first in playlist
             //set index to the last of audioList
@@ -624,7 +644,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             mActiveAudio = mAudioList.get(mAudioIndex);
         } else {
             //get previous in playlist
-            mActiveAudio = mAudioList.get(--mAudioIndex);
+            mActiveAudio = mAudioList.get(mAudioIndex);
         }
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
@@ -705,7 +725,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public void setOnNotificationListener(OnNotificationListener listener) {
         this.mOnNotificationListener = listener;
     }
-
 
     public interface OnNotificationListener {
         void onUpdate(int position, PlaybackStatus playbackStatus);

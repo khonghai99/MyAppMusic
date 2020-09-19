@@ -32,6 +32,7 @@ import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import static com.bkav.android.mymusic.services.MediaPlaybackService.BROADCAST_PLAY_NEW_AUDIO;
 
@@ -44,10 +45,11 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     private TextView mArtistBottomAllSongTextView;
     private ImageView mImageBottomAllSongImageView;
     private ImageView mImagePauseBottomAllSongImageView;
+
     private Song mSong;
-    private boolean mServiceBound = false;
     private ArrayList<Song> mAudioList;
     private StorageUtil storage;
+    private MediaPlaybackService media;
 
     @Nullable
     @Override
@@ -55,12 +57,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
         init(view);
-
-        storage = new StorageUtil(getContext().getApplicationContext());
-
-//        mSongList = storage.loadAudio();
-//        mSong = storage.loadAudio().get(storage.loadAudioIndex());
-
+        storage = new StorageUtil(Objects.requireNonNull(getContext()).getApplicationContext());
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -87,39 +84,38 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public void playAudio(int audioIndex) {
         //Lưu vị trí âm thanh mới to SharedPreferences
         storage.storeAudioIndex(audioIndex);
-        storage.storeAudioId(mAudioList.get(audioIndex).getId());
 
         //Check is service is active
-        if (!getMusicActivity().getServiceBound()) {
+        if (!Objects.requireNonNull(getMusicActivity()).getServiceBound()) {
 
             //Lưu danh sách âm thanh to SharedPreferences
             storage.storeAudio(mAudioList);
-            Intent playerIntent = new Intent(getContext(), MediaPlaybackService.class);
-            getActivity().startService(playerIntent);
 
-            //kết nối với service
-            getActivity().bindService(playerIntent, getMusicActivity().getServiceConnection(), Context.BIND_AUTO_CREATE);
+
+
         } else {
 
             //Service is active
             //Send a broadcast to the service -> PLAY_NEW_AUDIO
             Intent broadcastIntent = new Intent(BROADCAST_PLAY_NEW_AUDIO);
-            getActivity().sendBroadcast(broadcastIntent);
+            Objects.requireNonNull(getActivity()).sendBroadcast(broadcastIntent);
         }
     }
 
     @Override
     public void onNewClick(ArrayList<Song> songList, int position) {
-        mSongAdapter.updateSongList(songList, position);
+        mSongAdapter.updateSongList(songList);
         mSongList = storage.loadAudio();
         mSong = storage.loadAudio().get(position);
-        if (getMusicActivity().getStateUI()) {
+        if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
             setDataBottom();
             setVisible();
 
         } else {
             MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frameLayoutTwo);
-            mediaPlaybackFragment.setTitle(songList.get(position));
+            if (mediaPlaybackFragment != null) {
+                mediaPlaybackFragment.setTitle(songList.get(position));
+            }
         }
         mAudioList = songList;
         playAudio(position);
@@ -130,7 +126,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      */
     public void setDataBottom() {
         byte[] art = ImageSong.getByteImageSong(mSong.getPath());
-        Glide.with(getContext()).asBitmap()
+        Glide.with(Objects.requireNonNull(getContext())).asBitmap()
                 .error(R.drawable.ic_music_not_picture)
                 .load(art)
                 .into(mImageBottomAllSongImageView);
@@ -154,7 +150,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public void setDataBottomFromMedia(Song song, PlaybackStatus playbackStatus) {
         mSong = song;
         byte[] art = ImageSong.getByteImageSong(song.getPath());
-        Glide.with(getContext()).asBitmap()
+        Glide.with(Objects.requireNonNull(getContext())).asBitmap()
                 .error(R.drawable.ic_music_not_picture)
                 .load(art)
                 .into(mImageBottomAllSongImageView);
@@ -203,7 +199,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      * @param playbackStatus state of player
      */
     public void showMediaFragment(PlaybackStatus playbackStatus) {
-        FragmentManager mFragmentManager = getMusicActivity().getSupportFragmentManager();
+        FragmentManager mFragmentManager = Objects.requireNonNull(getMusicActivity()).getSupportFragmentManager();
         getMusicActivity().mMediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(getMediaPlayerService().getActiveAudio(), playbackStatus);
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frameLayoutMedia, getMusicActivity().mMediaPlaybackFragment);
@@ -211,7 +207,9 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
-
+    public void setMedia(MediaPlaybackService media){
+        this.media = media;
+    }
     /**
      * update allSongFragment when click notification
      *
@@ -219,11 +217,11 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      * @param playbackStatus state of player
      */
     public void update(int position, PlaybackStatus playbackStatus) {
-        if (getMusicActivity().getStateUI()) {
+        if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
             mTitleBottomAllSongTextView.setText(mSongList.get(position).getTitle());
             mArtistBottomAllSongTextView.setText(mSongList.get(position).getArtist());
             byte[] art = ImageSong.getByteImageSong(mSongList.get(position).getPath());
-            Glide.with(getContext()).asBitmap()
+            Glide.with(Objects.requireNonNull(getContext())).asBitmap()
                     .error(R.drawable.ic_music_not_picture)
                     .load(art)
                     .into(mImageBottomAllSongImageView);
@@ -237,11 +235,9 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
 
     /**
      * get service
-     *
-     * @return mPlayerService is Servive
      */
     public MediaPlaybackService getMediaPlayerService() {
-        return getMusicActivity().getPlayerService();
+        return (getMusicActivity()).getPlayerService();
     }
 
     /**
@@ -255,6 +251,4 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         }
         return null;
     }
-
-
 }

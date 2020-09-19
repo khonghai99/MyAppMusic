@@ -2,7 +2,6 @@ package com.bkav.android.mymusic.adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +23,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     private int mCurrentSong;
     private ArrayList<Song> mSongList;
     private OnNewClickListener mOnNewClickListener;
-    private int mSongID;
     private StorageUtil storageUtil;
 
     public SongAdapter(Context context, ArrayList<Song> mSongList, OnNewClickListener onNewClickListener) {
@@ -34,9 +32,8 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
 
     }
 
-    public void updateSongList(ArrayList<Song> songs,int position) {
+    public void updateSongList(ArrayList<Song> songs) {
         this.mSongList = songs;
-        this.mCurrentSong = position;
         notifyDataSetChanged();
     }
 
@@ -53,11 +50,10 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         final Song song = mSongList.get(position);
         storageUtil = new StorageUtil(mContext.getApplicationContext());
         if (song != null) {
-           Log.d("HaiKH", "onBindViewHolder: "+song.getId()+"||"+storageUtil.loadAudioId());
-            if (song.getId() == storageUtil.loadAudioId()){
-                Log.d("HaiKH", "onBindViewHolder: 123");
-                holder.isClick();
-            }else{holder.isNotClick();
+            if (position == storageUtil.loadAudioIndex()) {
+                holder.isSongPlay();
+            } else {
+                holder.isSongPause();
 
             }
             holder.tvID.setText(String.valueOf(position + 1));
@@ -74,19 +70,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     @Override
     public int getItemCount() {
         return mSongList != null ? mSongList.size() : 0;
-    }
-
-    /**
-     * sets the current song when clicked
-     *
-     * @param mSongID the id song when clicked
-     */
-    public void setSongID(int mSongID) {
-        this.mSongID = mSongID;
-    }
-
-    public void clickListener(OnNewClickListener onNewClickListener) {
-        this.mOnNewClickListener = onNewClickListener;
     }
 
     public interface OnNewClickListener {
@@ -118,13 +101,19 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             tvDuration.setText(song.getDuration());
         }
 
-        public void isClick() {
+        /**
+         * set item recycler on play song
+         */
+        public void isSongPlay() {
             tvID.setVisibility(View.INVISIBLE);
             equalizer.setVisibility(View.VISIBLE);
             equalizer.animateBars();
             tvTitleSong.setTypeface(Typeface.DEFAULT_BOLD);
         }
-        public void isNotClick() {
+        /**
+         * set item recycler default
+         */
+        public void isSongPause() {
             tvID.setVisibility(View.VISIBLE);
             equalizer.setVisibility(View.INVISIBLE);
             equalizer.animateBars();
