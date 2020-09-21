@@ -264,7 +264,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             remoteViews.setImageViewBitmap(id, bitmap);
 
         } else {
-            remoteViews.setImageViewResource(id, R.drawable.ic_music_not_picture);
+            remoteViews.setImageViewResource(id, R.mipmap.ic_music_not_picture);
         }
     }
 
@@ -331,7 +331,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     .setColor(getResources().getColor(R.color.colorPrimary, null))
                     // Set the large and small icons
                     .setLargeIcon(largeIcon)
-                    .setSmallIcon(android.R.drawable.stat_sys_headset)
+                    .setSmallIcon(R.mipmap.stat_notify_musicplayer)
                     // Set Notification content information
                     .setContentText(mActiveAudio.getArtist())
                     .setCustomContentView(smallNotify)
@@ -591,7 +591,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void updateMetaData() {
         Bitmap albumArt = BitmapFactory.decodeResource(getResources(),
-                R.drawable.ic_music_not_picture); //replace with medias albumArt
+                R.mipmap.ic_music_not_picture); //replace with medias albumArt
         // Update the current metadata
         mMediaSession.setMetadata(new MediaMetadata.Builder()
                 .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArt)

@@ -23,7 +23,6 @@ import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.activities.MusicActivity;
 import com.bkav.android.mymusic.models.Song;
-import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -35,6 +34,7 @@ import java.util.Objects;
 public class MediaPlaybackFragment extends BaseSongListFragment implements View.OnClickListener {
     private static final String KEY_SONG = "com.bkav.android.mymusic.fragments.SONG";
     private static final String KEY_PLAYBACK = "com.bkav.android.mymusic.fragments.PLAY_BACK";
+    StorageUtil storageUtil;
     private ImageView mImageTopMediaImageView;
     private TextView mTitleTopMediaTextView;
     private TextView mArtistTopMediaTextView;
@@ -51,10 +51,8 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
     private TextView mEndTimeTextView;
     private UpdateSeekBarThread mUpdateSeekBarThread;
     private ArrayList<Song> mSongList;
-    private MediaPlaybackService mMediaPlayBackService;
     private MediaPlayer mMediaPlayer;
     private Song mSong;
-    StorageUtil storageUtil;
 
     public static MediaPlaybackFragment getInstancesMedia(Song song, PlaybackStatus playbackStatus) {
         MediaPlaybackFragment fragment = new MediaPlaybackFragment();
@@ -74,16 +72,8 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
         return null;
     }
 
-    public void setMediaPlaybackService(MediaPlaybackService mediaPlaybackService) {
-        this.mMediaPlayBackService = mediaPlaybackService;
-    }
-
-    private void getMediaPlayer() {
-        mMediaPlayer = getMusicActivity().getPlayerService().getMediaPlayer();
-    }
-
     private Song getSong() {
-        return mMediaPlayBackService.getActiveAudio();
+        return getMediaPlayerService().getActiveAudio();
     }
 
     @Nullable
@@ -97,19 +87,17 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
         if (getArguments() != null) {
             setUIMedia(getArguments());
         }
-        if (storageUtil!=null){
+        if (storageUtil != null) {
             setTitle(mSong);
         }
-            return view;
+        return view;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.i("HaiKH", "onCreate: on");
         super.onCreate(savedInstanceState);
-        if (mMediaPlayBackService != null) {
-            getMediaPlayer();
-        }
+
         storageUtil = new StorageUtil(getContext());
         mSongList = storageUtil.loadAudio();
         mSong = storageUtil.loadAudio().get(storageUtil.loadAudioIndex());
@@ -123,7 +111,7 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 if (b) {
-                   mMediaPlayBackService.getMediaPlayer().seekTo(i);
+                    getMediaPlayerService().getMediaPlayer().seekTo(i);
                 }
             }
 
@@ -179,7 +167,7 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
         }.getType();
         Song song = gson.fromJson(jsonSong, type);
 
-        setTitle(song != null ? song : null);
+        setTitle(song);
         if (playbackStatus == PlaybackStatus.PAUSED) {
             mPauseImageView.setImageResource(R.drawable.ic_button_pause);
         } else if (playbackStatus == PlaybackStatus.PLAYING) {
@@ -191,11 +179,11 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
         String path = song.getPath();
         byte[] art = ImageSong.getByteImageSong(path);
         Glide.with(Objects.requireNonNull(getContext())).asBitmap()
-                .error(R.drawable.ic_music_not_picture)
+                .error(R.mipmap.ic_music_not_picture)
                 .load(art)
                 .into(mImageTopMediaImageView);
         Glide.with(getContext()).asBitmap()
-                .error(R.drawable.ic_music_not_picture)
+                .error(R.mipmap.ic_music_not_picture)
                 .load(art)
                 .into(mBackgroundMediaImageView);
         mArtistTopMediaTextView.setText(song.getArtist());
@@ -209,35 +197,33 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
         int id = view.getId();
         switch (id) {
             case R.id.ivBackgroundMedia:
-                break;
             case R.id.ivLike:
-
             case R.id.ivDislike:
-
+                break;
             case R.id.ivNext:
-                mMediaPlayBackService.skipToNext();
-                mMediaPlayBackService.updateMetaDataNotify(PlaybackStatus.PLAYING);
+                getMediaPlayerService().skipToNext();
+                getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                 setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitle(getSong());
                 break;
             case R.id.ivPrevious:
-                mMediaPlayBackService.skipToPrevious();
-                mMediaPlayBackService.updateMetaDataNotify(PlaybackStatus.PLAYING);
+                getMediaPlayerService().skipToPrevious();
+                getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                 setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitle(getSong());
                 break;
             case R.id.ivPause:
                 Log.d("HaiKH", "onClick: pause click");
-                if (mMediaPlayBackService.isPlayingState() == PlaybackStatus.PLAYING) {
-                    mMediaPlayBackService.pauseMedia();
-                    mMediaPlayBackService.updateMetaDataNotify(PlaybackStatus.PAUSED);
+                if (getMediaPlayerService().isPlayingState() == PlaybackStatus.PLAYING) {
+                    getMediaPlayerService().pauseMedia();
+                    getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PAUSED);
                     mPauseImageView.setImageResource(R.drawable.ic_button_pause);
                     setBottomAllSong(getSong(), PlaybackStatus.PAUSED);
                 } else {
-                    mMediaPlayBackService.playMedia();
-                    mMediaPlayBackService.updateMetaDataNotify(PlaybackStatus.PLAYING);
+                    getMediaPlayerService().playMedia();
+                    getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PLAYING);
                     mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                     setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 }
@@ -262,15 +248,14 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
     }
 
     private void updateSeekBar() {
-        if (mMediaPlayBackService != null) {
+        if (getMediaPlayerService() != null) {
             mUpdateSeekBarThread.updateSeekBar();
         }
     }
 
     private String formattedTime(long time) {
-        long duration = time;
-        int minutes = (int) (duration / 1000 / 60);
-        int seconds = (int) ((duration / 1000) % 60);
+        int minutes = (int) (time / 1000 / 60);
+        int seconds = (int) ((time / 1000) % 60);
         if (seconds < 10) {
             String seconds2 = "0" + seconds;
             return minutes + ":" + seconds2;
@@ -278,9 +263,6 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
         return minutes + ":" + seconds;
     }
 
-    public void setService(MediaPlaybackService mediaService) {
-        this.mMediaPlayBackService = mediaService;
-    }
 
     public class UpdateSeekBarThread extends Thread {
         private Handler handler;
@@ -294,16 +276,16 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
         }
 
         public void updateSeekBar() {
-            if (mMediaPlayBackService != null) {
+            if (getMediaPlayerService() != null) {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        if (mMediaPlayBackService.getAudioIndex() >= 0) {
-                            while (mMediaPlayer != null) {
+                        if (getMediaPlayerService().getAudioIndex() >= 0) {
+                            while (getMediaPlayerService().getMediaPlayer() != null) {
                                 try {
                                     long current = -1;
                                     try {
-                                        current = mMediaPlayBackService.getCurrentPosition();
+                                        current = getMediaPlayerService().getCurrentPosition();
                                     } catch (IllegalStateException e) {
                                         e.printStackTrace();
                                     }
@@ -312,10 +294,10 @@ public class MediaPlaybackFragment extends BaseSongListFragment implements View.
                                         getActivity().runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                mSeekBar.setMax((int) (mMediaPlayBackService.getActiveAudio().getTimeEnd()));
+                                                mSeekBar.setMax((int) (getMediaPlayerService().getActiveAudio().getTimeEnd()));
                                                 mSeekBar.setProgress((int) (finalCurrent));
                                                 mStartTimeTextView.setText(formattedTime(finalCurrent));
-                                                mEndTimeTextView.setText(mMediaPlayBackService.getActiveAudio().getDuration());
+                                                mEndTimeTextView.setText(getMediaPlayerService().getActiveAudio().getDuration());
                                             }
                                         });
                                     }

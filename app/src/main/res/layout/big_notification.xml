@@ -10,10 +10,10 @@
 
         <ImageView
             android:id="@+id/ivBigPicture"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="@dimen/image_big_notify_width_height"
+            android:layout_height="@dimen/image_big_notify_width_height"
             android:layout_centerVertical="true"
-            android:src="@drawable/mai_mai_khong_phai_anh" />
+            android:src="@mipmap/mai_mai_khong_phai_anh" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -21,13 +21,13 @@
         android:layout_width="wrap_content"
         android:layout_height="80dp"
         android:layout_toRightOf="@id/layoutRelative"
-        android:paddingStart="6dp">
+        android:paddingStart="@dimen/relative_padding_start">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:layout_alignParentBottom="true"
-            android:background="#ACAAAB" />
+            android:background="@color/colorLineHorizontal" />
 
         <TextView
             android:id="@+id/tvBigTitle"
@@ -42,7 +42,7 @@
             android:scrollHorizontally="true"
             android:singleLine="true"
             android:text="Name song"
-            android:textSize="20sp"
+            android:textSize="@dimen/text_size_big_notify"
             android:textStyle="bold" />
 
         <TextView
@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/tvBigTitle"
             android:text="Artist"
-            android:textSize="20dp" />
+            android:textSize="@dimen/text_size_big_notify" />
 
 
     </RelativeLayout>
@@ -68,29 +68,29 @@
         <ImageView
 
             android:id="@+id/ivBigPrevious"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="@dimen/icon_next_previous_width_height"
+            android:layout_height="@dimen/icon_next_previous_width_height"
             android:layout_centerVertical="true"
-            android:layout_marginEnd="30dp"
+            android:layout_marginEnd="@dimen/icon_margin_end"
             android:layout_toLeftOf="@id/ivBigPause"
-            android:src="@drawable/ic_previous" />
+            android:src="@mipmap/ic_previous" />
 
         <ImageView
             android:id="@+id/ivBigPause"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="@dimen/icon_pause_big_width_height"
+            android:layout_height="@dimen/icon_pause_big_width_height"
             android:layout_centerInParent="true"
             android:src="@drawable/ic_button_playing" />
 
         <ImageView
             android:id="@+id/ivBigNext"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="@dimen/icon_next_previous_width_height"
+            android:layout_height="@dimen/icon_next_previous_width_height"
             android:layout_centerVertical="true"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="30dp"
+            android:layout_marginStart="@dimen/icon_margin_end"
             android:layout_toRightOf="@id/ivBigPause"
-            android:src="@drawable/ic_next" />
+            android:src="@mipmap/ic_next" />
 
     </RelativeLayout>
 </RelativeLayout>

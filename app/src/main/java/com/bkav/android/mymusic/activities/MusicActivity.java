@@ -11,15 +11,18 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -28,11 +31,12 @@ import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
+import com.google.android.material.navigation.NavigationView;
 
 import java.util.Objects;
 
 
-public class MusicActivity extends AppCompatActivity {
+public class MusicActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 1;
     private static final String SERVICE_STATE = "com.bkav.android.mymusic.activities.SERVICE_STATE";
@@ -43,6 +47,8 @@ public class MusicActivity extends AppCompatActivity {
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
+
+    private DrawerLayout drawer;
 
     // Ràng buộc Client này với MusicPlayer
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -71,14 +77,13 @@ public class MusicActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!mServiceBound) {
-            Intent playerIntent = new Intent(this, MediaPlaybackService.class);
-            Objects.requireNonNull(startService(playerIntent));
-            //kết nối với service
-            bindService(playerIntent, getServiceConnection(), Context.BIND_AUTO_CREATE);
-            Toast.makeText(this, "service bound", Toast.LENGTH_SHORT).show();
-        }
 
+        Intent playerIntent = new Intent(this, MediaPlaybackService.class);
+        Objects.requireNonNull(startService(playerIntent));
+
+        //kết nối với service
+        bindService(playerIntent, getServiceConnection(), Context.BIND_AUTO_CREATE);
+        Toast.makeText(this, "service bound", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -101,6 +106,13 @@ public class MusicActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(MusicActivity.this,
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
         }
+        drawer = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
     }
 
     @Override
@@ -113,15 +125,10 @@ public class MusicActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.i("HaiKH", "onDestroy: Main destroy");
         if (mPlayerService != null) {
             unbindService(mServiceConnection);
         }
 
-    }
-
-    public void setMediaService(MediaPlaybackService mediaService) {
-        mMediaPlaybackFragment.setMediaPlaybackService(mediaService);
     }
 
     @Override
@@ -166,11 +173,11 @@ public class MusicActivity extends AppCompatActivity {
             mFragmentTransactionOne.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             mFragmentTransactionOne.commit();
         } else {
-            mFragmentTransactionOne.replace(R.id.frameLayoutOne, mAllSongsFragment);
+            mFragmentTransactionOne.replace(R.id.frameLayoutLandAllSong, mAllSongsFragment);
             mFragmentTransactionOne.commit();
 
             FragmentTransaction mFragmentTransactionTwo = mFragmentManager.beginTransaction();
-            mFragmentTransactionTwo.replace(R.id.frameLayoutTwo, mMediaPlaybackFragment);
+            mFragmentTransactionTwo.replace(R.id.frameLayoutLandMedia, mMediaPlaybackFragment);
             mFragmentTransactionTwo.commit();
         }
     }
@@ -220,4 +227,34 @@ public class MusicActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        switch (menuItem.getItemId()) {
+            case R.id.nav_listen_now:
+                Toast.makeText(this, "listen now", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_recents:
+                Toast.makeText(this, "recents", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_music_library:
+                Toast.makeText(this, "music library", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_setting:
+                Toast.makeText(this, "setting", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_help_and_feedback:
+                Toast.makeText(this, "help", Toast.LENGTH_SHORT).show();
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
 }

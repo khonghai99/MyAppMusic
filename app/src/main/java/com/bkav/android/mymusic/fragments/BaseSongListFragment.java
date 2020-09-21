@@ -112,7 +112,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
             setVisible();
 
         } else {
-            MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frameLayoutTwo);
+            MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frameLayoutLandMedia);
             if (mediaPlaybackFragment != null) {
                 mediaPlaybackFragment.setTitle(songList.get(position));
             }
@@ -127,13 +127,13 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public void setDataBottom() {
         byte[] art = ImageSong.getByteImageSong(mSong.getPath());
         Glide.with(Objects.requireNonNull(getContext())).asBitmap()
-                .error(R.drawable.ic_music_not_picture)
+                .error(R.mipmap.ic_music_not_picture)
                 .load(art)
                 .into(mImageBottomAllSongImageView);
 
         mTitleBottomAllSongTextView.setText(mSong.getTitle());
         mArtistBottomAllSongTextView.setText(mSong.getArtist());
-        mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
+        mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
     }
 
     @Override
@@ -151,15 +151,15 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mSong = song;
         byte[] art = ImageSong.getByteImageSong(song.getPath());
         Glide.with(Objects.requireNonNull(getContext())).asBitmap()
-                .error(R.drawable.ic_music_not_picture)
+                .error(R.mipmap.ic_music_not_picture)
                 .load(art)
                 .into(mImageBottomAllSongImageView);
         mTitleBottomAllSongTextView.setText(song.getTitle());
         mArtistBottomAllSongTextView.setText(song.getArtist());
         if (playbackStatus == PlaybackStatus.PLAYING) {
-            mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
+            mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
         } else {
-            mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
+            mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
         }
     }
 
@@ -178,11 +178,11 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
                 if (PlaybackStatus.PLAYING == getMediaPlayerService().isPlayingState()) {
                     getMediaPlayerService().pauseMedia();
                     getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PAUSED);
-                    mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
+                    mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
                 } else if (PlaybackStatus.PAUSED == getMediaPlayerService().isPlayingState()) {
                     getMediaPlayerService().playMedia();
                     getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PLAYING);
-                    mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
+                    mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
                 }
                 break;
             case R.id.layoutBottomAllSong:
@@ -222,13 +222,13 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
             mArtistBottomAllSongTextView.setText(mSongList.get(position).getArtist());
             byte[] art = ImageSong.getByteImageSong(mSongList.get(position).getPath());
             Glide.with(Objects.requireNonNull(getContext())).asBitmap()
-                    .error(R.drawable.ic_music_not_picture)
+                    .error(R.mipmap.ic_music_not_picture)
                     .load(art)
                     .into(mImageBottomAllSongImageView);
             if (playbackStatus == PlaybackStatus.PLAYING) {
-                mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_pause_light);
+                mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
             } else if (playbackStatus == PlaybackStatus.PAUSED) {
-                mImagePauseBottomAllSongImageView.setImageResource(R.drawable.ic_media_play_light);
+                mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
             }
         }
     }

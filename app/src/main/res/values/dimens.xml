@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    //big_notify
+    <dimen name="relative_padding_start">6dp</dimen>
+    <dimen name="text_size_big_notify">20sp</dimen>
+    <dimen name="icon_margin_end">30dp</dimen>
+    <dimen name="icon_pause_big_width_height">50dp</dimen>
+    <dimen name="image_big_notify_width_height">150dp</dimen>
+
+    //big_and_small_notify
+    <dimen name="icon_next_previous_width_height">30dp</dimen>
+
+    //small_notify
+    <dimen name="icon_next_previous_margin_top">5dp</dimen>
+    <dimen name="icon_next_previous_margin_end">23dp</dimen>
+    <dimen name="icon_pause_small_width_height">40dp</dimen>
+    <dimen name="image_small_notify_width_height">50dp</dimen>
+    <dimen name="linear_margin_end_small_notify">50dp</dimen>
+
+    //top_media
+    <dimen name="padding_top_media">10dp</dimen>
+    <dimen name="width_height_image_top_media">60dp</dimen>
+    <dimen name="width_height_show_menu_top_media">38dp</dimen>
+    <dimen name="width_height_show_list_song_top_media">35dp</dimen>
+    <dimen name="show_list_song_margin_end_top_media">10dp</dimen>
+    <dimen name="relative_top_media_margin_start">8dp</dimen>
+
+    //text
+    <dimen name="text_size_title_song">16dp</dimen>
+    <dimen name="text_size_artist_and_time_song">13dp</dimen>
+
+    //all_song
+    <dimen name="padding_relative">8dp</dimen>
+    <dimen name="padding_start_relative">12dp</dimen>
+    <dimen name="margin_start_title_all_song">12dp</dimen>
+    <dimen name="width_height_image_bottom_all_song">40dp</dimen>
+    <dimen name="icon_pause_bottom_all_song">30dp</dimen>
+
+    //bottom_media
+    <dimen name="width_height_icon">24dp</dimen>
+    <dimen name="time_margin">15dp</dimen>
+    <dimen name="like_dislike_margin">28dp</dimen>
+    <dimen name="icon_pause_margin_top">28dp</dimen>
+    <dimen name="icon_margin_top">45dp</dimen>
+    <dimen name="next_previous_margin">35dp</dimen>
+
+    //one_row
+    <dimen name="padding_end">10dp</dimen>
+    <dimen name="padding_top">15dp</dimen>
+    <dimen name="padding_bottom">8dp</dimen>
+    <dimen name="width_height_NO">30dp</dimen>
+    <dimen name="NO_margin_start">25dp</dimen>
+    <dimen name="NO_text_size">15dp</dimen>
+    <dimen name="text_title_margin_start">33dp</dimen>
+    <dimen name="time_margin_top">3dp</dimen>
+
+</resources>

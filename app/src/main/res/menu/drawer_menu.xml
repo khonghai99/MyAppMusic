@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_listen_now"
+            android:icon="@mipmap/ic_headphone_large"
+            android:title="@string/title_drawer_listen_now" />
+        <item
+            android:id="@+id/nav_recents"
+            android:icon="@mipmap/ic_search_recent"
+            android:title="@string/title_drawer_recent" />
+        <item
+            android:id="@+id/nav_music_library"
+            android:icon="@mipmap/ic_library_music"
+            android:title="@string/title_drawer_music_library" />
+    </group>
+    <group
+        android:id="@+id/menu_bottom"
+        android:checkableBehavior="none">
+        <item
+            android:id="@+id/nav_setting"
+            android:title="@string/title_drawer_setting" />
+        <item
+            android:id="@+id/nav_help_and_feedback"
+            android:title="@string/title_drawer_help_and_feedback" />
+    </group>
+
+</menu>
