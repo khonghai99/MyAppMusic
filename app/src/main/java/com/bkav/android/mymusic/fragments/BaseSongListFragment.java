@@ -99,7 +99,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     }
 
     public void songPicked(int position) {
-        getMusicActivity().getService().setSong(position);
+        storage.storeAudioIndex(position);
         getMusicActivity().getService().playSong();
     }
 

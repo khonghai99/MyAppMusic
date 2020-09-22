@@ -85,7 +85,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
             //get service
             musicSrv = binder.getService();
-            //pass list
             musicBound = true;
         }
 

@@ -69,7 +69,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         player.reset();
         StorageUtil storage = new StorageUtil(getApplicationContext());
         mAudioList = storage.loadAudio();
-        mActiveAudio = mAudioList.get(songPosn);
+        mActiveAudio = mAudioList.get(storage.loadAudioIndex());
 
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
