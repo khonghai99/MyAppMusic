@@ -28,9 +28,11 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
+import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
+import com.bkav.android.mymusic.services.MusicService;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.Objects;
@@ -43,11 +45,13 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     private static final String AUDIO_INDEX = "com.bkav.android.mymusic.activities.AUDIO_INDEX";
     public AllSongsFragment mAllSongsFragment;
     public MediaPlaybackFragment mMediaPlaybackFragment;
-    protected MediaPlaybackService mPlayerService;
+    protected MediaPlaybackService mMediaService;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
-
+    private MusicService musicSrv;
+    private Intent playIntent;
+    private boolean musicBound = false;
     private DrawerLayout drawer;
 
     // Ràng buộc Client này với MusicPlayer
@@ -57,10 +61,10 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
 
             // Đã liên kết với LocalService, truyền IBinder
             MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
-            mPlayerService = binder.getService();
+            mMediaService = binder.getService();
             mServiceBound = true;
 
-            mPlayerService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
+            mMediaService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
                 @Override
                 public void onUpdate(int position, PlaybackStatus playbackStatus) {
                     updateFragment(position, playbackStatus);
@@ -73,18 +77,50 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             mServiceBound = false;
         }
     };
+    //connect to the service
+    private ServiceConnection musicConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
+            //get service
+            musicSrv = binder.getService();
+            //pass list
+            musicBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            musicBound = false;
+        }
+    };
+
+    // FIXED:
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (playIntent == null) {
+            playIntent = new Intent(this, MusicService.class);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            startService(playIntent);
+        }
+    }
+
+
+
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        Intent playerIntent = new Intent(this, MediaPlaybackService.class);
-        Objects.requireNonNull(startService(playerIntent));
-
-        //kết nối với service
-        bindService(playerIntent, getServiceConnection(), Context.BIND_AUTO_CREATE);
-        Toast.makeText(this, "service bound", Toast.LENGTH_SHORT).show();
+//        Intent playerIntent = new Intent(this, MediaPlaybackService.class);
+//        Objects.requireNonNull(startService(playerIntent));
+//
+//        //kết nối với service
+//        bindService(playerIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+//        Toast.makeText(this, "service bound", Toast.LENGTH_SHORT).show();
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +133,8 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         toolbar.setTitle(R.string.titleToolbar);
         toolbar.setTitleTextColor(Color.WHITE);
         createFragment();
-        mAllSongsFragment.setMedia(mPlayerService);
+        mAllSongsFragment.setMedia(mMediaService);
+
         //check permission
         if (ContextCompat.checkSelfPermission(MusicActivity.this,
                 Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
@@ -107,13 +144,17 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
         }
         drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
-                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
+        if (mIsVertical) {
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            navigationView.setNavigationItemSelectedListener(this);
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
+                    R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+            drawer.addDrawerListener(toggle);
+            toggle.syncState();
+        }
+
     }
+
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -125,7 +166,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mPlayerService != null) {
+        if (mMediaService != null) {
             unbindService(mServiceConnection);
         }
 
@@ -189,7 +230,10 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
      * @param playbackStatus state player
      */
     public void updateFragment(int index, PlaybackStatus playbackStatus) {
-        mAllSongsFragment.update(index, playbackStatus);
+        if (mAllSongsFragment.getView() != null) {
+            mAllSongsFragment.update(index, playbackStatus);
+        }
+
         if (mMediaPlaybackFragment.getView() != null) {
             mMediaPlaybackFragment.update(playbackStatus);
         }
@@ -215,7 +259,11 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     }
 
     public MediaPlaybackService getPlayerService() {
-        return mPlayerService;
+        return mMediaService;
+    }
+
+    public MusicService getService() {
+        return musicSrv;
     }
 
     public ServiceConnection getServiceConnection() {
@@ -226,6 +274,9 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         return mServiceBound;
     }
 
+    public boolean getBound() {
+        return musicBound;
+    }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -257,4 +308,5 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             super.onBackPressed();
         }
     }
+
 }

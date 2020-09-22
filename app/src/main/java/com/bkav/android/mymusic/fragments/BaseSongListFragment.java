@@ -1,9 +1,9 @@
 package com.bkav.android.mymusic.fragments;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,6 +63,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
+        Log.i("HaiKH", "onCreateView: " + getMediaPlayerService());
         return view;
     }
 
@@ -84,22 +85,22 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public void playAudio(int audioIndex) {
         //Lưu vị trí âm thanh mới to SharedPreferences
         storage.storeAudioIndex(audioIndex);
-
         //Check is service is active
         if (!Objects.requireNonNull(getMusicActivity()).getServiceBound()) {
-
             //Lưu danh sách âm thanh to SharedPreferences
             storage.storeAudio(mAudioList);
 
-
-
         } else {
-
             //Service is active
             //Send a broadcast to the service -> PLAY_NEW_AUDIO
             Intent broadcastIntent = new Intent(BROADCAST_PLAY_NEW_AUDIO);
             Objects.requireNonNull(getActivity()).sendBroadcast(broadcastIntent);
         }
+    }
+
+    public void songPicked(int position) {
+        getMusicActivity().getService().setSong(position);
+        getMusicActivity().getService().playSong();
     }
 
     @Override
@@ -118,7 +119,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
             }
         }
         mAudioList = songList;
-        playAudio(position);
+        songPicked(position);
     }
 
     /**
@@ -207,9 +208,11 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
-    public void setMedia(MediaPlaybackService media){
+
+    public void setMedia(MediaPlaybackService media) {
         this.media = media;
     }
+
     /**
      * update allSongFragment when click notification
      *

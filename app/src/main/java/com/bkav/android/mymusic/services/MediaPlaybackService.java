@@ -24,7 +24,6 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
@@ -110,7 +109,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d("HaiKH", "onReceive: on");
             //Get the new media index form SharedPreferences đã lưu tại playAudio của Main
             mAudioIndex = new StorageUtil(getApplicationContext()).loadAudioIndex();
             if (mAudioIndex != -1 && mAudioIndex < mAudioList.size()) {
@@ -187,7 +185,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         mMediaPlayer = new MediaPlayer();
 
         //Set up MediaPlayer event listeners
-
         //được gọi khi bài hát chạy xong
         mMediaPlayer.setOnCompletionListener(this);
 
@@ -215,7 +212,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("HaiKH", "onStartCommand: on");
 
         try {
             //Load data from SharedPreferences
@@ -466,7 +462,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i("HaiKH", "service create");
 
         // Thực hiện các thủ tục thiết lập một lần
         mNotifyManager = (NotificationManager)
@@ -615,7 +610,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
-        Log.d("HaiKH", "skipToNext: " + mAudioIndex);
         stopMedia();
         //reset mediaPlayer
         mMediaPlayer.reset();
@@ -644,11 +638,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             mActiveAudio = mAudioList.get(mAudioIndex);
         } else {
             //get previous in playlist
-            mActiveAudio = mAudioList.get(mAudioIndex);
+            mActiveAudio = mAudioList.get(--mAudioIndex);
         }
+
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
-        Log.d("HaiKH", "skipToNext: " + mAudioIndex);
         stopMedia();
         //reset mediaPlayer
         mMediaPlayer.reset();
