@@ -49,12 +49,20 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     private Song mSong;
     private ArrayList<Song> mAudioList;
     private StorageUtil storage;
-    private MediaPlaybackService media;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getMediaPlayerService()!=null)
+            setVisible();
+        Log.i("HaiKH", "onResume: all song on");
+    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.i("HaiKH", "onCreateView: all song on");
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
         init(view);
         storage = new StorageUtil(Objects.requireNonNull(getContext()).getApplicationContext());
@@ -63,7 +71,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
-        Log.i("HaiKH", "onCreateView: " + getMediaPlayerService());
+
         return view;
     }
 
@@ -76,6 +84,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mTitleBottomAllSongTextView.setSelected(true);
         mRecyclerView = view.findViewById(R.id.rcListSong);
     }
+
 
     /**
      * run player and set storage
@@ -98,10 +107,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         }
     }
 
-    public void songPicked(int position) {
-        storage.storeAudioIndex(position);
-        getMusicActivity().getService().playSong();
-    }
+
 
     @Override
     public void onNewClick(ArrayList<Song> songList, int position) {
@@ -119,7 +125,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
             }
         }
         mAudioList = songList;
-        songPicked(position);
+        playAudio(position);
     }
 
     /**
@@ -207,10 +213,6 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
-    }
-
-    public void setMedia(MediaPlaybackService media) {
-        this.media = media;
     }
 
     /**

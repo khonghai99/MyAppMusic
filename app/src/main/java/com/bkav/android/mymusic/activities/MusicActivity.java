@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -28,11 +29,9 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.PlaybackStatus;
 import com.bkav.android.mymusic.R;
-import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
-import com.bkav.android.mymusic.services.MusicService;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.Objects;
@@ -49,7 +48,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
-    private MusicService musicSrv;
     private Intent playIntent;
     private boolean musicBound = false;
     private DrawerLayout drawer;
@@ -77,32 +75,17 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             mServiceBound = false;
         }
     };
-    //connect to the service
-    private ServiceConnection musicConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
-            //get service
-            musicSrv = binder.getService();
-            musicBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            musicBound = false;
-        }
-    };
 
     // FIXED:
     @Override
     protected void onStart() {
         super.onStart();
         if (playIntent == null) {
-            playIntent = new Intent(this, MusicService.class);
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            startService(playIntent);
+            playIntent = new Intent(this, MediaPlaybackService.class);
         }
+        bindService(playIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        Log.i("HaiKH", "onStart: "+mServiceConnection);
+        startService(playIntent);
     }
 
 
@@ -111,13 +94,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     @Override
     protected void onResume() {
         super.onResume();
-
-//        Intent playerIntent = new Intent(this, MediaPlaybackService.class);
-//        Objects.requireNonNull(startService(playerIntent));
-//
-//        //kết nối với service
-//        bindService(playerIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
-//        Toast.makeText(this, "service bound", Toast.LENGTH_SHORT).show();
     }
 
 
@@ -132,7 +108,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         toolbar.setTitle(R.string.titleToolbar);
         toolbar.setTitleTextColor(Color.WHITE);
         createFragment();
-        mAllSongsFragment.setMedia(mMediaService);
 
         //check permission
         if (ContextCompat.checkSelfPermission(MusicActivity.this,
@@ -151,9 +126,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             drawer.addDrawerListener(toggle);
             toggle.syncState();
         }
-
     }
-
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -261,21 +234,10 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         return mMediaService;
     }
 
-    public MusicService getService() {
-        return musicSrv;
-    }
-
-    public ServiceConnection getServiceConnection() {
-        return mServiceConnection;
-    }
-
     public boolean getServiceBound() {
         return mServiceBound;
     }
 
-    public boolean getBound() {
-        return musicBound;
-    }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {

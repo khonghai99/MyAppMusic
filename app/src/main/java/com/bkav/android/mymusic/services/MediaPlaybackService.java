@@ -122,7 +122,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             //A PLAY_NEW_AUDIO action received
             //reset mediaPlayer to play the new Audio
             stopMedia();
-            mMediaPlayer.reset();
+           // mMediaPlayer.reset();
             initMediaPlayer();
             updateMetaData();
             buildNotification(PlaybackStatus.PLAYING);
@@ -150,10 +150,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public int getAudioIndex() {
 
         return mAudioIndex;
-    }
-
-    public long getCurrentPosition() {
-        return mMediaPlayer.getCurrentPosition();
     }
 
     private void stopMedia() {
@@ -238,16 +234,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (mMediaSessionManager == null) {
             try {
                 initMediaSession();
-                initMediaPlayer();
             } catch (RemoteException e) {
                 e.printStackTrace();
                 stopSelf();
             }
-
-            buildNotification(PlaybackStatus.PLAYING);
         }
 
-        //Handle Intent action from MediaSession.TransportControls //Xử lý hành động có ý định từ MediaSession.TransportControls
+        //Xử lý hành động  từ MediaSession.TransportControls
         handleIncomingActions(intent);
         return START_NOT_STICKY;
     }

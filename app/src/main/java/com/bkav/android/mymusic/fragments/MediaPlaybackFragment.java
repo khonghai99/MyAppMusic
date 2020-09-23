@@ -1,9 +1,11 @@
 package com.bkav.android.mymusic.fragments;
 
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,7 +57,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     private Song mSong;
     private MediaPlaybackService mMediaPlaybackService;
 
-    private MusicActivity mMusicActivity;
 
     public static MediaPlaybackFragment getInstancesMedia(Song song, PlaybackStatus playbackStatus) {
         MediaPlaybackFragment fragment = new MediaPlaybackFragment();
@@ -99,10 +100,15 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         if (storageUtil != null) {
             setTitle(mSong);
         }
-
-        mMediaPlaybackService = getMediaPlayerService();
         return view;
     }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        mMediaPlaybackService = getMediaPlayerService();
+    }
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -144,6 +150,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         mPreviousImageView.setOnClickListener(this);
         mPauseImageView.setOnClickListener(this);
         mBackgroundMediaImageView.setOnClickListener(this);
+        mListMusicImageView.setOnClickListener(this);
         mTitleTopMediaTextView.setSelected(true);
     }
 
@@ -182,6 +189,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         } else if (playbackStatus == PlaybackStatus.PLAYING) {
             mPauseImageView.setImageResource(R.drawable.ic_button_playing);
         }
+
     }
 
     public void setTitle(Song song) {
@@ -208,6 +216,9 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
             case R.id.ivBackgroundMedia:
             case R.id.ivLike:
             case R.id.ivDislike:
+                break;
+            case R.id.ivListMusic:
+                getFragmentManager().popBackStack();
                 break;
             case R.id.ivNext:
                 mMediaPlaybackService.skipToNext();
@@ -256,6 +267,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     }
 
     private void updateSeekBar() {
+        Log.i("HaiKH", "updateSeekBar: " + mMediaPlaybackService);
         if (mMediaPlaybackService != null) {
             mUpdateSeekBarThread.updateSeekBar();
         }
