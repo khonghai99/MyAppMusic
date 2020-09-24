@@ -68,6 +68,7 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
         }
         StorageUtil storageUtil = new StorageUtil(getContext());
         storageUtil.storeAudio(songList);
+        storageUtil.storeAudioIndex(-1);
 
         mSongAdapter = new SongAdapter(getContext(), songList, this);
         mRecyclerView.setAdapter(mSongAdapter);

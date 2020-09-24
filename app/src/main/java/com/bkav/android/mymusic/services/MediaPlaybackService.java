@@ -1,6 +1,5 @@
 package com.bkav.android.mymusic.services;
 
-import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -13,7 +12,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioManager;
-import android.media.MediaMetadata;
 import android.media.MediaPlayer;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
@@ -122,9 +120,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             //A PLAY_NEW_AUDIO action received
             //reset mediaPlayer to play the new Audio
             stopMedia();
-           // mMediaPlayer.reset();
+            // mMediaPlayer.reset();
             initMediaPlayer();
-            updateMetaData();
+            //  updateMetaData();
             buildNotification(PlaybackStatus.PLAYING);
         }
     };
@@ -230,16 +228,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             //Không nhận được tiêu điểm
             stopSelf();
         }
-
-        if (mMediaSessionManager == null) {
-            try {
-                initMediaSession();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-                stopSelf();
-            }
-        }
-
         //Xử lý hành động  từ MediaSession.TransportControls
         handleIncomingActions(intent);
         return START_NOT_STICKY;
@@ -394,7 +382,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public void onCompletion(MediaPlayer mediaPlayer) {
         //Được gọi khi quá trình phát lại nguồn phương tiện đã hoàn tất.
         skipToNext();
-        updateMetaData();
+        //updateMetaData();
         buildNotification(PlaybackStatus.PLAYING);
         mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
         new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
@@ -510,9 +498,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         // through its MediaSessionCompat.Callback.
         mMediaSession.setFlags(MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
-        //Set mediaSession's MetaData
-        updateMetaData();
-
         // Attach Callback to receive MediaSession updates
         mMediaSession.setCallback(new MediaSession.Callback() {
             // Implement callbacks
@@ -538,7 +523,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             public void onSkipToNext() {
                 super.onSkipToNext();
                 skipToNext();
-                updateMetaData();
+                //updateMetaData();
                 mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
                 new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
                 buildNotification(PlaybackStatus.PLAYING);
@@ -548,7 +533,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             public void onSkipToPrevious() {
                 super.onSkipToPrevious();
                 skipToPrevious();
-                updateMetaData();
+                //updateMetaData();
                 mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
                 new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
                 buildNotification(PlaybackStatus.PLAYING);
@@ -569,23 +554,44 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         });
     }
 
+    /**
+     * tìm ra hành động phát lại nào được kích hoạt
+     * get action from pending intent to run
+     *
+     * @param playbackAction Intent action
+     */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void handleIncomingActions(Intent playbackAction) {
+        if (playbackAction == null || playbackAction.getAction() == null) return;
+        if (playbackAction.getAction().equalsIgnoreCase(ACTION_NEXT)) {
+            skipToNext();
+            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+            new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
+            buildNotification(PlaybackStatus.PLAYING);
+
+        } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PREVIOUS)) {
+            skipToPrevious();
+            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+            new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
+            buildNotification(PlaybackStatus.PLAYING);
+
+        } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PAUSE)) {
+            pauseMedia();
+            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
+            buildNotification(PlaybackStatus.PAUSED);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                stopForeground(STOP_FOREGROUND_DETACH);
+            }
+
+        } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PLAY)) {
+            resumeMedia();
+            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+            buildNotification(PlaybackStatus.PLAYING);
+        }
+    }
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void updateMetaDataNotify(PlaybackStatus playbackStatus) {
-        updateMetaData();
         buildNotification(playbackStatus);
-    }
-
-    @SuppressLint("WrongConstant")
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void updateMetaData() {
-        Bitmap albumArt = BitmapFactory.decodeResource(getResources(),
-                R.mipmap.ic_music_not_picture); //replace with medias albumArt
-        // Update the current metadata
-        mMediaSession.setMetadata(new MediaMetadata.Builder()
-                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArt)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, mActiveAudio.getArtist())
-                .putString(MediaMetadata.METADATA_KEY_TITLE, mActiveAudio.getTitle())
-                .build());
     }
 
     /**
@@ -681,28 +687,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         return null;
     }
 
-    /**
-     * tìm ra hành động phát lại nào được kích hoạt
-     * get action from pending intent to run
-     *
-     * @param playbackAction Intent action
-     */
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void handleIncomingActions(Intent playbackAction) {
-        if (playbackAction == null || playbackAction.getAction() == null) return;
-        String actionString = playbackAction.getAction();
-        if (actionString.equalsIgnoreCase(ACTION_PLAY)) {
-            mTransportControls.play();
-        } else if (actionString.equalsIgnoreCase(ACTION_PAUSE)) {
-            mTransportControls.pause();
-        } else if (actionString.equalsIgnoreCase(ACTION_NEXT)) {
-            mTransportControls.skipToNext();
-        } else if (actionString.equalsIgnoreCase(ACTION_PREVIOUS)) {
-            mTransportControls.skipToPrevious();
-        } else if (actionString.equalsIgnoreCase(ACTION_STOP)) {
-            mTransportControls.stop();
-        }
-    }
 
     /**
      * set interface to listener

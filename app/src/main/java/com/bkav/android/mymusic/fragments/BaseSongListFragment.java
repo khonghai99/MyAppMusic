@@ -53,9 +53,6 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     @Override
     public void onResume() {
         super.onResume();
-        if (getMediaPlayerService()!=null)
-            setVisible();
-        Log.i("HaiKH", "onResume: all song on");
     }
 
     @Nullable
@@ -71,7 +68,6 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
-
         return view;
     }
 
