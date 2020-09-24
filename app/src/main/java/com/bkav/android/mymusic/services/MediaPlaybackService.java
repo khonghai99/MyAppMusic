@@ -122,7 +122,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             stopMedia();
             // mMediaPlayer.reset();
             initMediaPlayer();
-            //  updateMetaData();
             buildNotification(PlaybackStatus.PLAYING);
         }
     };
@@ -188,8 +187,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         //được gọi khi một hoạt động tìm kiếm đã hoàn thành.
         mMediaPlayer.setOnSeekCompleteListener(this);
 
-        //Reset so that the MediaPlayer is not pointing to another data source
+    }
+    public void playSong(int songPicked) {
+        //play a song
         mMediaPlayer.reset();
+        StorageUtil storage = new StorageUtil(getApplicationContext());
+        mAudioList = storage.loadAudio();
+        mActiveAudio = mAudioList.get(songPicked);
 
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
@@ -202,33 +206,16 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         mMediaPlayer.prepareAsync();
     }
 
+
     //Hệ thống gọi phương thức này khi một hoạt động, yêu cầu dịch vụ được bắt đầu
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
-        try {
-            //Load data from SharedPreferences
-            StorageUtil storage = new StorageUtil(getApplicationContext());
-            mAudioList = storage.loadAudio();
-            mAudioIndex = storage.loadAudioIndex();
-
-            if (mAudioIndex != -1 && mAudioIndex < mAudioList.size()) {
-                //index is in a valid range
-                mActiveAudio = mAudioList.get(mAudioIndex);
-            } else {
-                stopSelf();
-            }
-        } catch (NullPointerException e) {
-            stopSelf();
-        }
-
-        //Nhận tiêu điểm
         if (!requestAudioFocus()) {
-            //Không nhận được tiêu điểm
             stopSelf();
         }
-        //Xử lý hành động  từ MediaSession.TransportControls
+        initMediaPlayer();
+        //Xử lý hành động
         handleIncomingActions(intent);
         return START_NOT_STICKY;
     }
@@ -239,7 +226,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (art != null) {
             Bitmap bitmap = BitmapFactory.decodeByteArray(art, 0, art.length);
             remoteViews.setImageViewBitmap(id, bitmap);
-
         } else {
             remoteViews.setImageViewResource(id, R.mipmap.ic_music_not_picture);
         }
@@ -382,7 +368,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public void onCompletion(MediaPlayer mediaPlayer) {
         //Được gọi khi quá trình phát lại nguồn phương tiện đã hoàn tất.
         skipToNext();
-        //updateMetaData();
         buildNotification(PlaybackStatus.PLAYING);
         mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
         new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
@@ -523,7 +508,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             public void onSkipToNext() {
                 super.onSkipToNext();
                 skipToNext();
-                //updateMetaData();
                 mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
                 new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
                 buildNotification(PlaybackStatus.PLAYING);
@@ -533,7 +517,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             public void onSkipToPrevious() {
                 super.onSkipToPrevious();
                 skipToPrevious();
-                //updateMetaData();
                 mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
                 new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
                 buildNotification(PlaybackStatus.PLAYING);
@@ -589,6 +572,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             buildNotification(PlaybackStatus.PLAYING);
         }
     }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void updateMetaDataNotify(PlaybackStatus playbackStatus) {
         buildNotification(playbackStatus);

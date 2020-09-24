@@ -11,7 +11,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -33,8 +32,6 @@ import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.google.android.material.navigation.NavigationView;
-
-import java.util.Objects;
 
 
 public class MusicActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -83,13 +80,9 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         if (playIntent == null) {
             playIntent = new Intent(this, MediaPlaybackService.class);
         }
-        bindService(playIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
-        Log.i("HaiKH", "onStart: "+mServiceConnection);
         startService(playIntent);
+        bindService(playIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
-
-
-
 
     @Override
     protected void onResume() {
@@ -173,7 +166,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
      */
     private void createFragment() {
         initFragment();
-
         //add fragment to frameLayout
         FragmentManager mFragmentManager = getSupportFragmentManager();
         FragmentTransaction mFragmentTransactionOne = mFragmentManager.beginTransaction();

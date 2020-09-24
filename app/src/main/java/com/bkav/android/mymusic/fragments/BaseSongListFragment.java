@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,6 +46,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     private TextView mArtistBottomAllSongTextView;
     private ImageView mImageBottomAllSongImageView;
     private ImageView mImagePauseBottomAllSongImageView;
+    private MediaPlaybackService mMediaPlaybackService;
 
     private Song mSong;
     private ArrayList<Song> mAudioList;
@@ -62,6 +64,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         Log.i("HaiKH", "onCreateView: all song on");
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
         init(view);
+        mMediaPlaybackService = getMediaPlayerService();
         storage = new StorageUtil(Objects.requireNonNull(getContext()).getApplicationContext());
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -88,28 +91,28 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      * @param audioIndex the position of the track
      */
     public void playAudio(int audioIndex) {
+        //   mMediaPlaybackService.loadStorageUtil();
+
         //Lưu vị trí âm thanh mới to SharedPreferences
         storage.storeAudioIndex(audioIndex);
         //Check is service is active
-        if (!Objects.requireNonNull(getMusicActivity()).getServiceBound()) {
-            //Lưu danh sách âm thanh to SharedPreferences
-            storage.storeAudio(mAudioList);
 
-        } else {
-            //Service is active
-            //Send a broadcast to the service -> PLAY_NEW_AUDIO
-            Intent broadcastIntent = new Intent(BROADCAST_PLAY_NEW_AUDIO);
-            Objects.requireNonNull(getActivity()).sendBroadcast(broadcastIntent);
-        }
+        //Lưu danh sách âm thanh to SharedPreferences
+        storage.storeAudio(mSongList);
+
+        //Service is active
+        //Send a broadcast to the service -> PLAY_NEW_AUDIO
+        Intent broadcastIntent = new Intent(BROADCAST_PLAY_NEW_AUDIO);
+        Objects.requireNonNull(getActivity()).sendBroadcast(broadcastIntent);
+
     }
-
 
 
     @Override
     public void onNewClick(ArrayList<Song> songList, int position) {
         mSongAdapter.updateSongList(songList);
-        mSongList = storage.loadAudio();
-        mSong = storage.loadAudio().get(position);
+        mSongList = songList;
+        mSong = mSongList.get(position);
         if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
             setDataBottom();
             setVisible();
@@ -120,8 +123,8 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
                 mediaPlaybackFragment.setTitle(songList.get(position));
             }
         }
-        mAudioList = songList;
-        playAudio(position);
+
+        mMediaPlaybackService.playSong(position);
     }
 
     /**
@@ -178,18 +181,18 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.ivPauseBottomAllSong:
-                if (PlaybackStatus.PLAYING == getMediaPlayerService().isPlayingState()) {
-                    getMediaPlayerService().pauseMedia();
-                    getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PAUSED);
+                if (PlaybackStatus.PLAYING == mMediaPlaybackService.isPlayingState()) {
+                    mMediaPlaybackService.pauseMedia();
+                    mMediaPlaybackService.updateMetaDataNotify(PlaybackStatus.PAUSED);
                     mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
-                } else if (PlaybackStatus.PAUSED == getMediaPlayerService().isPlayingState()) {
-                    getMediaPlayerService().playMedia();
-                    getMediaPlayerService().updateMetaDataNotify(PlaybackStatus.PLAYING);
+                } else if (PlaybackStatus.PAUSED == mMediaPlaybackService.isPlayingState()) {
+                    mMediaPlaybackService.playMedia();
+                    mMediaPlaybackService.updateMetaDataNotify(PlaybackStatus.PLAYING);
                     mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
                 }
                 break;
             case R.id.layoutBottomAllSong:
-                showMediaFragment(getMediaPlayerService().isPlayingState());
+                showMediaFragment(mMediaPlaybackService.isPlayingState());
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + view.getId());
@@ -203,7 +206,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      */
     public void showMediaFragment(PlaybackStatus playbackStatus) {
         FragmentManager mFragmentManager = Objects.requireNonNull(getMusicActivity()).getSupportFragmentManager();
-        getMusicActivity().mMediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(getMediaPlayerService().getActiveAudio(), playbackStatus);
+        getMusicActivity().mMediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(mMediaPlaybackService.getActiveAudio(), playbackStatus);
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frameLayoutMedia, getMusicActivity().mMediaPlaybackFragment);
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
