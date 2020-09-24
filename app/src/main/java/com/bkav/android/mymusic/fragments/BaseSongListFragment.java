@@ -1,6 +1,6 @@
 package com.bkav.android.mymusic.fragments;
 
-import android.content.Intent;
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,8 +33,6 @@ import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.Objects;
-
-import static com.bkav.android.mymusic.services.MediaPlaybackService.BROADCAST_PLAY_NEW_AUDIO;
 
 public class BaseSongListFragment extends Fragment implements View.OnClickListener, SongAdapter.OnNewClickListener {
     public RelativeLayout mBottomAllSongRelativeLayout;
@@ -65,6 +62,13 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
         init(view);
         mMediaPlaybackService = getMediaPlayerService();
+        getMusicActivity().listenServiceConnected(new MusicActivity.OnServiceConnected() {
+            @Override
+            public void onConnect() {
+                mMediaPlaybackService = getMediaPlayerService();
+                Log.i("HaiKH", "onConnect: "+mMediaPlaybackService);
+            }
+        });
         storage = new StorageUtil(Objects.requireNonNull(getContext()).getApplicationContext());
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -84,35 +88,13 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mRecyclerView = view.findViewById(R.id.rcListSong);
     }
 
-
-    /**
-     * run player and set storage
-     *
-     * @param audioIndex the position of the track
-     */
-    public void playAudio(int audioIndex) {
-        //   mMediaPlaybackService.loadStorageUtil();
-
-        //Lưu vị trí âm thanh mới to SharedPreferences
-        storage.storeAudioIndex(audioIndex);
-        //Check is service is active
-
-        //Lưu danh sách âm thanh to SharedPreferences
-        storage.storeAudio(mSongList);
-
-        //Service is active
-        //Send a broadcast to the service -> PLAY_NEW_AUDIO
-        Intent broadcastIntent = new Intent(BROADCAST_PLAY_NEW_AUDIO);
-        Objects.requireNonNull(getActivity()).sendBroadcast(broadcastIntent);
-
-    }
-
-
     @Override
     public void onNewClick(ArrayList<Song> songList, int position) {
         mSongAdapter.updateSongList(songList);
         mSongList = songList;
         mSong = mSongList.get(position);
+        storage.storeAudio(mSongList);
+        storage.storeAudioIndex(position);
         if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
             setDataBottom();
             setVisible();
@@ -120,11 +102,20 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         } else {
             MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frameLayoutLandMedia);
             if (mediaPlaybackFragment != null) {
-                mediaPlaybackFragment.setTitle(songList.get(position));
+                mediaPlaybackFragment.setTitleMedia(songList.get(position));
             }
         }
-
         mMediaPlaybackService.playSong(position);
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
     }
 
     /**

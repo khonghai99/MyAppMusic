@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -42,13 +43,13 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     public AllSongsFragment mAllSongsFragment;
     public MediaPlaybackFragment mMediaPlaybackFragment;
     protected MediaPlaybackService mMediaService;
+    private OnServiceConnected mOnServiceConnected;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
     private Intent playIntent;
     private boolean musicBound = false;
     private DrawerLayout drawer;
-
     // Ràng buộc Client này với MusicPlayer
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -58,6 +59,8 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
             mMediaService = binder.getService();
             mServiceBound = true;
+            Log.i("HaiKH", "onServiceConnected: on");
+            mOnServiceConnected.onConnect();
 
             mMediaService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
                 @Override
@@ -87,8 +90,8 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     @Override
     protected void onResume() {
         super.onResume();
-    }
 
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -214,6 +217,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (ContextCompat.checkSelfPermission(MusicActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    Log.i("HaiKH", "onRequestPermissionsResult: on");
                     createFragment();
                 }
             } else {
@@ -229,7 +233,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     public boolean getServiceBound() {
         return mServiceBound;
     }
-
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -260,6 +263,14 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         } else {
             super.onBackPressed();
         }
+    }
+
+    public void listenServiceConnected(OnServiceConnected onServiceConnected) {
+        this.mOnServiceConnected = onServiceConnected;
+    }
+
+    public interface OnServiceConnected {
+        void onConnect();
     }
 
 }

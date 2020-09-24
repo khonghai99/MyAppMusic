@@ -94,12 +94,13 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         init(view);
         runSeekBar(mSeekBar);
         setOnClick();
+
         if (getArguments() != null) {
             setUIMedia(getArguments());
         }
-        if (storageUtil != null) {
-            setTitle(mSong);
-        }
+//        if (storageUtil != null) {
+//            setTitle(mSong);
+//        }
         return view;
     }
 
@@ -107,6 +108,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mMediaPlaybackService = getMediaPlayerService();
+
     }
 
 
@@ -183,7 +185,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         }.getType();
         Song song = gson.fromJson(jsonSong, type);
 
-        setTitle(song);
+        setTitleMedia(song);
         if (playbackStatus == PlaybackStatus.PAUSED) {
             mPauseImageView.setImageResource(R.drawable.ic_button_pause);
         } else if (playbackStatus == PlaybackStatus.PLAYING) {
@@ -192,7 +194,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
 
     }
 
-    public void setTitle(Song song) {
+    public void setTitleMedia(Song song) {
         String path = song.getPath();
         byte[] art = ImageSong.getByteImageSong(path);
         Glide.with(Objects.requireNonNull(getContext())).asBitmap()
@@ -206,6 +208,12 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         mArtistTopMediaTextView.setText(song.getArtist());
         mTitleTopMediaTextView.setText(song.getTitle());
         updateSeekBar();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mUpdateSeekBarThread.exit();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -225,14 +233,14 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                 mMediaPlaybackService.updateMetaDataNotify(PlaybackStatus.PLAYING);
                 setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
-                setTitle(getSong());
+                setTitleMedia(getSong());
                 break;
             case R.id.ivPrevious:
                 mMediaPlaybackService.skipToPrevious();
                 mMediaPlaybackService.updateMetaDataNotify(PlaybackStatus.PLAYING);
                 setBottomAllSong(getSong(), PlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
-                setTitle(getSong());
+                setTitleMedia(getSong());
                 break;
             case R.id.ivPause:
                 if (mMediaPlaybackService.isPlayingState() == PlaybackStatus.PLAYING) {
@@ -251,7 +259,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     }
 
     public void update(PlaybackStatus playbackStatus) {
-        setTitle(getSong());
+        setTitleMedia(getSong());
         if (playbackStatus == PlaybackStatus.PLAYING) {
             mPauseImageView.setImageResource(R.drawable.ic_button_playing);
         } else if (playbackStatus == PlaybackStatus.PAUSED) {

@@ -22,6 +22,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
@@ -97,34 +98,34 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             //pause audio on ACTION_AUDIO_BECOMING_NOISY Tạm dừng khi có cuộc gọi
             pauseMedia();
             buildNotification(PlaybackStatus.PAUSED);
-            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
+   //         mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH);
             }
         }
     };
-    private BroadcastReceiver playNewAudio = new BroadcastReceiver() {
-        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //Get the new media index form SharedPreferences đã lưu tại playAudio của Main
-            mAudioIndex = new StorageUtil(getApplicationContext()).loadAudioIndex();
-            if (mAudioIndex != -1 && mAudioIndex < mAudioList.size()) {
-                //index is in a valid range
-                mActiveAudio = mAudioList.get(mAudioIndex);
-            } else {
-                stopSelf();
-
-            }
-
-            //A PLAY_NEW_AUDIO action received
-            //reset mediaPlayer to play the new Audio
-            stopMedia();
-            // mMediaPlayer.reset();
-            initMediaPlayer();
-            buildNotification(PlaybackStatus.PLAYING);
-        }
-    };
+//    private BroadcastReceiver playNewAudio = new BroadcastReceiver() {
+//        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            //Get the new media index form SharedPreferences đã lưu tại playAudio của Main
+//            mAudioIndex = new StorageUtil(getApplicationContext()).loadAudioIndex();
+//            if (mAudioIndex != -1 && mAudioIndex < mAudioList.size()) {
+//                //index is in a valid range
+//                mActiveAudio = mAudioList.get(mAudioIndex);
+//            } else {
+//                stopSelf();
+//
+//            }
+//
+//            //A PLAY_NEW_AUDIO action received
+//            //reset mediaPlayer to play the new Audio
+//            stopMedia();
+//            // mMediaPlayer.reset();
+//            initMediaPlayer();
+//            buildNotification(PlaybackStatus.PLAYING);
+//        }
+//    };
 
     public Song getActiveAudio() {
         return mActiveAudio;
@@ -160,6 +161,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
             mResumePosition = mMediaPlayer.getCurrentPosition();
+            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
         }
     }
 
@@ -167,6 +169,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (!mMediaPlayer.isPlaying()) {
             mMediaPlayer.seekTo(mResumePosition);
             mMediaPlayer.start();
+            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
         }
     }
 
@@ -177,21 +180,23 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     private void initMediaPlayer() {
         mMediaPlayer = new MediaPlayer();
 
+        //được gọi khi nguồn phương tiện sẵn sàng để phát lại
+        mMediaPlayer.setOnPreparedListener(this);
+
         //Set up MediaPlayer event listeners
         //được gọi khi bài hát chạy xong
         mMediaPlayer.setOnCompletionListener(this);
-
-        //được gọi khi nguồn phương tiện sẵn sàng để phát lại
-        mMediaPlayer.setOnPreparedListener(this);
 
         //được gọi khi một hoạt động tìm kiếm đã hoàn thành.
         mMediaPlayer.setOnSeekCompleteListener(this);
 
     }
+
     public void playSong(int songPicked) {
         //play a song
         mMediaPlayer.reset();
         StorageUtil storage = new StorageUtil(getApplicationContext());
+        mAudioIndex = storage.loadAudioIndex();
         mAudioList = storage.loadAudio();
         mActiveAudio = mAudioList.get(songPicked);
 
@@ -204,6 +209,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             stopSelf();
         }
         mMediaPlayer.prepareAsync();
+        buildNotification(PlaybackStatus.PLAYING);
     }
 
 
@@ -304,11 +310,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
-    private void registerPlayNewAudio() {
-        //Register playNewMedia receiver
-        IntentFilter filter = new IntentFilter(BROADCAST_PLAY_NEW_AUDIO);
-        registerReceiver(playNewAudio, filter);
-    }
+//    private void registerPlayNewAudio() {
+//        //Register playNewMedia receiver
+//        IntentFilter filter = new IntentFilter(BROADCAST_PLAY_NEW_AUDIO);
+//        registerReceiver(playNewAudio, filter);
+//    }
 
     @Nullable
     @Override
@@ -363,7 +369,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         mAudioManager.abandonAudioFocus(this);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         //Được gọi khi quá trình phát lại nguồn phương tiện đã hoàn tất.
@@ -442,7 +447,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         registerBecomingNoisyReceiver();
 
         //Listen for new Audio to play -- BroadcastReceiver
-        registerPlayNewAudio();
+        //registerPlayNewAudio();
     }
 
     @Override
@@ -462,80 +467,80 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //hủy đăng kí BroadcastReceivers
         unregisterReceiver(becomingNoisyReceiver);
-        unregisterReceiver(playNewAudio);
+       // unregisterReceiver(playNewAudio);
 
         //Xóa danh sách đã lưu trong cache
         new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void initMediaSession() throws RemoteException {
-        if (mMediaSessionManager != null) return; //mediaSessionManager exists
-
-        mMediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
-        // Create a new MediaSession
-        mMediaSession = new MediaSession(getApplicationContext(), AUDIO_PLAYER);
-        //Get MediaSessions transport controls
-        mTransportControls = mMediaSession.getController().getTransportControls();
-        //set MediaSession -> ready to receive media commands
-        mMediaSession.setActive(true);
-        //indicate that the MediaSession handles transport control commands
-        // through its MediaSessionCompat.Callback.
-        mMediaSession.setFlags(MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
-
-        // Attach Callback to receive MediaSession updates
-        mMediaSession.setCallback(new MediaSession.Callback() {
-            // Implement callbacks
-            @Override
-            public void onPlay() {
-                super.onPlay();
-                resumeMedia();
-                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-                buildNotification(PlaybackStatus.PLAYING);
-            }
-
-            @RequiresApi(api = Build.VERSION_CODES.N)
-            @Override
-            public void onPause() {
-                super.onPause();
-                pauseMedia();
-                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
-                buildNotification(PlaybackStatus.PAUSED);
-                stopForeground(STOP_FOREGROUND_DETACH);
-            }
-
-            @Override
-            public void onSkipToNext() {
-                super.onSkipToNext();
-                skipToNext();
-                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
-                buildNotification(PlaybackStatus.PLAYING);
-            }
-
-            @Override
-            public void onSkipToPrevious() {
-                super.onSkipToPrevious();
-                skipToPrevious();
-                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
-                buildNotification(PlaybackStatus.PLAYING);
-            }
-
-            @Override
-            public void onStop() {
-                super.onStop();
-                removeNotification();
-                //Stop the service
-                stopSelf();
-            }
-
-            @Override
-            public void onSeekTo(long position) {
-                super.onSeekTo(position);
-            }
-        });
-    }
+//    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+//    private void initMediaSession() throws RemoteException {
+//        if (mMediaSessionManager != null) return; //mediaSessionManager exists
+//
+//        mMediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
+//        // Create a new MediaSession
+//        mMediaSession = new MediaSession(getApplicationContext(), AUDIO_PLAYER);
+//        //Get MediaSessions transport controls
+//        mTransportControls = mMediaSession.getController().getTransportControls();
+//        //set MediaSession -> ready to receive media commands
+//        mMediaSession.setActive(true);
+//        //indicate that the MediaSession handles transport control commands
+//        // through its MediaSessionCompat.Callback.
+//        mMediaSession.setFlags(MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+//
+//        // Attach Callback to receive MediaSession updates
+//        mMediaSession.setCallback(new MediaSession.Callback() {
+//            // Implement callbacks
+//            @Override
+//            public void onPlay() {
+//                super.onPlay();
+//                resumeMedia();
+//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+//                buildNotification(PlaybackStatus.PLAYING);
+//            }
+//
+//            @RequiresApi(api = Build.VERSION_CODES.N)
+//            @Override
+//            public void onPause() {
+//                super.onPause();
+//                pauseMedia();
+//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
+//                buildNotification(PlaybackStatus.PAUSED);
+//                stopForeground(STOP_FOREGROUND_DETACH);
+//            }
+//
+//            @Override
+//            public void onSkipToNext() {
+//                super.onSkipToNext();
+//                skipToNext();
+//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+//                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
+//                buildNotification(PlaybackStatus.PLAYING);
+//            }
+//
+//            @Override
+//            public void onSkipToPrevious() {
+//                super.onSkipToPrevious();
+//                skipToPrevious();
+//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+//                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
+//                buildNotification(PlaybackStatus.PLAYING);
+//            }
+//
+//            @Override
+//            public void onStop() {
+//                super.onStop();
+//                removeNotification();
+//                //Stop the service
+//                stopSelf();
+//            }
+//
+//            @Override
+//            public void onSeekTo(long position) {
+//                super.onSeekTo(position);
+//            }
+//        });
+//    }
 
     /**
      * tìm ra hành động phát lại nào được kích hoạt
@@ -548,19 +553,19 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (playbackAction == null || playbackAction.getAction() == null) return;
         if (playbackAction.getAction().equalsIgnoreCase(ACTION_NEXT)) {
             skipToNext();
-            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+
             new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
             buildNotification(PlaybackStatus.PLAYING);
 
         } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PREVIOUS)) {
             skipToPrevious();
-            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+
             new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
             buildNotification(PlaybackStatus.PLAYING);
 
         } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PAUSE)) {
             pauseMedia();
-            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
+
             buildNotification(PlaybackStatus.PAUSED);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH);
@@ -568,7 +573,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PLAY)) {
             resumeMedia();
-            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+
             buildNotification(PlaybackStatus.PLAYING);
         }
     }
@@ -590,13 +595,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             //get next in playlist
             mActiveAudio = mAudioList.get(++mAudioIndex);
         }
-
+        mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
         //Update stored index
         new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
         stopMedia();
         //reset mediaPlayer
         mMediaPlayer.reset();
-        initMediaPlayer();
+//        initMediaPlayer();
     }
 
     /**
@@ -610,26 +615,23 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 mAudioIndex = mAudioList.size() - 1;
                 mActiveAudio = mAudioList.get(mAudioIndex);
             } else {
+
                 //get previous in playlist
                 mActiveAudio = mAudioList.get(--mAudioIndex);
             }
         }
-        if (mAudioIndex == 0) {
-            //if first in playlist
-            //set index to the last of audioList
-            mAudioIndex = mAudioList.size() - 1;
-            mActiveAudio = mAudioList.get(mAudioIndex);
-        } else {
-            //get previous in playlist
-            mActiveAudio = mAudioList.get(--mAudioIndex);
-        }
+        else {
 
+            mActiveAudio = mAudioList.get(mAudioIndex);
+        }
+        mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
         //Update stored index
+
         new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
         stopMedia();
         //reset mediaPlayer
         mMediaPlayer.reset();
-        initMediaPlayer();
+//        initMediaPlayer();
     }
 
     /**
