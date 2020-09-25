@@ -190,8 +190,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (!requestAudioFocus()) {
             stopSelf();
         }
-        initMediaPlayer();
-
         //Xử lý hành động
         handleIncomingActions(intent);
         return START_NOT_STICKY;
@@ -400,6 +398,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public void onCreate() {
         super.onCreate();
         // Thực hiện các thủ tục thiết lập một lần
+        initMediaPlayer();
         mNotifyManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
         mStorageUtil = new StorageUtil(getApplicationContext());
@@ -544,7 +543,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
      * Next song
      */
     public void skipToNext() {
-        StorageUtil storageUtil = new StorageUtil(getApplicationContext()) ;
+        StorageUtil storageUtil = new StorageUtil(getApplicationContext());
         mStateRepeat = storageUtil.loadStateRepeat();
         switch (mStateRepeat) {
             case NO_REPEAT:

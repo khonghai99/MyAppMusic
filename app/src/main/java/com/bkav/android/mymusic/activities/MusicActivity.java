@@ -61,6 +61,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             // Đã liên kết với LocalService, truyền IBinder
             MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
             mMediaService = binder.getService();
+            Log.i("HaiKH", "onServiceConnected: "+mMediaService);
             mServiceBound = true;
             mOnServiceConnected.onConnect();
             mMediaService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
@@ -80,6 +81,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     // FIXED:
     @Override
     protected void onStart() {
+        Log.i("HaiKH", "onStart: on");
         super.onStart();
         if (mPlayIntent == null) {
             mPlayIntent = new Intent(this, MediaPlaybackService.class);
@@ -91,7 +93,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     @Override
     protected void onResume() {
         super.onResume();
-
+        Log.i("HaiKH", "onResume: "+mMediaService);
     }
 
     @Override
@@ -99,6 +101,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
         Toolbar toolbar = findViewById(R.id.toolbar);
+        Log.i("HaiKH", "onCreate: on");
         //set toolbar
         setSupportActionBar(toolbar);
         toolbar.setTitle(R.string.titleToolbar);
@@ -196,6 +199,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
      * @param mediaPlaybackStatus state player
      */
     public void updateFragment(int index, MediaPlaybackStatus mediaPlaybackStatus) {
+        Log.i("HaiKH", "updateFragment: 1111111111111");
         if (mAllSongsFragment.getView() != null) {
             mAllSongsFragment.update(index, mediaPlaybackStatus);
         }

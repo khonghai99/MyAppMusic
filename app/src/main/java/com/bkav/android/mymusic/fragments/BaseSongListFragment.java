@@ -3,6 +3,7 @@ package com.bkav.android.mymusic.fragments;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -221,6 +222,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      * @param mediaPlaybackStatus state of player
      */
     public void update(int position, MediaPlaybackStatus mediaPlaybackStatus) {
+        Log.i("HaiKH", "update: "+mMediaPlaybackService.isPlayingState());
         if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
             mTitleBottomAllSongTextView.setText(mSongList.get(position).getTitle());
             mArtistBottomAllSongTextView.setText(mSongList.get(position).getArtist());
@@ -234,6 +236,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
             } else if (mediaPlaybackStatus == MediaPlaybackStatus.PAUSED) {
                 mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
             }
+            mSongAdapter.notifyDataSetChanged();
         }
     }
 

@@ -255,6 +255,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
             case R.id.ivBackgroundMedia:
             case R.id.ivLike:
             case R.id.ivDislike:
+                break;
             case R.id.ivRepeat:
                 mStateRepeat = mStorageUtil.loadStateRepeat();
                 switch (mStateRepeat) {
