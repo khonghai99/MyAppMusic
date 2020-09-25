@@ -14,6 +14,8 @@ public class StorageUtil {
     private final String STORAGE = "com.bkav.android.mymusic..STORAGE";
     private final String AUDIO_LIST = "com.bkav.android.mymusic.AUDIO_LIST";
     private final String AUDIO_INDEX = "com.bkav.android.mymusic.AUDIO_INDEX";
+    private final String STATE_REPEAT = "com.bkav.android.mymusic.STATE_REPEAT";
+    private final String STATE_SHUFFLE = "com.bkav.android.mymusic.STATE_SHUFFLE";
     private SharedPreferences preferences;
     private Context context;
 
@@ -38,6 +40,31 @@ public class StorageUtil {
         }.getType();
         return gson.fromJson(json, type);
     }
+
+    public void storeRepeat(int stateRepeat) {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt(STATE_REPEAT, stateRepeat);
+        editor.apply();
+    }
+
+    public int loadStateRepeat() {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        return preferences.getInt(STATE_REPEAT, 0);
+    }
+
+    public void storeShuffle(boolean stateShuffle) {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(STATE_SHUFFLE, stateShuffle);
+        editor.apply();
+    }
+
+    public boolean loadStateShuffle() {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        return preferences.getBoolean(STATE_SHUFFLE, false);
+    }
+
 
     public void storeAudioIndex(int index) {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);

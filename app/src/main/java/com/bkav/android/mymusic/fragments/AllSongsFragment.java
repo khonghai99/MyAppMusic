@@ -4,6 +4,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,9 +69,9 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
         }
         StorageUtil storageUtil = new StorageUtil(getContext());
         storageUtil.storeAudio(songList);
-        storageUtil.storeAudioIndex(-1);
 
         mSongAdapter = new SongAdapter(getContext(), songList, this);
+        mOnAdapterListener.onAdapter(mSongAdapter);
         mRecyclerView.setAdapter(mSongAdapter);
     }
 
@@ -78,5 +79,6 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
     public void onLoaderReset(@NonNull Loader loader) {
 
     }
+
 
 }

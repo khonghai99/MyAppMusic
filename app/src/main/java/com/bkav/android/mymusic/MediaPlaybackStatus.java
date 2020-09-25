@@ -1,6 +1,6 @@
 package com.bkav.android.mymusic;
 
-public enum PlaybackStatus {
+public enum MediaPlaybackStatus {
     PLAYING,
     PAUSED
 }

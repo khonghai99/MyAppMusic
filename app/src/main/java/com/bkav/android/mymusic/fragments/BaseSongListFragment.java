@@ -3,7 +3,6 @@ package com.bkav.android.mymusic.fragments;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bkav.android.mymusic.ImageSong;
-import com.bkav.android.mymusic.PlaybackStatus;
+import com.bkav.android.mymusic.MediaPlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.activities.MusicActivity;
@@ -38,16 +37,15 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public RelativeLayout mBottomAllSongRelativeLayout;
     protected SongAdapter mSongAdapter;
     protected RecyclerView mRecyclerView;
+    protected OnAdapterListener mOnAdapterListener;
     private ArrayList<Song> mSongList;
     private TextView mTitleBottomAllSongTextView;
     private TextView mArtistBottomAllSongTextView;
     private ImageView mImageBottomAllSongImageView;
     private ImageView mImagePauseBottomAllSongImageView;
     private MediaPlaybackService mMediaPlaybackService;
-
     private Song mSong;
-    private ArrayList<Song> mAudioList;
-    private StorageUtil storage;
+    private StorageUtil mStorage;
 
     @Override
     public void onResume() {
@@ -58,23 +56,24 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.i("HaiKH", "onCreateView: all song on");
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
         init(view);
         mMediaPlaybackService = getMediaPlayerService();
-        getMusicActivity().listenServiceConnected(new MusicActivity.OnServiceConnected() {
+        Objects.requireNonNull(getMusicActivity()).listenServiceConnected(new MusicActivity.OnServiceConnected() {
             @Override
             public void onConnect() {
                 mMediaPlaybackService = getMediaPlayerService();
-                Log.i("HaiKH", "onConnect: "+mMediaPlaybackService);
+
             }
         });
-        storage = new StorageUtil(Objects.requireNonNull(getContext()).getApplicationContext());
+        mStorage = new StorageUtil(Objects.requireNonNull(getContext()).getApplicationContext());
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
+
+
         return view;
     }
 
@@ -90,11 +89,11 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
 
     @Override
     public void onNewClick(ArrayList<Song> songList, int position) {
-        mSongAdapter.updateSongList(songList);
+        mSongAdapter.updateSongList(songList, MediaPlaybackStatus.PLAYING);
         mSongList = songList;
         mSong = mSongList.get(position);
-        storage.storeAudio(mSongList);
-        storage.storeAudioIndex(position);
+        mStorage.storeAudio(mSongList);
+        mStorage.storeAudioIndex(position);
         if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
             setDataBottom();
             setVisible();
@@ -105,12 +104,20 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
                 mediaPlaybackFragment.setTitleMedia(songList.get(position));
             }
         }
-        mMediaPlaybackService.playSong(position);
+        mMediaPlaybackService.playSong(songList.get(position));
+
     }
 
+    //Override hàm onAttach để kiểm tra xem cái Activity hện tại đã implement cái interface kia hay chưa.
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
+        if (context instanceof OnAdapterListener) {
+            mOnAdapterListener = (OnAdapterListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnAdapterListener");
+        }
     }
 
     @Override
@@ -141,10 +148,10 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     /**
      * set data for layout bottom allSongFragment when click from media fragment
      *
-     * @param song           playing song
-     * @param playbackStatus state of player
+     * @param song                playing song
+     * @param mediaPlaybackStatus state of player
      */
-    public void setDataBottomFromMedia(Song song, PlaybackStatus playbackStatus) {
+    public void setDataBottomFromMedia(Song song, MediaPlaybackStatus mediaPlaybackStatus) {
         mSong = song;
         byte[] art = ImageSong.getByteImageSong(song.getPath());
         Glide.with(Objects.requireNonNull(getContext())).asBitmap()
@@ -153,7 +160,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
                 .into(mImageBottomAllSongImageView);
         mTitleBottomAllSongTextView.setText(song.getTitle());
         mArtistBottomAllSongTextView.setText(song.getArtist());
-        if (playbackStatus == PlaybackStatus.PLAYING) {
+        if (mediaPlaybackStatus == MediaPlaybackStatus.PLAYING) {
             mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
         } else {
             mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
@@ -172,14 +179,16 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.ivPauseBottomAllSong:
-                if (PlaybackStatus.PLAYING == mMediaPlaybackService.isPlayingState()) {
+                if (MediaPlaybackStatus.PLAYING == mMediaPlaybackService.isPlayingState()) {
                     mMediaPlaybackService.pauseMedia();
-                    mMediaPlaybackService.updateMetaDataNotify(PlaybackStatus.PAUSED);
+                    mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PAUSED);
                     mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
-                } else if (PlaybackStatus.PAUSED == mMediaPlaybackService.isPlayingState()) {
+                    mSongAdapter.updateSongList(mSongList, MediaPlaybackStatus.PAUSED);
+                } else if (MediaPlaybackStatus.PAUSED == mMediaPlaybackService.isPlayingState()) {
                     mMediaPlaybackService.playMedia();
-                    mMediaPlaybackService.updateMetaDataNotify(PlaybackStatus.PLAYING);
+                    mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PLAYING);
                     mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
+                    mSongAdapter.updateSongList(mSongList, MediaPlaybackStatus.PLAYING);
                 }
                 break;
             case R.id.layoutBottomAllSong:
@@ -193,11 +202,11 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     /**
      * click bottom layout all song show media fragment
      *
-     * @param playbackStatus state of player
+     * @param mediaPlaybackStatus state of player
      */
-    public void showMediaFragment(PlaybackStatus playbackStatus) {
+    public void showMediaFragment(MediaPlaybackStatus mediaPlaybackStatus) {
         FragmentManager mFragmentManager = Objects.requireNonNull(getMusicActivity()).getSupportFragmentManager();
-        getMusicActivity().mMediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(mMediaPlaybackService.getActiveAudio(), playbackStatus);
+        getMusicActivity().mMediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(mMediaPlaybackService.getActiveAudio(), mediaPlaybackStatus);
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frameLayoutMedia, getMusicActivity().mMediaPlaybackFragment);
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
@@ -208,10 +217,10 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     /**
      * update allSongFragment when click notification
      *
-     * @param position       playing song position
-     * @param playbackStatus state of player
+     * @param position            playing song position
+     * @param mediaPlaybackStatus state of player
      */
-    public void update(int position, PlaybackStatus playbackStatus) {
+    public void update(int position, MediaPlaybackStatus mediaPlaybackStatus) {
         if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
             mTitleBottomAllSongTextView.setText(mSongList.get(position).getTitle());
             mArtistBottomAllSongTextView.setText(mSongList.get(position).getArtist());
@@ -220,9 +229,9 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
                     .error(R.mipmap.ic_music_not_picture)
                     .load(art)
                     .into(mImageBottomAllSongImageView);
-            if (playbackStatus == PlaybackStatus.PLAYING) {
+            if (mediaPlaybackStatus == MediaPlaybackStatus.PLAYING) {
                 mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
-            } else if (playbackStatus == PlaybackStatus.PAUSED) {
+            } else if (mediaPlaybackStatus == MediaPlaybackStatus.PAUSED) {
                 mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
             }
         }
@@ -232,7 +241,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      * get service
      */
     public MediaPlaybackService getMediaPlayerService() {
-        return (getMusicActivity()).getPlayerService();
+        return (Objects.requireNonNull(getMusicActivity())).getPlayerService();
     }
 
     /**
@@ -245,5 +254,14 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
             return (MusicActivity) getActivity();
         }
         return null;
+    }
+
+    public void listenerAdapter(OnAdapterListener onAdapterListener) {
+        this.mOnAdapterListener = onAdapterListener;
+
+    }
+
+    public interface OnAdapterListener {
+        void onAdapter(SongAdapter songAdapter);
     }
 }
