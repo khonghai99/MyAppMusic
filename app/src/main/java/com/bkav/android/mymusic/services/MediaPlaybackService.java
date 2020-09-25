@@ -1,6 +1,5 @@
 package com.bkav.android.mymusic.services;
 
-import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -13,15 +12,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioManager;
-import android.media.MediaMetadata;
 import android.media.MediaPlayer;
-import android.media.session.MediaController;
-import android.media.session.MediaSession;
-import android.media.session.MediaSessionManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.widget.RemoteViews;
@@ -31,7 +25,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.bkav.android.mymusic.ImageSong;
-import com.bkav.android.mymusic.PlaybackStatus;
+import com.bkav.android.mymusic.MediaPlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.models.Song;
@@ -43,14 +37,15 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         MediaPlayer.OnPreparedListener, MediaPlayer.OnSeekCompleteListener,
         AudioManager.OnAudioFocusChangeListener {
 
-    public static final String BROADCAST_PLAY_NEW_AUDIO = "com.bkav.musictest.PlayNewAudio";
     public static final String ACTION_PLAY = "com.bkav.musictest.ACTION_PLAY";
     public static final String ACTION_PAUSE = "com.bkav.musictest.ACTION_PAUSE";
     public static final String ACTION_PREVIOUS = "com.bkav.musictest.ACTION_PREVIOUS";
     public static final String ACTION_NEXT = "com.bkav.musictest.ACTION_NEXT";
-    public static final String ACTION_STOP = "com.bkav.musictest.ACTION_STOP";
-    private static final String AUDIO_PLAYER = "com.bkav.android.mymusic.services.AUDIO_PLAYER";
     private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
+
+    private static final int NO_REPEAT = 0;
+    private static final int REPEAT_ALL_LIST = 1;
+    private static final int REPEAT_ONE_SONG = 2;
 
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
@@ -61,18 +56,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     private static final int NUMBER_ACTION_NEXT = 2;
     private static final int NUMBER_ACTION_PREVIOUS = 3;
     private static final int TIME_LIMIT = 3000;
-
-
     // Binder given to clients
     private final IBinder mIBinder = new LocalBinder();
-
+    private int mStateRepeat;
+    private int mStateShuffle;
+    private StorageUtil mStorageUtil;
     //action notify
     private OnNotificationListener mOnNotificationListener;
-
-    //MediaSession
-    private MediaSessionManager mMediaSessionManager;
-    private MediaSession mMediaSession;
-    private MediaController.TransportControls mTransportControls;
 
     //List of available Audio files
     private ArrayList<Song> mAudioList;
@@ -92,41 +82,21 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     private AudioManager mAudioManager;
 
     //Becoming noisy
-    private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver mBecomingNoisyReceiver = new BroadcastReceiver() {
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onReceive(Context context, Intent intent) {
+
             //pause audio on ACTION_AUDIO_BECOMING_NOISY Tạm dừng khi có cuộc gọi
             pauseMedia();
-            buildNotification(PlaybackStatus.PAUSED);
-            mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
+            buildNotification(MediaPlaybackStatus.PAUSED);
+            mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PAUSED);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH);
             }
         }
     };
-    private BroadcastReceiver playNewAudio = new BroadcastReceiver() {
-        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //Get the new media index form SharedPreferences đã lưu tại playAudio của Main
-            mAudioIndex = new StorageUtil(getApplicationContext()).loadAudioIndex();
-            if (mAudioIndex != -1 && mAudioIndex < mAudioList.size()) {
-                //index is in a valid range
-                mActiveAudio = mAudioList.get(mAudioIndex);
-            } else {
-                stopSelf();
 
-            }
-
-            //A PLAY_NEW_AUDIO action received
-            //reset mediaPlayer to play the new Audio
-            stopMedia();
-            initMediaPlayer();
-            updateMetaData();
-            buildNotification(PlaybackStatus.PLAYING);
-        }
-    };
 
     public Song getActiveAudio() {
         return mActiveAudio;
@@ -138,11 +108,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
-    public PlaybackStatus isPlayingState() {
+    public MediaPlaybackStatus isPlayingState() {
         if (mMediaPlayer.isPlaying()) {
-            return PlaybackStatus.PLAYING;
+            return MediaPlaybackStatus.PLAYING;
         } else {
-            return PlaybackStatus.PAUSED;
+            return MediaPlaybackStatus.PAUSED;
         }
     }
 
@@ -162,6 +132,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
             mResumePosition = mMediaPlayer.getCurrentPosition();
+            mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PAUSED);
         }
     }
 
@@ -169,6 +140,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (!mMediaPlayer.isPlaying()) {
             mMediaPlayer.seekTo(mResumePosition);
             mMediaPlayer.start();
+            mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PLAYING);
         }
     }
 
@@ -179,18 +151,24 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     private void initMediaPlayer() {
         mMediaPlayer = new MediaPlayer();
 
+        //được gọi khi nguồn phương tiện sẵn sàng để phát lại
+        mMediaPlayer.setOnPreparedListener(this);
+
         //Set up MediaPlayer event listeners
         //được gọi khi bài hát chạy xong
         mMediaPlayer.setOnCompletionListener(this);
 
-        //được gọi khi nguồn phương tiện sẵn sàng để phát lại
-        mMediaPlayer.setOnPreparedListener(this);
-
         //được gọi khi một hoạt động tìm kiếm đã hoàn thành.
         mMediaPlayer.setOnSeekCompleteListener(this);
 
-        //Reset so that the MediaPlayer is not pointing to another data source
+    }
+
+    public void playSong(Song song) {
+        //play a song
         mMediaPlayer.reset();
+        mAudioIndex = mStorageUtil.loadAudioIndex();
+        mAudioList = mStorageUtil.loadAudio();
+        mActiveAudio = song;
 
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
@@ -201,45 +179,18 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             stopSelf();
         }
         mMediaPlayer.prepareAsync();
+        buildNotification(MediaPlaybackStatus.PLAYING);
     }
+
 
     //Hệ thống gọi phương thức này khi một hoạt động, yêu cầu dịch vụ được bắt đầu
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
-        try {
-            //Load data from SharedPreferences
-            StorageUtil storage = new StorageUtil(getApplicationContext());
-            mAudioList = storage.loadAudio();
-            mAudioIndex = storage.loadAudioIndex();
-
-            if (mAudioIndex != -1 && mAudioIndex < mAudioList.size()) {
-                //index is in a valid range
-                mActiveAudio = mAudioList.get(mAudioIndex);
-            } else {
-                stopSelf();
-            }
-        } catch (NullPointerException e) {
-            stopSelf();
-        }
-
-        //Nhận tiêu điểm
         if (!requestAudioFocus()) {
-            //Không nhận được tiêu điểm
             stopSelf();
         }
-
-        if (mMediaSessionManager == null) {
-            try {
-                initMediaSession();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-                stopSelf();
-            }
-        }
-
-        //Xử lý hành động  từ MediaSession.TransportControls
+        //Xử lý hành động
         handleIncomingActions(intent);
         return START_NOT_STICKY;
     }
@@ -250,7 +201,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (art != null) {
             Bitmap bitmap = BitmapFactory.decodeByteArray(art, 0, art.length);
             remoteViews.setImageViewBitmap(id, bitmap);
-
         } else {
             remoteViews.setImageViewResource(id, R.mipmap.ic_music_not_picture);
         }
@@ -262,17 +212,16 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         remoteViews.setTextViewText(idArtist, mActiveAudio.getArtist());
     }
 
-    private void buildNotification(PlaybackStatus playbackStatus) {
-
+    private void buildNotification(MediaPlaybackStatus mediaPlaybackStatus) {
         int notificationAction = R.drawable.ic_button_playing;//needs to be initialized
         PendingIntent playPauseAction = null;
 
         //Build a new notification according to the current state of the MediaPlayer
-        if (playbackStatus == PlaybackStatus.PLAYING) {
+        if (mediaPlaybackStatus == MediaPlaybackStatus.PLAYING) {
             notificationAction = R.drawable.ic_button_playing;
             //create the pause action
             playPauseAction = playbackAction(NUMBER_ACTION_PAUSE);
-        } else if (playbackStatus == PlaybackStatus.PAUSED) {
+        } else if (mediaPlaybackStatus == MediaPlaybackStatus.PAUSED) {
             notificationAction = R.drawable.ic_button_pause;
             //create the play action
             playPauseAction = playbackAction(NUMBER_ACTION_PLAY);
@@ -329,11 +278,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
-    private void registerPlayNewAudio() {
-        //Register playNewMedia receiver
-        IntentFilter filter = new IntentFilter(BROADCAST_PLAY_NEW_AUDIO);
-        registerReceiver(playNewAudio, filter);
-    }
+//    private void registerPlayNewAudio() {
+//        //Register playNewMedia receiver
+//        IntentFilter filter = new IntentFilter(BROADCAST_PLAY_NEW_AUDIO);
+//        registerReceiver(playNewAudio, filter);
+//    }
 
     @Nullable
     @Override
@@ -388,32 +337,26 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         mAudioManager.abandonAudioFocus(this);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        //Được gọi khi quá trình phát lại nguồn phương tiện đã hoàn tất.
         skipToNext();
-        updateMetaData();
-        buildNotification(PlaybackStatus.PLAYING);
-        mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-        new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
+        buildNotification(MediaPlaybackStatus.PLAYING);
+        mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PLAYING);
+        mStorageUtil.storeAudioIndex(mAudioIndex);
     }
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-        //Được gọi khi nguồn phương tiện đã sẵn sàng để phát lại.
         playMedia();
     }
 
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {
-        //Được gọi cho biết đã hoàn thành một hoạt động tìm kiếm.
     }
 
     private void registerBecomingNoisyReceiver() {
-        //đăng ký sau khi nhận được tiêu điểm âm thanh
         IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-        registerReceiver(becomingNoisyReceiver, intentFilter);
+        registerReceiver(mBecomingNoisyReceiver, intentFilter);
     }
 
 
@@ -454,11 +397,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @Override
     public void onCreate() {
         super.onCreate();
-
         // Thực hiện các thủ tục thiết lập một lần
+        initMediaPlayer();
         mNotifyManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
-
+        mStorageUtil = new StorageUtil(getApplicationContext());
         // Quản lý các cuộc gọi đến trong khi phát lại.
         // Tạm dừng MediaPlayer khi có cuộc gọi đến,
         // Tiếp tục khi cúp máy.
@@ -468,7 +411,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         registerBecomingNoisyReceiver();
 
         //Listen for new Audio to play -- BroadcastReceiver
-        registerPlayNewAudio();
+        //registerPlayNewAudio();
     }
 
     @Override
@@ -487,158 +430,184 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         removeNotification();
 
         //hủy đăng kí BroadcastReceivers
-        unregisterReceiver(becomingNoisyReceiver);
-        unregisterReceiver(playNewAudio);
+        unregisterReceiver(mBecomingNoisyReceiver);
 
         //Xóa danh sách đã lưu trong cache
-        new StorageUtil(getApplicationContext()).clearCachedAudioPlaylist();
+        mStorageUtil.clearCachedAudioPlaylist();
     }
 
+//    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+//    private void initMediaSession() throws RemoteException {
+//        if (mMediaSessionManager != null) return; //mediaSessionManager exists
+//
+//        mMediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
+//        // Create a new MediaSession
+//        mMediaSession = new MediaSession(getApplicationContext(), AUDIO_PLAYER);
+//        //Get MediaSessions transport controls
+//        mTransportControls = mMediaSession.getController().getTransportControls();
+//        //set MediaSession -> ready to receive media commands
+//        mMediaSession.setActive(true);
+//        //indicate that the MediaSession handles transport control commands
+//        // through its MediaSessionCompat.Callback.
+//        mMediaSession.setFlags(MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+//
+//        // Attach Callback to receive MediaSession updates
+//        mMediaSession.setCallback(new MediaSession.Callback() {
+//            // Implement callbacks
+//            @Override
+//            public void onPlay() {
+//                super.onPlay();
+//                resumeMedia();
+//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+//                buildNotification(PlaybackStatus.PLAYING);
+//            }
+//
+//            @RequiresApi(api = Build.VERSION_CODES.N)
+//            @Override
+//            public void onPause() {
+//                super.onPause();
+//                pauseMedia();
+//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
+//                buildNotification(PlaybackStatus.PAUSED);
+//                stopForeground(STOP_FOREGROUND_DETACH);
+//            }
+//
+//            @Override
+//            public void onSkipToNext() {
+//                super.onSkipToNext();
+//                skipToNext();
+//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+//                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
+//                buildNotification(PlaybackStatus.PLAYING);
+//            }
+//
+//            @Override
+//            public void onSkipToPrevious() {
+//                super.onSkipToPrevious();
+//                skipToPrevious();
+//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
+//                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
+//                buildNotification(PlaybackStatus.PLAYING);
+//            }
+//
+//            @Override
+//            public void onStop() {
+//                super.onStop();
+//                removeNotification();
+//                //Stop the service
+//                stopSelf();
+//            }
+//
+//            @Override
+//            public void onSeekTo(long position) {
+//                super.onSeekTo(position);
+//            }
+//        });
+//    }
+
+    /**
+     * tìm ra hành động phát lại nào được kích hoạt
+     * get action from pending intent to run
+     *
+     * @param playbackAction Intent action
+     */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void initMediaSession() throws RemoteException {
-        if (mMediaSessionManager != null) return; //mediaSessionManager exists
-
-        mMediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
-        // Create a new MediaSession
-        mMediaSession = new MediaSession(getApplicationContext(), AUDIO_PLAYER);
-        //Get MediaSessions transport controls
-        mTransportControls = mMediaSession.getController().getTransportControls();
-        //set MediaSession -> ready to receive media commands
-        mMediaSession.setActive(true);
-        //indicate that the MediaSession handles transport control commands
-        // through its MediaSessionCompat.Callback.
-        mMediaSession.setFlags(MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
-
-        //Set mediaSession's MetaData
-        //updateMetaData();
-
-        // Attach Callback to receive MediaSession updates
-        mMediaSession.setCallback(new MediaSession.Callback() {
-            // Implement callbacks
-            @Override
-            public void onPlay() {
-                super.onPlay();
-                resumeMedia();
-                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-                buildNotification(PlaybackStatus.PLAYING);
-            }
-
-            @RequiresApi(api = Build.VERSION_CODES.N)
-            @Override
-            public void onPause() {
-                super.onPause();
-                pauseMedia();
-                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
-                buildNotification(PlaybackStatus.PAUSED);
+    private void handleIncomingActions(Intent playbackAction) {
+        if (playbackAction == null || playbackAction.getAction() == null) return;
+        if (playbackAction.getAction().equalsIgnoreCase(ACTION_NEXT)) {
+            skipToNext();
+            mStorageUtil.storeAudioIndex(mAudioIndex);
+            buildNotification(MediaPlaybackStatus.PLAYING);
+        } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PREVIOUS)) {
+            skipToPrevious();
+            mStorageUtil.storeAudioIndex(mAudioIndex);
+            buildNotification(MediaPlaybackStatus.PLAYING);
+        } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PAUSE)) {
+            pauseMedia();
+            buildNotification(MediaPlaybackStatus.PAUSED);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH);
             }
-
-            @Override
-            public void onSkipToNext() {
-                super.onSkipToNext();
-                skipToNext();
-                updateMetaData();
-                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
-                buildNotification(PlaybackStatus.PLAYING);
-            }
-
-            @Override
-            public void onSkipToPrevious() {
-                super.onSkipToPrevious();
-                skipToPrevious();
-                updateMetaData();
-                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
-                buildNotification(PlaybackStatus.PLAYING);
-            }
-
-            @Override
-            public void onStop() {
-                super.onStop();
-                removeNotification();
-                //Stop the service
-                stopSelf();
-            }
-
-            @Override
-            public void onSeekTo(long position) {
-                super.onSeekTo(position);
-            }
-        });
+        } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PLAY)) {
+            resumeMedia();
+            buildNotification(MediaPlaybackStatus.PLAYING);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public void updateMetaDataNotify(PlaybackStatus playbackStatus) {
-        updateMetaData();
-        buildNotification(playbackStatus);
-    }
-
-    @SuppressLint("WrongConstant")
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void updateMetaData() {
-        Bitmap albumArt = BitmapFactory.decodeResource(getResources(),
-                R.mipmap.ic_music_not_picture); //replace with medias albumArt
-        // Update the current metadata
-        mMediaSession.setMetadata(new MediaMetadata.Builder()
-                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArt)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, mActiveAudio.getArtist())
-                .putString(MediaMetadata.METADATA_KEY_TITLE, mActiveAudio.getTitle())
-                .build());
+    public void updateMetaDataNotify(MediaPlaybackStatus mediaPlaybackStatus) {
+        buildNotification(mediaPlaybackStatus);
     }
 
     /**
      * Next song
      */
     public void skipToNext() {
-        if (mAudioIndex == mAudioList.size() - 1) {
-            //if last in playlist
-            mAudioIndex = 0;
-            mActiveAudio = mAudioList.get(mAudioIndex);
-        } else {
-            //get next in playlist
-            mActiveAudio = mAudioList.get(++mAudioIndex);
+        StorageUtil storageUtil = new StorageUtil(getApplicationContext());
+        mStateRepeat = storageUtil.loadStateRepeat();
+        switch (mStateRepeat) {
+            case NO_REPEAT:
+                if (mAudioIndex == mAudioList.size() - 1) {
+                    //if last in playlist
+                    stopMedia();
+                } else {
+                    //get next in playlist
+                    mActiveAudio = mAudioList.get(++mAudioIndex);
+                }
+                break;
+            case REPEAT_ALL_LIST:
+                if (mAudioIndex == mAudioList.size() - 1) {
+
+                    //if last in playlist
+                    mAudioIndex = 0;
+                    mActiveAudio = mAudioList.get(mAudioIndex);
+                } else {
+
+                    //get next in playlist
+                    mActiveAudio = mAudioList.get(++mAudioIndex);
+                }
+                break;
+            case REPEAT_ONE_SONG:
+                mActiveAudio = mAudioList.get(mAudioIndex);
+                break;
         }
 
+        mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PLAYING);
+
         //Update stored index
-        new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
+        mStorageUtil.storeAudioIndex(mAudioIndex);
         stopMedia();
-        //reset mediaPlayer
-        mMediaPlayer.reset();
-        initMediaPlayer();
+        playSong(mActiveAudio);
+
     }
 
     /**
      * previous song
      */
     public void skipToPrevious() {
+        mStateRepeat = mStorageUtil.loadStateRepeat();
         if (mMediaPlayer.getCurrentPosition() <= TIME_LIMIT) {
             if (mAudioIndex == 0) {
+
                 //if first in playlist
                 //set index to the last of audioList
                 mAudioIndex = mAudioList.size() - 1;
                 mActiveAudio = mAudioList.get(mAudioIndex);
             } else {
+
                 //get previous in playlist
                 mActiveAudio = mAudioList.get(--mAudioIndex);
             }
-        }
-        if (mAudioIndex == 0) {
-            //if first in playlist
-            //set index to the last of audioList
-            mAudioIndex = mAudioList.size() - 1;
-            mActiveAudio = mAudioList.get(mAudioIndex);
         } else {
-            //get previous in playlist
-            mActiveAudio = mAudioList.get(--mAudioIndex);
+
+            mActiveAudio = mAudioList.get(mAudioIndex);
         }
+        mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PLAYING);
 
         //Update stored index
-        new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
+        mStorageUtil.storeAudioIndex(mAudioIndex);
         stopMedia();
-        //reset mediaPlayer
-        mMediaPlayer.reset();
-        initMediaPlayer();
+        playSong(mActiveAudio);
     }
 
     /**
@@ -680,28 +649,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         return null;
     }
 
-    /**
-     * tìm ra hành động phát lại nào được kích hoạt
-     * get action from pending intent to run
-     *
-     * @param playbackAction Intent action
-     */
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void handleIncomingActions(Intent playbackAction) {
-        if (playbackAction == null || playbackAction.getAction() == null) return;
-        String actionString = playbackAction.getAction();
-        if (actionString.equalsIgnoreCase(ACTION_PLAY)) {
-            mTransportControls.play();
-        } else if (actionString.equalsIgnoreCase(ACTION_PAUSE)) {
-            mTransportControls.pause();
-        } else if (actionString.equalsIgnoreCase(ACTION_NEXT)) {
-            mTransportControls.skipToNext();
-        } else if (actionString.equalsIgnoreCase(ACTION_PREVIOUS)) {
-            mTransportControls.skipToPrevious();
-        } else if (actionString.equalsIgnoreCase(ACTION_STOP)) {
-            mTransportControls.stop();
-        }
-    }
 
     /**
      * set interface to listener
@@ -713,7 +660,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     }
 
     public interface OnNotificationListener {
-        void onUpdate(int position, PlaybackStatus playbackStatus);
+        void onUpdate(int position, MediaPlaybackStatus mediaPlaybackStatus);
     }
 
     public class LocalBinder extends Binder {

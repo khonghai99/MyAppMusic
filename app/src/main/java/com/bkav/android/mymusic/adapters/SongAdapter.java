@@ -2,6 +2,7 @@ package com.bkav.android.mymusic.adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,9 +11,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bkav.android.mymusic.MediaPlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.models.Song;
+import com.bkav.android.mymusic.services.MediaPlaybackService;
 
 import java.util.ArrayList;
 
@@ -20,19 +23,19 @@ import es.claucookie.miniequalizerlibrary.EqualizerView;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     private Context mContext;
-    private int mCurrentSong;
     private ArrayList<Song> mSongList;
     private OnNewClickListener mOnNewClickListener;
-    private StorageUtil storageUtil;
+    private StorageUtil mStorageUtil;
+    private MediaPlaybackStatus mStatus = MediaPlaybackStatus.PAUSED;
 
     public SongAdapter(Context context, ArrayList<Song> mSongList, OnNewClickListener onNewClickListener) {
         this.mContext = context;
         this.mSongList = mSongList;
         this.mOnNewClickListener = onNewClickListener;
-
     }
 
-    public void updateSongList(ArrayList<Song> songs) {
+    public void updateSongList(ArrayList<Song> songs, MediaPlaybackStatus status) {
+        this.mStatus = status;
         this.mSongList = songs;
         notifyDataSetChanged();
     }
@@ -48,12 +51,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     @Override
     public void onBindViewHolder(@NonNull final SongHolder holder, final int position) {
         final Song song = mSongList.get(position);
-        storageUtil = new StorageUtil(mContext.getApplicationContext());
+        mStorageUtil = new StorageUtil(mContext.getApplicationContext());
         if (song != null) {
-            if (position == storageUtil.loadAudioIndex()) {
-                holder.isSongPlay();
+            if (position == mStorageUtil.loadAudioIndex()) {
+                holder.isClickSong(mStatus);
             } else {
-                holder.isSongPause();
+                holder.isSongDefault();
 
             }
             holder.tvID.setText(String.valueOf(position + 1));
@@ -104,16 +107,21 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
         /**
          * set item recycler on play song
          */
-        public void isSongPlay() {
+        public void isClickSong(MediaPlaybackStatus status) {
             tvID.setVisibility(View.INVISIBLE);
             equalizer.setVisibility(View.VISIBLE);
-            equalizer.animateBars();
+            if (status.equals(MediaPlaybackStatus.PLAYING)) {
+                equalizer.animateBars();
+            } else {
+                equalizer.stopBars();
+            }
             tvTitleSong.setTypeface(Typeface.DEFAULT_BOLD);
         }
+
         /**
          * set item recycler default
          */
-        public void isSongPause() {
+        public void isSongDefault() {
             tvID.setVisibility(View.VISIBLE);
             equalizer.setVisibility(View.INVISIBLE);
             equalizer.animateBars();
