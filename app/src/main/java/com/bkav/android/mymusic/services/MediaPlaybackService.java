@@ -122,7 +122,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             //A PLAY_NEW_AUDIO action received
             //reset mediaPlayer to play the new Audio
             stopMedia();
-           // mMediaPlayer.reset();
             initMediaPlayer();
             updateMetaData();
             buildNotification(PlaybackStatus.PLAYING);
@@ -511,7 +510,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         mMediaSession.setFlags(MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         //Set mediaSession's MetaData
-        updateMetaData();
+        //updateMetaData();
 
         // Attach Callback to receive MediaSession updates
         mMediaSession.setCallback(new MediaSession.Callback() {
