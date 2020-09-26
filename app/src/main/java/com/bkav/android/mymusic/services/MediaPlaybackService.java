@@ -409,9 +409,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //ACTION_AUDIO_BECOMING_NOISY -- thay đổi đầu ra âm thanh khi rút tai nghe -- BroadcastReceiver
         registerBecomingNoisyReceiver();
-
-        //Listen for new Audio to play -- BroadcastReceiver
-        //registerPlayNewAudio();
     }
 
     @Override
@@ -435,75 +432,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         //Xóa danh sách đã lưu trong cache
         mStorageUtil.clearCachedAudioPlaylist();
     }
-
-//    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-//    private void initMediaSession() throws RemoteException {
-//        if (mMediaSessionManager != null) return; //mediaSessionManager exists
-//
-//        mMediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
-//        // Create a new MediaSession
-//        mMediaSession = new MediaSession(getApplicationContext(), AUDIO_PLAYER);
-//        //Get MediaSessions transport controls
-//        mTransportControls = mMediaSession.getController().getTransportControls();
-//        //set MediaSession -> ready to receive media commands
-//        mMediaSession.setActive(true);
-//        //indicate that the MediaSession handles transport control commands
-//        // through its MediaSessionCompat.Callback.
-//        mMediaSession.setFlags(MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
-//
-//        // Attach Callback to receive MediaSession updates
-//        mMediaSession.setCallback(new MediaSession.Callback() {
-//            // Implement callbacks
-//            @Override
-//            public void onPlay() {
-//                super.onPlay();
-//                resumeMedia();
-//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-//                buildNotification(PlaybackStatus.PLAYING);
-//            }
-//
-//            @RequiresApi(api = Build.VERSION_CODES.N)
-//            @Override
-//            public void onPause() {
-//                super.onPause();
-//                pauseMedia();
-//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
-//                buildNotification(PlaybackStatus.PAUSED);
-//                stopForeground(STOP_FOREGROUND_DETACH);
-//            }
-//
-//            @Override
-//            public void onSkipToNext() {
-//                super.onSkipToNext();
-//                skipToNext();
-//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-//                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
-//                buildNotification(PlaybackStatus.PLAYING);
-//            }
-//
-//            @Override
-//            public void onSkipToPrevious() {
-//                super.onSkipToPrevious();
-//                skipToPrevious();
-//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-//                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
-//                buildNotification(PlaybackStatus.PLAYING);
-//            }
-//
-//            @Override
-//            public void onStop() {
-//                super.onStop();
-//                removeNotification();
-//                //Stop the service
-//                stopSelf();
-//            }
-//
-//            @Override
-//            public void onSeekTo(long position) {
-//                super.onSeekTo(position);
-//            }
-//        });
-//    }
 
     /**
      * tìm ra hành động phát lại nào được kích hoạt
@@ -543,6 +471,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
      * Next song
      */
     public void skipToNext() {
+
         StorageUtil storageUtil = new StorageUtil(getApplicationContext());
         mStateRepeat = storageUtil.loadStateRepeat();
         switch (mStateRepeat) {
@@ -649,12 +578,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         return null;
     }
 
-
-    /**
-     * set interface to listener
-     *
-     * @param listener
-     */
     public void setOnNotificationListener(OnNotificationListener listener) {
         this.mOnNotificationListener = listener;
     }
