@@ -529,6 +529,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
      * Next song
      */
     public void skipToNext() {
+
         StorageUtil storageUtil = new StorageUtil(getApplicationContext());
         mStateShuffle = storageUtil.loadStateShuffle();
 
