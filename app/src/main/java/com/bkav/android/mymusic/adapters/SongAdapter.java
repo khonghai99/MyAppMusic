@@ -2,10 +2,11 @@ package com.bkav.android.mymusic.adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,22 +16,24 @@ import com.bkav.android.mymusic.MediaPlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.models.Song;
-import com.bkav.android.mymusic.services.MediaPlaybackService;
 
 import java.util.ArrayList;
 
 import es.claucookie.miniequalizerlibrary.EqualizerView;
 
-public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
+public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> implements Filterable {
     private Context mContext;
     private ArrayList<Song> mSongList;
     private OnNewClickListener mOnNewClickListener;
     private StorageUtil mStorageUtil;
+    private ArrayList<Song> mSongListFilter;
+    private CustomFilter filter;
     private MediaPlaybackStatus mStatus = MediaPlaybackStatus.PAUSED;
 
-    public SongAdapter(Context context, ArrayList<Song> mSongList, OnNewClickListener onNewClickListener) {
+    public SongAdapter(Context context, ArrayList<Song> songList, OnNewClickListener onNewClickListener) {
         this.mContext = context;
-        this.mSongList = mSongList;
+        this.mSongList = songList;
+        this.mSongListFilter = songList;
         this.mOnNewClickListener = onNewClickListener;
     }
 
@@ -57,7 +60,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
                 holder.isClickSong(mStatus);
             } else {
                 holder.isSongDefault();
-
             }
             holder.tvID.setText(String.valueOf(position + 1));
             holder.toBind(song);
@@ -73,6 +75,14 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
     @Override
     public int getItemCount() {
         return mSongList != null ? mSongList.size() : 0;
+    }
+
+    @Override
+    public Filter getFilter() {
+        if (filter == null) {
+            filter = new CustomFilter();
+        }
+        return filter;
     }
 
     public interface OnNewClickListener {
@@ -128,5 +138,38 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> {
             tvTitleSong.setTypeface(Typeface.DEFAULT);
         }
 
+    }
+
+    ;
+
+    public class CustomFilter extends Filter {
+
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            FilterResults results = new FilterResults();
+            if (constraint != null && constraint.length() > 0) {
+                constraint = constraint.toString().toUpperCase();
+                ArrayList<Song> filterSong = new ArrayList<>();
+                for (int i = 0; i < mSongListFilter.size(); i++) {
+                    if (mSongListFilter.get(i).getTitle().toUpperCase().contains(constraint)) {
+                        Song song = new Song(mSongListFilter.get(i).getTitle(), mSongListFilter.get(i).getArtist(), mSongListFilter.get(i).getDuration(), mSongListFilter.get(i).getPath());
+                        filterSong.add(song);
+                    }
+                }
+                results.count = filterSong.size();
+                results.values = filterSong;
+            } else {
+                results.count = mSongListFilter.size();
+                results.values = mSongListFilter;
+            }
+
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            mSongList = (ArrayList<Song>) results.values;
+            notifyDataSetChanged();
+        }
     }
 }

@@ -11,9 +11,9 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,15 +29,13 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.MediaPlaybackStatus;
 import com.bkav.android.mymusic.R;
-import com.bkav.android.mymusic.adapters.SongAdapter;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
-import com.bkav.android.mymusic.fragments.BaseSongListFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.google.android.material.navigation.NavigationView;
 
 
-public class MusicActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, BaseSongListFragment.OnAdapterListener {
+public class MusicActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 1;
     private static final String SERVICE_STATE = "com.bkav.android.mymusic.activities.SERVICE_STATE";
@@ -51,7 +49,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     private boolean mServiceBound = false;
     private Intent mPlayIntent;
     private DrawerLayout mDrawer;
-    private SongAdapter mSongAdapter;
 
     // Ràng buộc Client này với MusicPlayer
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -61,13 +58,13 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             // Đã liên kết với LocalService, truyền IBinder
             MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
             mMediaService = binder.getService();
-            Log.i("HaiKH", "onServiceConnected: "+mMediaService);
             mServiceBound = true;
             mOnServiceConnected.onConnect();
+//            updateFragment();
             mMediaService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
                 @Override
-                public void onUpdate(int position, MediaPlaybackStatus mediaPlaybackStatus) {
-                    updateFragment(position, mediaPlaybackStatus);
+                public void onUpdate() {
+                    updateFragment();
                 }
             });
         }
@@ -78,10 +75,8 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         }
     };
 
-    // FIXED:
     @Override
     protected void onStart() {
-        Log.i("HaiKH", "onStart: on");
         super.onStart();
         if (mPlayIntent == null) {
             mPlayIntent = new Intent(this, MediaPlaybackService.class);
@@ -93,7 +88,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     @Override
     protected void onResume() {
         super.onResume();
-        Log.i("HaiKH", "onResume: "+mMediaService);
     }
 
     @Override
@@ -101,7 +95,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        Log.i("HaiKH", "onCreate: on");
         //set toolbar
         setSupportActionBar(toolbar);
         toolbar.setTitle(R.string.titleToolbar);
@@ -194,24 +187,36 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
 
     /**
      * update fragment when click change from notification
-     *
-     * @param index               playing song position
-     * @param mediaPlaybackStatus state player
      */
-    public void updateFragment(int index, MediaPlaybackStatus mediaPlaybackStatus) {
-        Log.i("HaiKH", "updateFragment: 1111111111111");
+    public void updateFragment() {
         if (mAllSongsFragment.getView() != null) {
-            mAllSongsFragment.update(index, mediaPlaybackStatus);
+            mAllSongsFragment.update();
         }
 
         if (mMediaPlaybackFragment.getView() != null) {
-            mMediaPlaybackFragment.update(mediaPlaybackStatus);
+            mMediaPlaybackFragment.update();
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_search, menu);
+        MenuItem menuItem = menu.findItem(R.id.menu_item_search);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setIconifiedByDefault(false);
+        searchView.setQueryHint("Search here");
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                return true;
+            }
+        });
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -265,11 +270,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
 
     public void listenServiceConnected(OnServiceConnected onServiceConnected) {
         this.mOnServiceConnected = onServiceConnected;
-    }
-
-    @Override
-    public void onAdapter(SongAdapter songAdapter) {
-        mMediaPlaybackFragment.setAdapter(songAdapter);
     }
 
     public interface OnServiceConnected {

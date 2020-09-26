@@ -5,7 +5,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,7 +60,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     private UpdateSeekBarThread mUpdateSeekBarThread;
     private ArrayList<Song> mSongList;
     private MediaPlaybackService mMediaPlaybackService;
-    private SongAdapter mSongAdapter;
     private boolean mStateShuffle;
     private int mStateRepeat;
 
@@ -90,10 +88,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         return null;
     }
 
-    public void setAdapter(SongAdapter adapter) {
-        this.mSongAdapter = adapter;
-    }
-
     private Song getSong() {
         return getMediaPlayerService().getActiveAudio();
     }
@@ -103,7 +97,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_media_playback, container, false);
         init(view);
-        Log.i("HaiKH", "onCreateView: media on");
         runSeekBar(mSeekBar);
         setOnClick();
         if (getArguments() != null) {
@@ -122,7 +115,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i("HaiKH", "onCreate media: on");
         mStorageUtil = new StorageUtil(getContext());
         mSongList = mStorageUtil.loadAudio();
 
@@ -292,8 +284,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                 setBottomAllSong(getSong(), MediaPlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitleMedia(getSong());
-                Log.i("HaiKH", "onClick: " + mSongAdapter);
-//                mSongAdapter.updateSongList(mSongList, MediaPlaybackStatus.PLAYING);
                 break;
             case R.id.ivPrevious:
                 mMediaPlaybackService.skipToPrevious();
@@ -301,7 +291,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                 setBottomAllSong(getSong(), MediaPlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitleMedia(getSong());
-//                mSongAdapter.updateSongList(mSongList, MediaPlaybackStatus.PLAYING);
                 break;
             case R.id.ivPause:
                 if (mMediaPlaybackService.isPlayingState() == MediaPlaybackStatus.PLAYING) {
@@ -309,23 +298,21 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                     mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PAUSED);
                     mPauseImageView.setImageResource(R.drawable.ic_button_pause);
                     setBottomAllSong(getSong(), MediaPlaybackStatus.PAUSED);
-//                    mSongAdapter.updateSongList(mSongList, MediaPlaybackStatus.PAUSED);
                 } else {
                     mMediaPlaybackService.playMedia();
                     mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PLAYING);
                     mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                     setBottomAllSong(getSong(), MediaPlaybackStatus.PLAYING);
-//                    mSongAdapter.updateSongList(mSongList, MediaPlaybackStatus.PLAYING);
                 }
                 break;
         }
     }
 
-    public void update(MediaPlaybackStatus mediaPlaybackStatus) {
+    public void update() {
         setTitleMedia(getSong());
-        if (mediaPlaybackStatus == MediaPlaybackStatus.PLAYING) {
+        if (mMediaPlaybackService.isPlayingState() == MediaPlaybackStatus.PLAYING) {
             mPauseImageView.setImageResource(R.drawable.ic_button_playing);
-        } else if (mediaPlaybackStatus == MediaPlaybackStatus.PAUSED) {
+        } else if (mMediaPlaybackService.isPlayingState() == MediaPlaybackStatus.PAUSED) {
             mPauseImageView.setImageResource(R.drawable.ic_button_pause);
         }
     }

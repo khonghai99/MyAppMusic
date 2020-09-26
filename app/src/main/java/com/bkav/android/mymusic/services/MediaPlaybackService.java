@@ -32,6 +32,7 @@ import com.bkav.android.mymusic.models.Song;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class MediaPlaybackService extends Service implements MediaPlayer.OnCompletionListener,
         MediaPlayer.OnPreparedListener, MediaPlayer.OnSeekCompleteListener,
@@ -59,15 +60,16 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     // Binder given to clients
     private final IBinder mIBinder = new LocalBinder();
     private int mStateRepeat;
-    private int mStateShuffle;
+    private boolean mStateShuffle;
     private StorageUtil mStorageUtil;
     //action notify
     private OnNotificationListener mOnNotificationListener;
 
+    private Random random;
     //List of available Audio files
-    private ArrayList<Song> mAudioList;
-    private int mAudioIndex = -1;
-    private Song mActiveAudio; //Đối tượng đang phát
+    private ArrayList<Song> mSongList;
+    private int mSongIndex = -1;
+    private Song mSongActive; //Đối tượng đang phát
 
     //Xử lý các cuộc gọi đến
     private boolean mOngoingCall = false;
@@ -90,7 +92,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             //pause audio on ACTION_AUDIO_BECOMING_NOISY Tạm dừng khi có cuộc gọi
             pauseMedia();
             buildNotification(MediaPlaybackStatus.PAUSED);
-            mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PAUSED);
+            mOnNotificationListener.onUpdate();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH);
             }
@@ -99,7 +101,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
 
     public Song getActiveAudio() {
-        return mActiveAudio;
+        return mSongActive;
     }
 
     public void playMedia() {
@@ -118,7 +120,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
     public int getAudioIndex() {
 
-        return mAudioIndex;
+        return mSongIndex;
     }
 
     private void stopMedia() {
@@ -132,7 +134,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
             mResumePosition = mMediaPlayer.getCurrentPosition();
-            mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PAUSED);
+            buildNotification(MediaPlaybackStatus.PLAYING);
+            mOnNotificationListener.onUpdate();
         }
     }
 
@@ -140,7 +143,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (!mMediaPlayer.isPlaying()) {
             mMediaPlayer.seekTo(mResumePosition);
             mMediaPlayer.start();
-            mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PLAYING);
+            mOnNotificationListener.onUpdate();
         }
     }
 
@@ -166,14 +169,14 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public void playSong(Song song) {
         //play a song
         mMediaPlayer.reset();
-        mAudioIndex = mStorageUtil.loadAudioIndex();
-        mAudioList = mStorageUtil.loadAudio();
-        mActiveAudio = song;
+        mSongIndex = mStorageUtil.loadAudioIndex();
+        mSongList = mStorageUtil.loadAudio();
+        mSongActive = song;
 
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             // Set the data source to the mediaFile location
-            mMediaPlayer.setDataSource(mActiveAudio.getPath());
+            mMediaPlayer.setDataSource(mSongActive.getPath());
         } catch (IOException e) {
             e.printStackTrace();
             stopSelf();
@@ -197,7 +200,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
     //set image when customContentView
     private void setImageNotify(RemoteViews remoteViews, int id) {
-        byte[] art = ImageSong.getByteImageSong(mActiveAudio.getPath());
+        byte[] art = ImageSong.getByteImageSong(mSongActive.getPath());
         if (art != null) {
             Bitmap bitmap = BitmapFactory.decodeByteArray(art, 0, art.length);
             remoteViews.setImageViewBitmap(id, bitmap);
@@ -208,8 +211,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
     //set text when customContentView
     private void setTextNotify(RemoteViews remoteViews, int idTitle, int idArtist) {
-        remoteViews.setTextViewText(idTitle, mActiveAudio.getTitle());
-        remoteViews.setTextViewText(idArtist, mActiveAudio.getArtist());
+        remoteViews.setTextViewText(idTitle, mSongActive.getTitle());
+        remoteViews.setTextViewText(idArtist, mSongActive.getArtist());
     }
 
     private void buildNotification(MediaPlaybackStatus mediaPlaybackStatus) {
@@ -270,19 +273,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     .setLargeIcon(largeIcon)
                     .setSmallIcon(R.mipmap.stat_notify_musicplayer)
                     // Set Notification content information
-                    .setContentText(mActiveAudio.getArtist())
+                    .setContentText(mSongActive.getArtist())
                     .setCustomContentView(smallNotify)
                     .setCustomBigContentView(bigNotify)
-                    .setContentTitle(mActiveAudio.getTitle());
+                    .setContentTitle(mSongActive.getTitle());
             startForeground(NOTIFICATION_ID, notificationBuilder.build());
         }
     }
-
-//    private void registerPlayNewAudio() {
-//        //Register playNewMedia receiver
-//        IntentFilter filter = new IntentFilter(BROADCAST_PLAY_NEW_AUDIO);
-//        registerReceiver(playNewAudio, filter);
-//    }
 
     @Nullable
     @Override
@@ -339,10 +336,64 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        skipToNext();
+        songCompletion();
+    }
+
+    /**
+     * goi khi bai hat tu dong chuyen tiep
+     */
+    private void songCompletion() {
+        StorageUtil storageUtil = new StorageUtil(getApplicationContext());
+        mStateRepeat = storageUtil.loadStateRepeat();
+        mStateShuffle = storageUtil.loadStateShuffle();
+        if (mStateShuffle) {
+            mSongIndex = random.nextInt(mSongList.size());
+        }
+        switch (mStateRepeat) {
+            case NO_REPEAT:
+                if (mSongIndex == mSongList.size() - 1) {
+                    mMediaPlayer.pause();
+                    buildNotification(MediaPlaybackStatus.PAUSED);
+                    mOnNotificationListener.onUpdate();
+                } else {
+
+                    //get next in playlist
+                    mSongActive = mSongList.get(++mSongIndex);
+                    playSongWhenComplete();
+                }
+                break;
+            case REPEAT_ALL_LIST:
+                if (mSongIndex == mSongList.size() - 1) {
+
+                    //if last in playlist
+                    mSongIndex = 0;
+                    mSongActive = mSongList.get(mSongIndex);
+                } else {
+
+                    //get next in playlist
+                    mSongActive = mSongList.get(++mSongIndex);
+                }
+                playSongWhenComplete();
+                break;
+            case REPEAT_ONE_SONG:
+                mSongActive = mSongList.get(mSongIndex);
+                playSongWhenComplete();
+                break;
+        }
+
+    }
+
+    /**
+     * phat nhac sau khi songCompletion() goi den
+     */
+    public void playSongWhenComplete() {
+        playMedia();
         buildNotification(MediaPlaybackStatus.PLAYING);
-        mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PLAYING);
-        mStorageUtil.storeAudioIndex(mAudioIndex);
+        mOnNotificationListener.onUpdate();
+
+        //Update stored index
+        mStorageUtil.storeAudioIndex(mSongIndex);
+        playSong(mSongActive);
     }
 
     @Override
@@ -354,12 +405,17 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public void onSeekComplete(MediaPlayer mediaPlayer) {
     }
 
+    /**
+     * dang ki broadcast lang nghe rut tai nghe
+     */
     private void registerBecomingNoisyReceiver() {
         IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         registerReceiver(mBecomingNoisyReceiver, intentFilter);
     }
 
-
+    /**
+     * duoc goi khi co dien thoai goi den
+     */
     private void callStateListener() {
         // Get the telephony manager
         mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
@@ -399,6 +455,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         super.onCreate();
         // Thực hiện các thủ tục thiết lập một lần
         initMediaPlayer();
+        random = new Random();
         mNotifyManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
         mStorageUtil = new StorageUtil(getApplicationContext());
@@ -409,9 +466,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //ACTION_AUDIO_BECOMING_NOISY -- thay đổi đầu ra âm thanh khi rút tai nghe -- BroadcastReceiver
         registerBecomingNoisyReceiver();
-
-        //Listen for new Audio to play -- BroadcastReceiver
-        //registerPlayNewAudio();
     }
 
     @Override
@@ -422,6 +476,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             mMediaPlayer.release();
         }
         removeAudioFocus();
+
         //Disable the PhoneStateListener
         if (mPhoneStateListener != null) {
             mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
@@ -436,75 +491,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         mStorageUtil.clearCachedAudioPlaylist();
     }
 
-//    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-//    private void initMediaSession() throws RemoteException {
-//        if (mMediaSessionManager != null) return; //mediaSessionManager exists
-//
-//        mMediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
-//        // Create a new MediaSession
-//        mMediaSession = new MediaSession(getApplicationContext(), AUDIO_PLAYER);
-//        //Get MediaSessions transport controls
-//        mTransportControls = mMediaSession.getController().getTransportControls();
-//        //set MediaSession -> ready to receive media commands
-//        mMediaSession.setActive(true);
-//        //indicate that the MediaSession handles transport control commands
-//        // through its MediaSessionCompat.Callback.
-//        mMediaSession.setFlags(MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
-//
-//        // Attach Callback to receive MediaSession updates
-//        mMediaSession.setCallback(new MediaSession.Callback() {
-//            // Implement callbacks
-//            @Override
-//            public void onPlay() {
-//                super.onPlay();
-//                resumeMedia();
-//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-//                buildNotification(PlaybackStatus.PLAYING);
-//            }
-//
-//            @RequiresApi(api = Build.VERSION_CODES.N)
-//            @Override
-//            public void onPause() {
-//                super.onPause();
-//                pauseMedia();
-//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PAUSED);
-//                buildNotification(PlaybackStatus.PAUSED);
-//                stopForeground(STOP_FOREGROUND_DETACH);
-//            }
-//
-//            @Override
-//            public void onSkipToNext() {
-//                super.onSkipToNext();
-//                skipToNext();
-//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-//                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
-//                buildNotification(PlaybackStatus.PLAYING);
-//            }
-//
-//            @Override
-//            public void onSkipToPrevious() {
-//                super.onSkipToPrevious();
-//                skipToPrevious();
-//                mOnNotificationListener.onUpdate(mAudioIndex, PlaybackStatus.PLAYING);
-//                new StorageUtil(getApplicationContext()).storeAudioIndex(mAudioIndex);
-//                buildNotification(PlaybackStatus.PLAYING);
-//            }
-//
-//            @Override
-//            public void onStop() {
-//                super.onStop();
-//                removeNotification();
-//                //Stop the service
-//                stopSelf();
-//            }
-//
-//            @Override
-//            public void onSeekTo(long position) {
-//                super.onSeekTo(position);
-//            }
-//        });
-//    }
-
     /**
      * tìm ra hành động phát lại nào được kích hoạt
      * get action from pending intent to run
@@ -516,11 +502,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         if (playbackAction == null || playbackAction.getAction() == null) return;
         if (playbackAction.getAction().equalsIgnoreCase(ACTION_NEXT)) {
             skipToNext();
-            mStorageUtil.storeAudioIndex(mAudioIndex);
+            mStorageUtil.storeAudioIndex(mSongIndex);
             buildNotification(MediaPlaybackStatus.PLAYING);
         } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PREVIOUS)) {
             skipToPrevious();
-            mStorageUtil.storeAudioIndex(mAudioIndex);
+            mStorageUtil.storeAudioIndex(mSongIndex);
             buildNotification(MediaPlaybackStatus.PLAYING);
         } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PAUSE)) {
             pauseMedia();
@@ -544,40 +530,28 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
      */
     public void skipToNext() {
         StorageUtil storageUtil = new StorageUtil(getApplicationContext());
-        mStateRepeat = storageUtil.loadStateRepeat();
-        switch (mStateRepeat) {
-            case NO_REPEAT:
-                if (mAudioIndex == mAudioList.size() - 1) {
-                    //if last in playlist
-                    stopMedia();
-                } else {
-                    //get next in playlist
-                    mActiveAudio = mAudioList.get(++mAudioIndex);
-                }
-                break;
-            case REPEAT_ALL_LIST:
-                if (mAudioIndex == mAudioList.size() - 1) {
+        mStateShuffle = storageUtil.loadStateShuffle();
 
-                    //if last in playlist
-                    mAudioIndex = 0;
-                    mActiveAudio = mAudioList.get(mAudioIndex);
-                } else {
+        if (mStateShuffle) {
+            mSongIndex = random.nextInt(mSongList.size());
+            mSongActive = mSongList.get(mSongIndex);
+        } else {
+            if (mSongIndex == mSongList.size() - 1) {
 
-                    //get next in playlist
-                    mActiveAudio = mAudioList.get(++mAudioIndex);
-                }
-                break;
-            case REPEAT_ONE_SONG:
-                mActiveAudio = mAudioList.get(mAudioIndex);
-                break;
+                //if last in playlist
+                mSongIndex = 0;
+                mSongActive = mSongList.get(mSongIndex);
+            } else {
+
+                //get next in playlist
+                mSongActive = mSongList.get(++mSongIndex);
+            }
         }
-
-        mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PLAYING);
+        mOnNotificationListener.onUpdate();
 
         //Update stored index
-        mStorageUtil.storeAudioIndex(mAudioIndex);
-        stopMedia();
-        playSong(mActiveAudio);
+        mStorageUtil.storeAudioIndex(mSongIndex);
+        playSong(mSongActive);
 
     }
 
@@ -585,29 +559,32 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
      * previous song
      */
     public void skipToPrevious() {
-        mStateRepeat = mStorageUtil.loadStateRepeat();
+        StorageUtil storageUtil = new StorageUtil(getApplicationContext());
+        mStateShuffle = storageUtil.loadStateShuffle();
         if (mMediaPlayer.getCurrentPosition() <= TIME_LIMIT) {
-            if (mAudioIndex == 0) {
+            if (mSongIndex == 0) {
 
                 //if first in playlist
                 //set index to the last of audioList
-                mAudioIndex = mAudioList.size() - 1;
-                mActiveAudio = mAudioList.get(mAudioIndex);
+                mSongIndex = mSongList.size() - 1;
+                mSongActive = mSongList.get(mSongIndex);
+            } else if (mStateShuffle) {
+                mSongIndex = random.nextInt(mSongList.size());
+                mSongActive = mSongList.get(mSongIndex);
             } else {
 
                 //get previous in playlist
-                mActiveAudio = mAudioList.get(--mAudioIndex);
+                mSongActive = mSongList.get(--mSongIndex);
             }
         } else {
 
-            mActiveAudio = mAudioList.get(mAudioIndex);
+            mSongActive = mSongList.get(mSongIndex);
         }
-        mOnNotificationListener.onUpdate(mAudioIndex, MediaPlaybackStatus.PLAYING);
+        mOnNotificationListener.onUpdate();
 
         //Update stored index
-        mStorageUtil.storeAudioIndex(mAudioIndex);
-        stopMedia();
-        playSong(mActiveAudio);
+        mStorageUtil.storeAudioIndex(mSongIndex);
+        playSong(mSongActive);
     }
 
     /**
@@ -649,18 +626,12 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         return null;
     }
 
-
-    /**
-     * set interface to listener
-     *
-     * @param listener
-     */
     public void setOnNotificationListener(OnNotificationListener listener) {
         this.mOnNotificationListener = listener;
     }
 
     public interface OnNotificationListener {
-        void onUpdate(int position, MediaPlaybackStatus mediaPlaybackStatus);
+        void onUpdate();
     }
 
     public class LocalBinder extends Binder {
