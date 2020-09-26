@@ -49,9 +49,9 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     @Override
     public void onResume() {
         super.onResume();
-        if (getMediaPlayerService()!=null){
-            update();
-        }
+//        if (getMediaPlayerService()!=null){
+//            update();
+//        }
     }
 
     @Nullable
