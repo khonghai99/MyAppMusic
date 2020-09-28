@@ -1,5 +1,6 @@
 package com.bkav.android.mymusic.fragments;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
@@ -78,7 +79,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
      * get service
      */
     public MediaPlaybackService getMediaPlayerService() {
-        return (getMusicActivity()).getPlayerService();
+        return (Objects.requireNonNull(getMusicActivity())).getPlayerService();
     }
 
     private MusicActivity getMusicActivity() {
@@ -276,7 +277,9 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                 }
                 break;
             case R.id.ivListMusic:
-                getFragmentManager().popBackStack();
+                if (getFragmentManager() != null) {
+                    getFragmentManager().popBackStack();
+                }
                 break;
             case R.id.ivNext:
                 mMediaPlaybackService.skipToNext();
@@ -331,17 +334,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
 
     }
 
-    private String formattedTime(long time) {
-        int minutes = (int) (time / 1000 / 60);
-        int seconds = (int) ((time / 1000) % 60);
-        if (seconds < 10) {
-            String seconds2 = "0" + seconds;
-            return minutes + ":" + seconds2;
-        }
-        return minutes + ":" + seconds;
-    }
-
-
     public class UpdateSeekBarThread extends Thread {
         private Handler handler;
 
@@ -354,7 +346,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         }
 
         public void updateSeekBar() {
-            final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("mm:ss");
+            @SuppressLint("SimpleDateFormat") final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("mm:ss");
             mEndTimeTextView.setText(mMediaPlaybackService.getActiveAudio().getDuration());
             mSeekBar.setMax(mMediaPlaybackService.getMediaPlayer().getDuration());
             handler.post(new Runnable() {

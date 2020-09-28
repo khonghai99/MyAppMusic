@@ -2,7 +2,6 @@ package com.bkav.android.mymusic.fragments;
 
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,24 +33,21 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class BaseSongListFragment extends Fragment implements View.OnClickListener, SongAdapter.OnNewClickListener {
-    public RelativeLayout mBottomAllSongRelativeLayout;
+    protected RelativeLayout mBottomAllSongRelativeLayout;
     protected SongAdapter mSongAdapter;
     protected RecyclerView mRecyclerView;
-    private ArrayList<Song> mSongList;
-    private TextView mTitleBottomAllSongTextView;
-    private TextView mArtistBottomAllSongTextView;
-    private ImageView mImageBottomAllSongImageView;
-    private ImageView mImagePauseBottomAllSongImageView;
-    private MediaPlaybackService mMediaPlaybackService;
-    private Song mSong;
-    private StorageUtil mStorage;
+    protected ArrayList<Song> mSongList;
+    protected TextView mTitleBottomAllSongTextView;
+    protected TextView mArtistBottomAllSongTextView;
+    protected ImageView mImageBottomAllSongImageView;
+    protected ImageView mImagePauseBottomAllSongImageView;
+    protected MediaPlaybackService mMediaPlaybackService;
+    protected Song mSong;
+    protected StorageUtil mStorage;
 
     @Override
     public void onResume() {
         super.onResume();
-//        if (getMediaPlayerService()!=null){
-//            update();
-//        }
     }
 
     @Nullable
@@ -61,7 +57,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
         init(view);
         mMediaPlaybackService = getMediaPlayerService();
-        Objects.requireNonNull(getMusicActivity()).listenServiceConnected(new MusicActivity.OnServiceConnected() {
+        Objects.requireNonNull(getMusicActivity()).listenServiceConnected(new MusicActivity.OnServiceConnectedListener() {
             @Override
             public void onConnect() {
                 mMediaPlaybackService = getMediaPlayerService();
@@ -74,7 +70,6 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
-
 
 
         return view;
@@ -97,6 +92,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mSong = mSongList.get(position);
         mStorage.storeAudio(mSongList);
         mStorage.storeAudioIndex(position);
+        mStorage.storeAudioID(mSong.getID());
         if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
             setDataBottom();
             setVisible();
@@ -110,8 +106,6 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mMediaPlaybackService.playSong(songList.get(position));
 
     }
-
-    //Override hàm onAttach để kiểm tra xem cái Activity hện tại đã implement cái interface kia hay chưa.
 
     @Override
     public void onStart() {

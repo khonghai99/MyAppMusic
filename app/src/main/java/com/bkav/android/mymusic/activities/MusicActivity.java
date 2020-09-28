@@ -11,9 +11,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -27,7 +25,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.bkav.android.mymusic.MediaPlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
@@ -43,7 +40,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     public AllSongsFragment mAllSongsFragment;
     public MediaPlaybackFragment mMediaPlaybackFragment;
     protected MediaPlaybackService mMediaService;
-    private OnServiceConnected mOnServiceConnected;
+    private OnServiceConnectedListener mOnServiceConnectedListener;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
@@ -59,7 +56,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
             mMediaService = binder.getService();
             mServiceBound = true;
-            mOnServiceConnected.onConnect();
+            mOnServiceConnectedListener.onConnect();
 //            updateFragment();
             mMediaService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
                 @Override
@@ -198,27 +195,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_search, menu);
-        MenuItem menuItem = menu.findItem(R.id.menu_item_search);
-        SearchView searchView = (SearchView) menuItem.getActionView();
-        searchView.setIconifiedByDefault(false);
-        searchView.setQueryHint("Search here");
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-
-                return true;
-            }
-        });
-        return super.onCreateOptionsMenu(menu);
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -268,11 +244,11 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         }
     }
 
-    public void listenServiceConnected(OnServiceConnected onServiceConnected) {
-        this.mOnServiceConnected = onServiceConnected;
+    public void listenServiceConnected(OnServiceConnectedListener onServiceConnectedListener) {
+        this.mOnServiceConnectedListener = onServiceConnectedListener;
     }
 
-    public interface OnServiceConnected {
+    public interface OnServiceConnectedListener {
         void onConnect();
     }
 

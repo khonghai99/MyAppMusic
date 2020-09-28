@@ -25,7 +25,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
     private Context mContext;
     private ArrayList<Song> mSongList;
     private OnNewClickListener mOnNewClickListener;
-    private StorageUtil mStorageUtil;
     private ArrayList<Song> mSongListFilter;
     private CustomFilter filter;
     private MediaPlaybackStatus mStatus = MediaPlaybackStatus.PAUSED;
@@ -54,9 +53,9 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
     @Override
     public void onBindViewHolder(@NonNull final SongHolder holder, final int position) {
         final Song song = mSongList.get(position);
-        mStorageUtil = new StorageUtil(mContext.getApplicationContext());
+        StorageUtil mStorageUtil = new StorageUtil(mContext.getApplicationContext());
         if (song != null) {
-            if (position == mStorageUtil.loadAudioIndex()) {
+            if (song.getID() == mStorageUtil.loadAudioID()) {
                 holder.isClickSong(mStatus);
             } else {
                 holder.isSongDefault();
@@ -140,8 +139,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
 
     }
 
-    ;
-
     public class CustomFilter extends Filter {
 
         @Override
@@ -152,7 +149,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
                 ArrayList<Song> filterSong = new ArrayList<>();
                 for (int i = 0; i < mSongListFilter.size(); i++) {
                     if (mSongListFilter.get(i).getTitle().toUpperCase().contains(constraint)) {
-                        Song song = new Song(mSongListFilter.get(i).getTitle(), mSongListFilter.get(i).getArtist(), mSongListFilter.get(i).getDuration(), mSongListFilter.get(i).getPath());
+                        Song song = new Song(mSongListFilter.get(i).getID(),mSongListFilter.get(i).getTitle(), mSongListFilter.get(i).getArtist(), mSongListFilter.get(i).getDurationReal(), mSongListFilter.get(i).getPath());
                         filterSong.add(song);
                     }
                 }

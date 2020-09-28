@@ -14,6 +14,7 @@ public class StorageUtil {
     private final String STORAGE = "com.bkav.android.mymusic..STORAGE";
     private final String AUDIO_LIST = "com.bkav.android.mymusic.AUDIO_LIST";
     private final String AUDIO_INDEX = "com.bkav.android.mymusic.AUDIO_INDEX";
+    private final String AUDIO_ID = "com.bkav.android.mymusic.AUDIO_ID";
     private final String STATE_REPEAT = "com.bkav.android.mymusic.STATE_REPEAT";
     private final String STATE_SHUFFLE = "com.bkav.android.mymusic.STATE_SHUFFLE";
     private SharedPreferences preferences;
@@ -76,6 +77,18 @@ public class StorageUtil {
     public int loadAudioIndex() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         return preferences.getInt(AUDIO_INDEX, -1);//return -1 if no data found
+    }
+
+    public void storeAudioID(int index) {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt(AUDIO_ID, index);
+        editor.apply();
+    }
+
+    public int loadAudioID() {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        return preferences.getInt(AUDIO_ID, -1);//return -1 if no data found
     }
 
     public void clearCachedAudioPlaylist() {

@@ -44,9 +44,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public static final String ACTION_NEXT = "com.bkav.musictest.ACTION_NEXT";
     private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
 
-    private static final int NO_REPEAT = 0;
-    private static final int REPEAT_ALL_LIST = 1;
-    private static final int REPEAT_ONE_SONG = 2;
+    private static final int NO_REPEAT_CODE = 0;
+    private static final int REPEAT_ALL_LIST_CODE = 1;
+    private static final int REPEAT_ONE_SONG_CODE = 2;
 
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
@@ -57,6 +57,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     private static final int NUMBER_ACTION_NEXT = 2;
     private static final int NUMBER_ACTION_PREVIOUS = 3;
     private static final int TIME_LIMIT = 3000;
+
     // Binder given to clients
     private final IBinder mIBinder = new LocalBinder();
     private int mStateRepeat;
@@ -66,6 +67,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     private OnNotificationListener mOnNotificationListener;
 
     private Random random;
+
     //List of available Audio files
     private ArrayList<Song> mSongList;
     private int mSongIndex = -1;
@@ -81,7 +83,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     //Used to pause/resume MediaPlayer
     private int mResumePosition;
 
-    private AudioManager mAudioManager;
+    private AudioManager mSongManager;
 
     //Becoming noisy
     private BroadcastReceiver mBecomingNoisyReceiver = new BroadcastReceiver() {
@@ -190,9 +192,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!requestAudioFocus()) {
-            stopSelf();
-        }
+
         //Xử lý hành động
         handleIncomingActions(intent);
         return START_NOT_STICKY;
@@ -221,11 +221,12 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //Build a new notification according to the current state of the MediaPlayer
         if (mediaPlaybackStatus == MediaPlaybackStatus.PLAYING) {
-            notificationAction = R.drawable.ic_button_playing;
+
             //create the pause action
             playPauseAction = playbackAction(NUMBER_ACTION_PAUSE);
         } else if (mediaPlaybackStatus == MediaPlaybackStatus.PAUSED) {
             notificationAction = R.drawable.ic_button_pause;
+
             //create the play action
             playPauseAction = playbackAction(NUMBER_ACTION_PLAY);
         }
@@ -233,22 +234,22 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
                 R.drawable.ic_launcher_background); //replace with your own image
 
-        RemoteViews smallNotify = new RemoteViews(getPackageName(), R.layout.small_notification);
-        smallNotify.setOnClickPendingIntent(R.id.ivSmallPrevious, playbackAction(NUMBER_ACTION_PREVIOUS));
-        smallNotify.setOnClickPendingIntent(R.id.ivSmallNext, playbackAction(NUMBER_ACTION_NEXT));
-        smallNotify.setOnClickPendingIntent(R.id.ivSmallPause, playPauseAction);
-        setImageNotify(smallNotify, R.id.ivSmallPicture);
-        smallNotify.setOnClickPendingIntent(R.id.ivSmallPause, playPauseAction);
-        smallNotify.setImageViewResource(R.id.ivSmallPause, notificationAction);
-        setImageNotify(smallNotify, R.id.ivSmallPicture);
+        RemoteViews notificationLayout = new RemoteViews(getPackageName(), R.layout.notification_small);
+        notificationLayout.setOnClickPendingIntent(R.id.ivSmallPrevious, playbackAction(NUMBER_ACTION_PREVIOUS));
+        notificationLayout.setOnClickPendingIntent(R.id.ivSmallNext, playbackAction(NUMBER_ACTION_NEXT));
+        notificationLayout.setOnClickPendingIntent(R.id.ivSmallPause, playPauseAction);
+        setImageNotify(notificationLayout, R.id.ivSmallPicture);
+        notificationLayout.setOnClickPendingIntent(R.id.ivSmallPause, playPauseAction);
+        notificationLayout.setImageViewResource(R.id.ivSmallPause, notificationAction);
+        setImageNotify(notificationLayout, R.id.ivSmallPicture);
 
-        RemoteViews bigNotify = new RemoteViews(getPackageName(), R.layout.big_notification);
-        bigNotify.setOnClickPendingIntent(R.id.ivBigPrevious, playbackAction(3));
-        bigNotify.setOnClickPendingIntent(R.id.ivBigNext, playbackAction(2));
-        bigNotify.setOnClickPendingIntent(R.id.ivBigPause, playPauseAction);
-        bigNotify.setImageViewResource(R.id.ivBigPause, notificationAction);
-        setImageNotify(bigNotify, R.id.ivBigPicture);
-        setTextNotify(bigNotify, R.id.tvBigTitle, R.id.tvBigArtist);
+        RemoteViews notificationLayoutExpanded = new RemoteViews(getPackageName(), R.layout.notification_large);
+        notificationLayoutExpanded.setOnClickPendingIntent(R.id.ivBigPrevious, playbackAction(3));
+        notificationLayoutExpanded.setOnClickPendingIntent(R.id.ivBigNext, playbackAction(2));
+        notificationLayoutExpanded.setOnClickPendingIntent(R.id.ivBigPause, playPauseAction);
+        notificationLayoutExpanded.setImageViewResource(R.id.ivBigPause, notificationAction);
+        setImageNotify(notificationLayoutExpanded, R.id.ivBigPicture);
+        setTextNotify(notificationLayoutExpanded, R.id.tvBigTitle, R.id.tvBigArtist);
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             // Create a NotificationChannel
@@ -274,8 +275,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     .setSmallIcon(R.mipmap.stat_notify_musicplayer)
                     // Set Notification content information
                     .setContentText(mSongActive.getArtist())
-                    .setCustomContentView(smallNotify)
-                    .setCustomBigContentView(bigNotify)
+                    .setCustomContentView(notificationLayout)
+                    .setCustomBigContentView(notificationLayoutExpanded)
                     .setContentTitle(mSongActive.getTitle());
             startForeground(NOTIFICATION_ID, notificationBuilder.build());
         }
@@ -289,27 +290,32 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
     @Override
     public void onAudioFocusChange(int i) {
+
         //Được gọi khi tiêu điểm âm thanh của hệ thống được cập nhật.
         switch (i) {
             case AudioManager.AUDIOFOCUS_GAIN:
+
                 // resume playback
                 if (mMediaPlayer == null) initMediaPlayer();
                 else if (!mMediaPlayer.isPlaying()) mMediaPlayer.start();
                 mMediaPlayer.setVolume(1.0f, 1.0f);
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
+
                 // Lost focus for an unbounded amount of time: stop playback and release media player
                 if (mMediaPlayer.isPlaying()) mMediaPlayer.stop();
                 mMediaPlayer.release();
                 mMediaPlayer = null;
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+
                 // Lost focus for a short time, but we have to stop
                 // playback. We don't release the media player because playback
                 // is likely to resume
                 if (mMediaPlayer.isPlaying()) mMediaPlayer.pause();
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+
                 // Lost focus for a short time, but it's ok to keep playing
                 // at an attenuated level
                 if (mMediaPlayer.isPlaying()) mMediaPlayer.setVolume(0.1f, 0.1f);
@@ -317,21 +323,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     }
 
-    private boolean requestAudioFocus() {
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-        //Yêu cầu tiêu điểm âm thanh để phát lại
-        int result = mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-
-        //AUDIOFOCUS_REQUEST_GRANTED: Yêu cầu thay đổi tiêu điểm thành công.
-        //Focus thành công
-        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
-        //Lấy tiêu điểm không thành công
-    }
-
     //Bỏ tiêu điểm âm thanh khi phát xong
     private void removeAudioFocus() {
-        mAudioManager.abandonAudioFocus(this);
+        mSongManager.abandonAudioFocus(this);
     }
 
     @Override
@@ -350,7 +344,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             mSongIndex = random.nextInt(mSongList.size());
         }
         switch (mStateRepeat) {
-            case NO_REPEAT:
+            case NO_REPEAT_CODE:
                 if (mSongIndex == mSongList.size() - 1) {
                     mMediaPlayer.pause();
                     buildNotification(MediaPlaybackStatus.PAUSED);
@@ -362,7 +356,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     playSongWhenComplete();
                 }
                 break;
-            case REPEAT_ALL_LIST:
+            case REPEAT_ALL_LIST_CODE:
                 if (mSongIndex == mSongList.size() - 1) {
 
                     //if last in playlist
@@ -375,7 +369,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 }
                 playSongWhenComplete();
                 break;
-            case REPEAT_ONE_SONG:
+            case REPEAT_ONE_SONG_CODE:
                 mSongActive = mSongList.get(mSongIndex);
                 playSongWhenComplete();
                 break;
@@ -440,6 +434,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                                 resumeMedia();
                             }
                         }
+                        break;
+                    case TelephonyManager.CALL_STATE_OFFHOOK:
                         break;
                 }
             }
@@ -552,6 +548,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //Update stored index
         mStorageUtil.storeAudioIndex(mSongIndex);
+        mStorageUtil.storeAudioID(mSongActive.getID());
         playSong(mSongActive);
 
     }
@@ -585,6 +582,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //Update stored index
         mStorageUtil.storeAudioIndex(mSongIndex);
+        mStorageUtil.storeAudioID(mSongActive.getID());
         playSong(mSongActive);
     }
 
