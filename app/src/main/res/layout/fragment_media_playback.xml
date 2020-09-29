@@ -5,11 +5,11 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/ivBackgroundMedia"
+        android:id="@+id/image_background_media"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
-        android:scaleType="fitXY"
+        android:scaleType="centerCrop"
         android:src="@mipmap/chieu_hom_ay" />
 
     <include
@@ -19,7 +19,7 @@
         android:layout_gravity="top" />
 
     <ImageView
-        android:id="@+id/ivRepeat"
+        android:id="@+id/repeat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
@@ -29,7 +29,7 @@
         android:src="@mipmap/ic_repeat_white" />
 
     <ImageView
-        android:id="@+id/ivShuffle"
+        android:id="@+id/shuffle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"

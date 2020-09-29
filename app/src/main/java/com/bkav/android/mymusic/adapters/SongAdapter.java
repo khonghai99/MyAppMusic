@@ -29,16 +29,15 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
     private CustomFilter filter;
     private MediaPlaybackStatus mStatus = MediaPlaybackStatus.PAUSED;
 
-    public SongAdapter(Context context, ArrayList<Song> songList, OnNewClickListener onNewClickListener) {
+    public SongAdapter(Context context/*, ArrayList<Song> songList*//*, OnNewClickListener onNewClickListener*/) {
         this.mContext = context;
-        this.mSongList = songList;
-        this.mSongListFilter = songList;
-        this.mOnNewClickListener = onNewClickListener;
+//        this.mSongList = songList;
+//        this.mOnNewClickListener = onNewClickListener;
     }
 
-    public void updateSongList(ArrayList<Song> songs, MediaPlaybackStatus status) {
-        this.mStatus = status;
+    public void updateSongList(ArrayList<Song> songs) {
         this.mSongList = songs;
+        this.mSongListFilter = songs;
         notifyDataSetChanged();
     }
 
@@ -84,6 +83,10 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
         return filter;
     }
 
+    public void setOnClick(OnNewClickListener onNewClickListener){
+        this.mOnNewClickListener = onNewClickListener;
+    }
+
     public interface OnNewClickListener {
         void onNewClick(ArrayList<Song> songList, int position);
     }
@@ -96,9 +99,9 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
 
         public SongHolder(@NonNull final View itemView) {
             super(itemView);
-            tvID = itemView.findViewById(R.id.tvID);
-            tvTitleSong = itemView.findViewById(R.id.tvTitleSongOneRow);
-            tvDuration = itemView.findViewById(R.id.tvDurationSongOneRow);
+            tvID = itemView.findViewById(R.id.id);
+            tvTitleSong = itemView.findViewById(R.id.title_one_row);
+            tvDuration = itemView.findViewById(R.id.duration_one_row);
             equalizer = (EqualizerView) itemView.findViewById(R.id.equalizer_view);
 
         }

@@ -4,12 +4,12 @@
     android:layout_height="wrap_content">
 
     <RelativeLayout
-        android:id="@+id/layoutRelative"
+        android:id="@+id/layout_relative"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
         <ImageView
-            android:id="@+id/ivBigPicture"
+            android:id="@+id/big_picture"
             android:layout_width="@dimen/image_big_notify_width_height"
             android:layout_height="@dimen/image_big_notify_width_height"
             android:layout_centerVertical="true"
@@ -17,10 +17,10 @@
     </RelativeLayout>
 
     <RelativeLayout
-        android:id="@+id/layoutRelativeAbove"
+        android:id="@+id/layout_relative_above"
         android:layout_width="wrap_content"
         android:layout_height="80dp"
-        android:layout_toRightOf="@id/layoutRelative"
+        android:layout_toRightOf="@id/layout_relative"
         android:paddingStart="@dimen/relative_padding_start">
 
         <TextView
@@ -30,11 +30,10 @@
             android:background="@color/colorLineHorizontal" />
 
         <TextView
-            android:id="@+id/tvBigTitle"
+            android:id="@+id/big_title"
             style="@style/TextAppearance.Compat.Notification.Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-
             android:ellipsize="marquee"
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -46,11 +45,11 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvBigArtist"
+            android:id="@+id/big_artist"
             style="@style/TextAppearance.Compat.Notification.Info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvBigTitle"
+            android:layout_below="@id/big_title"
             android:text="Artist"
             android:textSize="@dimen/text_size_big_notify" />
 
@@ -58,38 +57,38 @@
     </RelativeLayout>
 
     <RelativeLayout
-        android:id="@+id/layoutRelativeBelow"
+        android:id="@+id/layout_relative_below"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/layoutRelativeAbove"
-        android:layout_alignBottom="@+id/layoutRelative"
-        android:layout_toRightOf="@id/layoutRelative">
+        android:layout_below="@+id/layout_relative_above"
+        android:layout_alignBottom="@+id/layout_relative"
+        android:layout_toRightOf="@id/layout_relative">
 
         <ImageView
 
-            android:id="@+id/ivBigPrevious"
+            android:id="@+id/big_previous"
             android:layout_width="@dimen/icon_next_previous_width_height"
             android:layout_height="@dimen/icon_next_previous_width_height"
             android:layout_centerVertical="true"
             android:layout_marginEnd="@dimen/icon_margin_end"
-            android:layout_toLeftOf="@id/ivBigPause"
+            android:layout_toLeftOf="@id/big_pause"
             android:src="@mipmap/ic_previous" />
 
         <ImageView
-            android:id="@+id/ivBigPause"
+            android:id="@+id/big_pause"
             android:layout_width="@dimen/icon_pause_big_width_height"
             android:layout_height="@dimen/icon_pause_big_width_height"
             android:layout_centerInParent="true"
             android:src="@drawable/ic_button_playing" />
 
         <ImageView
-            android:id="@+id/ivBigNext"
+            android:id="@+id/big_next"
             android:layout_width="@dimen/icon_next_previous_width_height"
             android:layout_height="@dimen/icon_next_previous_width_height"
             android:layout_centerVertical="true"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="@dimen/icon_margin_end"
-            android:layout_toRightOf="@id/ivBigPause"
+            android:layout_toRightOf="@id/big_pause"
             android:src="@mipmap/ic_next" />
 
     </RelativeLayout>

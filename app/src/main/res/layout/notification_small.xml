@@ -9,7 +9,7 @@
         android:layout_height="wrap_content">
 
         <ImageView
-            android:id="@+id/ivSmallPicture"
+            android:id="@+id/small_picture"
             android:layout_width="@dimen/image_small_notify_width_height"
             android:layout_height="@dimen/image_small_notify_width_height"
             android:layout_centerVertical="true"
@@ -24,7 +24,7 @@
         android:layout_marginEnd="@dimen/linear_margin_end_small_notify">
 
         <ImageView
-            android:id="@+id/ivSmallPrevious"
+            android:id="@+id/small_previous"
             android:layout_width="@dimen/icon_next_previous_width_height"
             android:layout_height="@dimen/icon_next_previous_width_height"
             android:layout_marginTop="@dimen/icon_next_previous_margin_top"
@@ -32,13 +32,13 @@
             android:src="@mipmap/ic_previous" />
 
         <ImageView
-            android:id="@+id/ivSmallPause"
+            android:id="@+id/small_pause"
             android:layout_width="@dimen/icon_pause_small_width_height"
             android:layout_height="@dimen/icon_pause_small_width_height"
             android:src="@drawable/ic_button_playing" />
 
         <ImageView
-            android:id="@+id/ivSmallNext"
+            android:id="@+id/small_next"
             android:layout_width="@dimen/icon_next_previous_width_height"
             android:layout_height="@dimen/icon_next_previous_width_height"
             android:layout_marginStart="@dimen/icon_next_previous_margin_end"

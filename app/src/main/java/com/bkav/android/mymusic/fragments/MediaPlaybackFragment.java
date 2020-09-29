@@ -23,7 +23,6 @@ import com.bkav.android.mymusic.MediaPlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.activities.MusicActivity;
-import com.bkav.android.mymusic.adapters.SongAdapter;
 import com.bkav.android.mymusic.models.Song;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.bumptech.glide.Glide;
@@ -110,6 +109,13 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mMediaPlaybackService = getMediaPlayerService();
+        Objects.requireNonNull(getMusicActivity()).listenServiceConnected1(new MusicActivity.OnServiceConnectedListener1() {
+            @Override
+            public void onConnect() {
+                mMediaPlaybackService = getMediaPlayerService();
+
+            }
+        });
 
     }
 
@@ -161,26 +167,26 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     }
 
     private void init(View view) {
-        mImageTopMediaImageView = view.findViewById(R.id.ivSongTopMedia);
-        mPopupTopMediaImageView = view.findViewById(R.id.ivPopupTopMedia);
-        mBackgroundMediaImageView = view.findViewById(R.id.ivBackgroundMedia);
+        mImageTopMediaImageView = view.findViewById(R.id.image_top_media);
+        mPopupTopMediaImageView = view.findViewById(R.id.popup_top_media);
+        mBackgroundMediaImageView = view.findViewById(R.id.image_background_media);
 
         //top media
-        mArtistTopMediaTextView = view.findViewById(R.id.tvArtistSongTopMedia);
-        mTitleTopMediaTextView = view.findViewById(R.id.tvTitleSongTopMedia);
-        mListMusicImageView = view.findViewById(R.id.ivListMusic);
+        mArtistTopMediaTextView = view.findViewById(R.id.artist_top_media);
+        mTitleTopMediaTextView = view.findViewById(R.id.title_top_media);
+        mListMusicImageView = view.findViewById(R.id.back_list_music);
 
         //bottom media
-        mSeekBar = view.findViewById(R.id.seekBarTimeSong);
-        mLikeImageView = view.findViewById(R.id.ivLike);
-        mDisLikeImageView = view.findViewById(R.id.ivDislike);
-        mNextImageView = view.findViewById(R.id.ivNext);
-        mPreviousImageView = view.findViewById(R.id.ivPrevious);
-        mPauseImageView = view.findViewById(R.id.ivPause);
-        mStartTimeTextView = view.findViewById(R.id.tvStartTimeSong);
-        mEndTimeTextView = view.findViewById(R.id.tvEndTimeSong);
-        mRepeatImageView = view.findViewById(R.id.ivRepeat);
-        mShuffleImageView = view.findViewById(R.id.ivShuffle);
+        mSeekBar = view.findViewById(R.id.seek_bar);
+        mLikeImageView = view.findViewById(R.id.like);
+        mDisLikeImageView = view.findViewById(R.id.dislike);
+        mNextImageView = view.findViewById(R.id.next);
+        mPreviousImageView = view.findViewById(R.id.previous);
+        mPauseImageView = view.findViewById(R.id.pause);
+        mStartTimeTextView = view.findViewById(R.id.start_time_seek_bar);
+        mEndTimeTextView = view.findViewById(R.id.end_time_seek_bar);
+        mRepeatImageView = view.findViewById(R.id.repeat);
+        mShuffleImageView = view.findViewById(R.id.shuffle);
     }
 
     public void setUIMedia(Bundle bundle) {
@@ -245,11 +251,11 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void onClick(View view) {
         int id = view.getId();
         switch (id) {
-            case R.id.ivBackgroundMedia:
-            case R.id.ivLike:
-            case R.id.ivDislike:
+            case R.id.image_background_media:
+            case R.id.like:
+            case R.id.dislike:
                 break;
-            case R.id.ivRepeat:
+            case R.id.repeat:
                 mStateRepeat = mStorageUtil.loadStateRepeat();
                 switch (mStateRepeat) {
                     case NO_REPEAT:
@@ -266,7 +272,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                         break;
                 }
                 break;
-            case R.id.ivShuffle:
+            case R.id.shuffle:
                 mStateShuffle = mStorageUtil.loadStateShuffle();
                 if (mStateShuffle) {
                     mShuffleImageView.setImageResource(R.mipmap.ic_shuffle_white);
@@ -276,26 +282,26 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                     mStorageUtil.storeShuffle(true);
                 }
                 break;
-            case R.id.ivListMusic:
+            case R.id.back_list_music:
                 if (getFragmentManager() != null) {
                     getFragmentManager().popBackStack();
                 }
                 break;
-            case R.id.ivNext:
+            case R.id.next:
                 mMediaPlaybackService.skipToNext();
                 mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PLAYING);
                 setBottomAllSong(getSong(), MediaPlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitleMedia(getSong());
                 break;
-            case R.id.ivPrevious:
+            case R.id.previous:
                 mMediaPlaybackService.skipToPrevious();
                 mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PLAYING);
                 setBottomAllSong(getSong(), MediaPlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setTitleMedia(getSong());
                 break;
-            case R.id.ivPause:
+            case R.id.pause:
                 if (mMediaPlaybackService.isPlayingState() == MediaPlaybackStatus.PLAYING) {
                     mMediaPlaybackService.pauseMedia();
                     mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PAUSED);
@@ -321,7 +327,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     }
 
     public void setBottomAllSong(Song song, MediaPlaybackStatus mediaPlaybackStatus) {
-        AllSongsFragment allSongsFragment = (AllSongsFragment) Objects.requireNonNull(getMusicActivity()).getSupportFragmentManager().findFragmentById(R.id.frameLayoutAllSong);
+        AllSongsFragment allSongsFragment = (AllSongsFragment) Objects.requireNonNull(getMusicActivity()).getSupportFragmentManager().findFragmentById(R.id.frame_layout_all_song);
         if (allSongsFragment != null) {
             allSongsFragment.setDataBottomFromMedia(song, mediaPlaybackStatus);
         }

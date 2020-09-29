@@ -8,7 +8,7 @@
     tools:context="com.bkav.android.mymusic.activities.MusicActivity">
 
     <include
-        android:id="@+id/toolbarID"
+        android:id="@+id/toolbar_include"
         layout="@layout/drawer_toolbar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -19,26 +19,26 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/toolbarID"
+        android:layout_below="@id/toolbar_include"
         android:orientation="horizontal">
 
         <FrameLayout
-            android:id="@+id/frameLayoutLandAllSong"
+            android:id="@+id/frame_layout_land_all_song"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/toolbarID"
+            android:layout_below="@id/toolbar_include"
             android:layout_alignParentStart="true"
             android:layout_alignParentBottom="true"
             android:layout_weight="5" />
 
         <FrameLayout
-            android:id="@+id/frameLayoutLandMedia"
+            android:id="@+id/frame_layout_land_media"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/toolbarID"
+            android:layout_below="@id/toolbar_include"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_toRightOf="@id/frameLayoutLandAllSong"
+            android:layout_toRightOf="@id/frame_layout_land_all_song"
             android:layout_weight="3" />
     </LinearLayout>
 

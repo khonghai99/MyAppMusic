@@ -101,6 +101,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         }
     };
 
+    public ArrayList<Song> getSongList() {
+        return mSongList;
+    }
+
 
     public Song getActiveAudio() {
         return mSongActive;
@@ -235,21 +239,21 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                 R.drawable.ic_launcher_background); //replace with your own image
 
         RemoteViews notificationLayout = new RemoteViews(getPackageName(), R.layout.notification_small);
-        notificationLayout.setOnClickPendingIntent(R.id.ivSmallPrevious, playbackAction(NUMBER_ACTION_PREVIOUS));
-        notificationLayout.setOnClickPendingIntent(R.id.ivSmallNext, playbackAction(NUMBER_ACTION_NEXT));
-        notificationLayout.setOnClickPendingIntent(R.id.ivSmallPause, playPauseAction);
-        setImageNotify(notificationLayout, R.id.ivSmallPicture);
-        notificationLayout.setOnClickPendingIntent(R.id.ivSmallPause, playPauseAction);
-        notificationLayout.setImageViewResource(R.id.ivSmallPause, notificationAction);
-        setImageNotify(notificationLayout, R.id.ivSmallPicture);
+        notificationLayout.setOnClickPendingIntent(R.id.small_previous, playbackAction(NUMBER_ACTION_PREVIOUS));
+        notificationLayout.setOnClickPendingIntent(R.id.small_next, playbackAction(NUMBER_ACTION_NEXT));
+        notificationLayout.setOnClickPendingIntent(R.id.small_pause, playPauseAction);
+        setImageNotify(notificationLayout, R.id.small_picture);
+        notificationLayout.setOnClickPendingIntent(R.id.small_pause, playPauseAction);
+        notificationLayout.setImageViewResource(R.id.small_pause, notificationAction);
+        setImageNotify(notificationLayout, R.id.small_picture);
 
         RemoteViews notificationLayoutExpanded = new RemoteViews(getPackageName(), R.layout.notification_large);
-        notificationLayoutExpanded.setOnClickPendingIntent(R.id.ivBigPrevious, playbackAction(3));
-        notificationLayoutExpanded.setOnClickPendingIntent(R.id.ivBigNext, playbackAction(2));
-        notificationLayoutExpanded.setOnClickPendingIntent(R.id.ivBigPause, playPauseAction);
-        notificationLayoutExpanded.setImageViewResource(R.id.ivBigPause, notificationAction);
-        setImageNotify(notificationLayoutExpanded, R.id.ivBigPicture);
-        setTextNotify(notificationLayoutExpanded, R.id.tvBigTitle, R.id.tvBigArtist);
+        notificationLayoutExpanded.setOnClickPendingIntent(R.id.big_previous, playbackAction(3));
+        notificationLayoutExpanded.setOnClickPendingIntent(R.id.big_next, playbackAction(2));
+        notificationLayoutExpanded.setOnClickPendingIntent(R.id.big_pause, playPauseAction);
+        notificationLayoutExpanded.setImageViewResource(R.id.big_pause, notificationAction);
+        setImageNotify(notificationLayoutExpanded, R.id.big_picture);
+        setTextNotify(notificationLayoutExpanded, R.id.big_title, R.id.big_artist);
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             // Create a NotificationChannel

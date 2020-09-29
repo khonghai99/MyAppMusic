@@ -18,7 +18,7 @@
         android:measureAllChildren="true">
 
         <include
-            android:id="@+id/toolbarID"
+            android:id="@+id/toolbar_include"
             layout="@layout/drawer_toolbar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -27,16 +27,16 @@
             android:layout_alignParentEnd="true" />
 
         <FrameLayout
-            android:id="@+id/frameLayoutAllSong"
+            android:id="@+id/frame_layout_all_song"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/toolbarID"
+            android:layout_below="@id/toolbar_include"
             android:layout_alignParentStart="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true" />
 
         <FrameLayout
-            android:id="@+id/frameLayoutMedia"
+            android:id="@+id/frame_layout_media"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_alignParentStart="true"

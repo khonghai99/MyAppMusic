@@ -4,14 +4,14 @@
     android:layout_height="match_parent">
 
     <RelativeLayout
-        android:id="@+id/layoutBottomMedia"
+        android:id="@+id/layout_bottom_media"
         android:layout_width="match_parent"
         android:layout_height="95dp"
         android:layout_gravity="bottom"
         android:background="@color/backgroundBottomMedia">
 
         <SeekBar
-            android:id="@+id/seekBarTimeSong"
+            android:id="@+id/seek_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -22,26 +22,26 @@
             android:thumbTint="@color/thumbTintSeekBar" />
 
         <TextView
-            android:id="@+id/tvStartTimeSong"
+            android:id="@+id/start_time_seek_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/seekBarTimeSong"
+            android:layout_below="@id/seek_bar"
             android:layout_marginStart="@dimen/time_margin"
             android:text="@string/default_start_time_song"
             android:textSize="@dimen/text_size_artist_and_time_song" />
 
         <TextView
-            android:id="@+id/tvEndTimeSong"
+            android:id="@+id/end_time_seek_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/seekBarTimeSong"
+            android:layout_below="@id/seek_bar"
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="@dimen/time_margin"
             android:text="@string/default_time_song"
             android:textSize="@dimen/text_size_artist_and_time_song" />
 
         <ImageView
-            android:id="@+id/ivDislike"
+            android:id="@+id/dislike"
             android:layout_width="@dimen/width_height_icon"
             android:layout_height="@dimen/width_height_icon"
             android:layout_alignParentEnd="true"
@@ -50,36 +50,36 @@
             android:background="@mipmap/ic_thumbs_down_default" />
 
         <ImageView
-            android:id="@+id/ivLike"
+            android:id="@+id/like"
             android:layout_width="@dimen/width_height_icon"
             android:layout_height="@dimen/width_height_icon"
-            android:layout_alignTop="@id/ivDislike"
+            android:layout_alignTop="@id/dislike"
             android:layout_alignParentStart="true"
             android:layout_marginStart="@dimen/like_dislike_margin"
             android:background="@mipmap/ic_thumbs_up_default" />
 
         <ImageView
-            android:id="@+id/ivPrevious"
+            android:id="@+id/previous"
             android:layout_width="@dimen/width_height_icon"
             android:layout_height="@dimen/width_height_icon"
-            android:layout_alignTop="@id/ivDislike"
+            android:layout_alignTop="@id/dislike"
             android:layout_marginEnd="@dimen/next_previous_margin"
-            android:layout_toStartOf="@+id/ivPause"
-            android:layout_toRightOf="@id/ivLike"
+            android:layout_toStartOf="@+id/pause"
+            android:layout_toRightOf="@id/like"
             android:background="@mipmap/ic_previous" />
 
         <ImageView
-            android:id="@+id/ivNext"
+            android:id="@+id/next"
             android:layout_width="@dimen/width_height_icon"
             android:layout_height="@dimen/width_height_icon"
-            android:layout_alignTop="@id/ivDislike"
+            android:layout_alignTop="@id/dislike"
             android:layout_marginStart="@dimen/next_previous_margin"
-            android:layout_toLeftOf="@id/ivDislike"
-            android:layout_toEndOf="@+id/ivPause"
+            android:layout_toLeftOf="@id/dislike"
+            android:layout_toEndOf="@+id/pause"
             android:background="@mipmap/ic_next" />
 
         <ImageView
-            android:id="@+id/ivPause"
+            android:id="@+id/pause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"

@@ -8,7 +8,7 @@
     android:paddingBottom="@dimen/padding_bottom">
 
     <TextView
-        android:id="@+id/tvID"
+        android:id="@+id/id"
         android:layout_width="@dimen/width_height_NO"
         android:layout_height="@dimen/width_height_NO"
         android:layout_centerVertical="true"
@@ -31,17 +31,17 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/tvID">
+        android:layout_toRightOf="@id/id">
 
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toLeftOf="@id/ivShowPopup">
+            android:layout_toLeftOf="@id/popup_one_row">
 
             <TextView
-                android:id="@+id/tvTitleSongOneRow"
+                android:id="@+id/title_one_row"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
@@ -57,11 +57,11 @@
                 android:textSize="@dimen/text_size_title_song" />
 
             <TextView
-                android:id="@+id/tvDurationSongOneRow"
+                android:id="@+id/duration_one_row"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tvTitleSongOneRow"
-                android:layout_alignStart="@id/tvTitleSongOneRow"
+                android:layout_below="@id/title_one_row"
+                android:layout_alignStart="@id/title_one_row"
                 android:layout_marginTop="@dimen/time_margin_top"
                 android:text="@string/default_time_song"
                 android:textColor="@color/timeDefault"
@@ -69,7 +69,7 @@
         </RelativeLayout>
 
         <ImageView
-            android:id="@+id/ivShowPopup"
+            android:id="@+id/popup_one_row"
             android:layout_width="@dimen/width_height_NO"
             android:layout_height="@dimen/width_height_NO"
             android:layout_alignParentEnd="true"

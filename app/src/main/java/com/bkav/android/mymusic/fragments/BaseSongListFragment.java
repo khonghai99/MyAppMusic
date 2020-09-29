@@ -65,9 +65,33 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
             }
         });
         mStorage = new StorageUtil(Objects.requireNonNull(getContext()).getApplicationContext());
+        mSongAdapter = new SongAdapter(getContext());
+        mSongAdapter.setOnClick(new SongAdapter.OnNewClickListener() {
+            @Override
+            public void onNewClick(ArrayList<Song> songList, int position) {
+//                mSongAdapter.updateSongList(songList);
+                mSongList = songList;
+                mSong = mSongList.get(position);
+                mStorage.storeAudio(mSongList);
+                mStorage.storeAudioIndex(position);
+                mStorage.storeAudioID(mSong.getID());
+                if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
+                    setDataBottom();
+                    setVisible();
+
+                } else {
+                    MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frame_layout_land_media);
+                    if (mediaPlaybackFragment != null) {
+                        mediaPlaybackFragment.setTitleMedia(songList.get(position));
+                    }
+                }
+                mMediaPlaybackService.playSong(songList.get(position));
+            }
+        });
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mRecyclerView.setAdapter(mSongAdapter);
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
 
@@ -76,34 +100,34 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     }
 
     private void init(View view) {
-        mImageBottomAllSongImageView = view.findViewById(R.id.ivSongBottomAllSong);
-        mTitleBottomAllSongTextView = view.findViewById(R.id.tvTitleSongBottomAllSong);
-        mArtistBottomAllSongTextView = view.findViewById(R.id.tvArtistBottomAllSong);
-        mImagePauseBottomAllSongImageView = view.findViewById(R.id.ivPauseBottomAllSong);
-        mBottomAllSongRelativeLayout = view.findViewById(R.id.layoutBottomAllSong);
+        mImageBottomAllSongImageView = view.findViewById(R.id.image_bottom_all_song);
+        mTitleBottomAllSongTextView = view.findViewById(R.id.title_bottom_all_song);
+        mArtistBottomAllSongTextView = view.findViewById(R.id.artist_bottom_all_song);
+        mImagePauseBottomAllSongImageView = view.findViewById(R.id.pause_bottom_all_song);
+        mBottomAllSongRelativeLayout = view.findViewById(R.id.layout_bottom_all_song);
         mTitleBottomAllSongTextView.setSelected(true);
-        mRecyclerView = view.findViewById(R.id.rcListSong);
+        mRecyclerView = view.findViewById(R.id.recycle_list_song);
     }
 
     @Override
     public void onNewClick(ArrayList<Song> songList, int position) {
-        mSongAdapter.updateSongList(songList, MediaPlaybackStatus.PLAYING);
-        mSongList = songList;
-        mSong = mSongList.get(position);
-        mStorage.storeAudio(mSongList);
-        mStorage.storeAudioIndex(position);
-        mStorage.storeAudioID(mSong.getID());
-        if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
-            setDataBottom();
-            setVisible();
-
-        } else {
-            MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frameLayoutLandMedia);
-            if (mediaPlaybackFragment != null) {
-                mediaPlaybackFragment.setTitleMedia(songList.get(position));
-            }
-        }
-        mMediaPlaybackService.playSong(songList.get(position));
+//        mSongAdapter.updateSongList(songList, MediaPlaybackStatus.PLAYING);
+//        mSongList = songList;
+//        mSong = mSongList.get(position);
+//        mStorage.storeAudio(mSongList);
+//        mStorage.storeAudioIndex(position);
+//        mStorage.storeAudioID(mSong.getID());
+//        if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
+//            setDataBottom();
+//            setVisible();
+//
+//        } else {
+//            MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frame_layout_land_media);
+//            if (mediaPlaybackFragment != null) {
+//                mediaPlaybackFragment.setTitleMedia(songList.get(position));
+//            }
+//        }
+//        mMediaPlaybackService.playSong(songList.get(position));
 
     }
 
@@ -165,20 +189,20 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.ivPauseBottomAllSong:
+            case R.id.pause_bottom_all_song:
                 if (MediaPlaybackStatus.PLAYING == mMediaPlaybackService.isPlayingState()) {
                     mMediaPlaybackService.pauseMedia();
                     mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PAUSED);
                     mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
-                    mSongAdapter.updateSongList(mSongList, MediaPlaybackStatus.PAUSED);
+//                    mSongAdapter.updateSongList(mSongList);
                 } else if (MediaPlaybackStatus.PAUSED == mMediaPlaybackService.isPlayingState()) {
                     mMediaPlaybackService.playMedia();
                     mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PLAYING);
                     mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
-                    mSongAdapter.updateSongList(mSongList, MediaPlaybackStatus.PLAYING);
+//                    mSongAdapter.updateSongList(mSongList);
                 }
                 break;
-            case R.id.layoutBottomAllSong:
+            case R.id.layout_bottom_all_song:
                 showMediaFragment(mMediaPlaybackService.isPlayingState());
                 break;
             default:
@@ -195,7 +219,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         FragmentManager mFragmentManager = Objects.requireNonNull(getMusicActivity()).getSupportFragmentManager();
         getMusicActivity().mMediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(mMediaPlaybackService.getActiveAudio(), mediaPlaybackStatus);
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frameLayoutMedia, getMusicActivity().mMediaPlaybackFragment);
+        fragmentTransaction.replace(R.id.frame_layout_media, getMusicActivity().mMediaPlaybackFragment);
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
@@ -218,7 +242,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
             } else if (mMediaPlaybackService.isPlayingState() == MediaPlaybackStatus.PAUSED) {
                 mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
             }
-            mSongAdapter.updateSongList(mSongList, mMediaPlaybackService.isPlayingState());
+//            mSongAdapter.updateSongList(mMediaPlaybackService.getSongList(), mMediaPlaybackService.isPlayingState());
             //giu bai hat dang phat tren man hinh
             mRecyclerView.smoothScrollToPosition(getMediaPlayerService().getAudioIndex());
         }
@@ -236,7 +260,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      *
      * @return MusicActivity if getActivity() instanceof MusicActivity
      */
-    private MusicActivity getMusicActivity() {
+    protected MusicActivity getMusicActivity() {
         if (getActivity() instanceof MusicActivity) {
             return (MusicActivity) getActivity();
         }

@@ -41,6 +41,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     public MediaPlaybackFragment mMediaPlaybackFragment;
     protected MediaPlaybackService mMediaService;
     private OnServiceConnectedListener mOnServiceConnectedListener;
+    private OnServiceConnectedListener1 mOnServiceConnectedListener1;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
@@ -57,7 +58,12 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             mMediaService = binder.getService();
             mServiceBound = true;
             mOnServiceConnectedListener.onConnect();
-//            updateFragment();
+            if (mMediaPlaybackFragment.getView() != null){
+                mOnServiceConnectedListener1.onConnect();
+            }
+            if (mMediaService.getActiveAudio() != null){
+                updateFragment();
+            }
             mMediaService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
                 @Override
                 public void onUpdate() {
@@ -169,15 +175,15 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         mIsVertical = orientation != Configuration.ORIENTATION_LANDSCAPE;
 
         if (mIsVertical) {
-            mFragmentTransactionOne.replace(R.id.frameLayoutAllSong, mAllSongsFragment);
+            mFragmentTransactionOne.replace(R.id.frame_layout_all_song, mAllSongsFragment);
             mFragmentTransactionOne.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             mFragmentTransactionOne.commit();
         } else {
-            mFragmentTransactionOne.replace(R.id.frameLayoutLandAllSong, mAllSongsFragment);
+            mFragmentTransactionOne.replace(R.id.frame_layout_land_all_song, mAllSongsFragment);
             mFragmentTransactionOne.commit();
 
             FragmentTransaction mFragmentTransactionTwo = mFragmentManager.beginTransaction();
-            mFragmentTransactionTwo.replace(R.id.frameLayoutLandMedia, mMediaPlaybackFragment);
+            mFragmentTransactionTwo.replace(R.id.frame_layout_land_media, mMediaPlaybackFragment);
             mFragmentTransactionTwo.commit();
         }
     }
@@ -248,7 +254,15 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         this.mOnServiceConnectedListener = onServiceConnectedListener;
     }
 
+    public void listenServiceConnected1(OnServiceConnectedListener1 onServiceConnectedListener) {
+        this.mOnServiceConnectedListener1 = onServiceConnectedListener;
+    }
+
     public interface OnServiceConnectedListener {
+        void onConnect();
+    }
+
+    public interface OnServiceConnectedListener1 {
         void onConnect();
     }
 

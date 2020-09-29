@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layoutRelative"
+    android:id="@+id/layout_relative"
     android:layout_width="match_parent"
     android:layout_height="76dp"
     android:layout_alignParentBottom="true"
@@ -8,7 +8,7 @@
     android:padding="@dimen/padding_top_media">
 
     <ImageView
-        android:id="@+id/ivSongTopMedia"
+        android:id="@+id/image_top_media"
         android:layout_width="@dimen/width_height_image_top_media"
         android:layout_height="@dimen/width_height_image_top_media"
         android:adjustViewBounds="true"
@@ -20,11 +20,11 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginStart="@dimen/relative_top_media_margin_start"
-        android:layout_toLeftOf="@id/ivListMusic"
-        android:layout_toRightOf="@id/ivSongTopMedia">
+        android:layout_toLeftOf="@id/back_list_music"
+        android:layout_toRightOf="@id/image_top_media">
 
         <TextView
-            android:id="@+id/tvTitleSongTopMedia"
+            android:id="@+id/title_top_media"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="marquee"
@@ -38,18 +38,18 @@
             android:textSize="@dimen/text_size_title_song" />
 
         <TextView
-            android:id="@+id/tvArtistSongTopMedia"
+            android:id="@+id/artist_top_media"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvTitleSongTopMedia"
-            android:layout_alignLeft="@id/tvTitleSongTopMedia"
+            android:layout_below="@id/title_top_media"
+            android:layout_alignLeft="@id/title_top_media"
             android:text="@string/default_album_song"
             android:textColor="@color/timeDefault"
             android:textSize="@dimen/text_size_artist_and_time_song" />
     </RelativeLayout>
 
     <ImageView
-        android:id="@+id/ivPopupTopMedia"
+        android:id="@+id/popup_top_media"
         android:layout_width="@dimen/width_height_show_menu_top_media"
         android:layout_height="@dimen/width_height_show_menu_top_media"
         android:layout_alignParentEnd="true"
@@ -58,11 +58,11 @@
         android:background="@mipmap/ic_show_menu_top_media" />
 
     <ImageView
-        android:id="@+id/ivListMusic"
+        android:id="@+id/back_list_music"
         android:layout_width="@dimen/width_height_show_list_song_top_media"
         android:layout_height="@dimen/width_height_show_list_song_top_media"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/show_list_song_margin_end_top_media"
-        android:layout_toLeftOf="@id/ivPopupTopMedia"
+        android:layout_toLeftOf="@id/popup_top_media"
         android:background="@mipmap/ic_list_music" />
 </RelativeLayout>

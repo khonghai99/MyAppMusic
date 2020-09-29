@@ -18,6 +18,7 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
+import com.bkav.android.mymusic.MediaPlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.adapters.SongAdapter;
@@ -77,9 +78,7 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
         }
         StorageUtil storageUtil = new StorageUtil(getContext());
         storageUtil.storeAudio(songList);
-
-        mSongAdapter = new SongAdapter(getContext(), songList, this);
-        mRecyclerView.setAdapter(mSongAdapter);
+        mSongAdapter.updateSongList(songList);
     }
 
     @Override

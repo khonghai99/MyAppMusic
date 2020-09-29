@@ -1,5 +1,6 @@
-package com.bkav.android.mymusic;
+package com.bkav.android.mymusic.providers;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -7,7 +8,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-public class MusicDatabaseHelper extends SQLiteOpenHelper {
+public class MusicDBHelper extends SQLiteOpenHelper {
     public static final String ID = "_id";
     public static final String ID_PROVIDER = "is_provider";
     public static final String IS_FAVORITE = "is_favorite";
@@ -19,12 +20,12 @@ public class MusicDatabaseHelper extends SQLiteOpenHelper {
 
     // Database Name
     public static final String DATABASE_NAME = "Music";
-    private static final String LOG_TAG = "com.bkav.android.mymusic";
+    private static final String LOG_TAG = "music upgrade";
 
     // Database Version
     private static final int DATABASE_VERSION = 1;
 
-    public MusicDatabaseHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
+    public MusicDBHelper(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -39,6 +40,7 @@ public class MusicDatabaseHelper extends SQLiteOpenHelper {
                 ARTIST + "," +
                 DURATION + "," +
                 DATA + ");" ;
+
         // Execute Script.
         sqLiteDatabase.execSQL(script);
     }
