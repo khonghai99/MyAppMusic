@@ -16,6 +16,7 @@ import com.bkav.android.mymusic.MediaPlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.models.Song;
+import com.bkav.android.mymusic.services.MediaPlaybackService;
 
 import java.util.ArrayList;
 
@@ -24,21 +25,23 @@ import es.claucookie.miniequalizerlibrary.EqualizerView;
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> implements Filterable {
     private Context mContext;
     private ArrayList<Song> mSongList;
+    private MediaPlaybackService mMediaPlaybackService;
     private OnNewClickListener mOnNewClickListener;
     private ArrayList<Song> mSongListFilter;
     private CustomFilter filter;
-    private MediaPlaybackStatus mStatus = MediaPlaybackStatus.PAUSED;
 
-    public SongAdapter(Context context/*, ArrayList<Song> songList*//*, OnNewClickListener onNewClickListener*/) {
+    public SongAdapter(Context context) {
         this.mContext = context;
-//        this.mSongList = songList;
-//        this.mOnNewClickListener = onNewClickListener;
     }
 
     public void updateSongList(ArrayList<Song> songs) {
         this.mSongList = songs;
         this.mSongListFilter = songs;
         notifyDataSetChanged();
+    }
+
+    public void setService(MediaPlaybackService mediaPlaybackService) {
+        this.mMediaPlaybackService = mediaPlaybackService;
     }
 
     @NonNull
@@ -55,7 +58,11 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
         StorageUtil mStorageUtil = new StorageUtil(mContext.getApplicationContext());
         if (song != null) {
             if (song.getID() == mStorageUtil.loadAudioID()) {
-                holder.isClickSong(mStatus);
+                if (mMediaPlaybackService == null) {
+                    holder.isClickSong(MediaPlaybackStatus.PAUSED);
+                } else {
+                    holder.isClickSong(mMediaPlaybackService.isPlayingState());
+                }
             } else {
                 holder.isSongDefault();
             }
@@ -83,7 +90,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
         return filter;
     }
 
-    public void setOnClick(OnNewClickListener onNewClickListener){
+    public void setOnClick(OnNewClickListener onNewClickListener) {
         this.mOnNewClickListener = onNewClickListener;
     }
 
@@ -143,7 +150,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
     }
 
     public class CustomFilter extends Filter {
-
         @Override
         protected FilterResults performFiltering(CharSequence constraint) {
             FilterResults results = new FilterResults();
@@ -152,7 +158,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
                 ArrayList<Song> filterSong = new ArrayList<>();
                 for (int i = 0; i < mSongListFilter.size(); i++) {
                     if (mSongListFilter.get(i).getTitle().toUpperCase().contains(constraint)) {
-                        Song song = new Song(mSongListFilter.get(i).getID(),mSongListFilter.get(i).getTitle(), mSongListFilter.get(i).getArtist(), mSongListFilter.get(i).getDurationReal(), mSongListFilter.get(i).getPath());
+                        Song song = new Song(mSongListFilter.get(i).getID(), mSongListFilter.get(i).getTitle(), mSongListFilter.get(i).getArtist(), mSongListFilter.get(i).getDurationReal(), mSongListFilter.get(i).getPath());
                         filterSong.add(song);
                     }
                 }

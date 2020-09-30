@@ -31,7 +31,8 @@ dependencies {
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.7'
 
     implementation 'com.github.claucookie.miniequalizer:library:1.0.0'
-
+    //image cycle
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
     // glide
     implementation "com.github.bumptech.glide:glide:4.10.0"
 

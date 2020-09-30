@@ -12,6 +12,7 @@
     <string name="title_drawer_listen_now">Listen Now</string>
     <string name="title_drawer_recent">Recents</string>
     <string name="title_drawer_music_library">Music Library</string>
+    <string name="title_drawer_music_favorite">Music Favorite</string>
     <string name="title_drawer_help_and_feedback">Help &amp; feedback</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

@@ -15,6 +15,10 @@
             android:id="@+id/nav_music_library"
             android:icon="@mipmap/ic_library_music"
             android:title="@string/title_drawer_music_library" />
+        <item
+            android:id="@+id/nav_music_favorite"
+            android:icon="@mipmap/ic_favorite"
+            android:title="@string/title_drawer_music_favorite" />
     </group>
     <group
         android:id="@+id/menu_bottom"

@@ -178,16 +178,15 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         mSongIndex = mStorageUtil.loadAudioIndex();
         mSongList = mStorageUtil.loadAudio();
         mSongActive = song;
-
-        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             // Set the data source to the mediaFile location
             mMediaPlayer.setDataSource(mSongActive.getPath());
+            mMediaPlayer.prepare();
+            mMediaPlayer.start();
         } catch (IOException e) {
             e.printStackTrace();
             stopSelf();
         }
-        mMediaPlayer.prepareAsync();
         buildNotification(MediaPlaybackStatus.PLAYING);
     }
 
@@ -295,7 +294,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @Override
     public void onAudioFocusChange(int i) {
 
-        //Được gọi khi tiêu điểm âm thanh của hệ thống được cập nhật.
         switch (i) {
             case AudioManager.AUDIOFOCUS_GAIN:
 
@@ -415,13 +413,16 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
      * duoc goi khi co dien thoai goi den
      */
     private void callStateListener() {
+
         // Get the telephony manager
         mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+
         //Starting listening for PhoneState changes
         mPhoneStateListener = new PhoneStateListener() {
             @Override
             public void onCallStateChanged(int state, String incomingNumber) {
                 switch (state) {
+
                     //nếu có ít nhất một cuộc gọi hoặc điện thoại đang đổ chuông
                     //tạm dừng MediaPlayer
                     case TelephonyManager.CALL_STATE_RINGING:
@@ -431,6 +432,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                         }
                         break;
                     case TelephonyManager.CALL_STATE_IDLE:
+
                         // Nếu không có hoạt động nào của cuộc gọi thì tiếp tục phát
                         if (mMediaPlayer != null) {
                             if (mOngoingCall) {
@@ -453,12 +455,14 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @Override
     public void onCreate() {
         super.onCreate();
+
         // Thực hiện các thủ tục thiết lập một lần
         initMediaPlayer();
         random = new Random();
         mNotifyManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
         mStorageUtil = new StorageUtil(getApplicationContext());
+        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         // Quản lý các cuộc gọi đến trong khi phát lại.
         // Tạm dừng MediaPlayer khi có cuộc gọi đến,
         // Tiếp tục khi cúp máy.

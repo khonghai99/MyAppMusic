@@ -61,9 +61,9 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             if (mMediaPlaybackFragment.getView() != null){
                 mOnServiceConnectedListener1.onConnect();
             }
-            if (mMediaService.getActiveAudio() != null){
-                updateFragment();
-            }
+//            if (mMediaService.getActiveAudio() != null){
+//                updateFragment();
+//            }
             mMediaService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
                 @Override
                 public void onUpdate() {
@@ -229,6 +229,11 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
                 Toast.makeText(this, "recents", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_music_library:
+                getSupportActionBar().setTitle("Music");
+                Toast.makeText(this, "music library", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_music_favorite:
+                getSupportActionBar().setTitle("Music Favorite");
                 Toast.makeText(this, "music library", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_setting:
