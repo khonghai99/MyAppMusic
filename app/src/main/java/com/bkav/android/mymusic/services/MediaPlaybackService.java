@@ -176,7 +176,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         //play a song
         mMediaPlayer.reset();
         mSongIndex = mStorageUtil.loadAudioIndex();
-        mSongList = mStorageUtil.loadAudio();
+        mSongList = mStorageUtil.loadAllSongList();
         mSongActive = song;
         try {
             // Set the data source to the mediaFile location
@@ -333,6 +333,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         songCompletion();
+        mOnNotificationListener.onUpdate();
+
     }
 
     /**
@@ -385,11 +387,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public void playSongWhenComplete() {
         playMedia();
         buildNotification(MediaPlaybackStatus.PLAYING);
-        mOnNotificationListener.onUpdate();
-
         //Update stored index
         mStorageUtil.storeAudioIndex(mSongIndex);
         playSong(mSongActive);
+
     }
 
     @Override

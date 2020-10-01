@@ -5,9 +5,9 @@
     <string name="default_name_song">Chieu hom ay</string>
     <string name="default_album_song">Jaykii</string>
     <string name="default_start_time_song">0:0</string>
-    <string name="label_title">Music</string>
     <string name="description_service">Service play music</string>
-    <string name="titleToolbar">Music</string>
+    <string name="titleToolbarAllSong">Music</string>
+    <string name="titleToolbarFavoriteSong">Favorite Song</string>
     <string name="title_drawer_setting">Setting</string>
     <string name="title_drawer_listen_now">Listen Now</string>
     <string name="title_drawer_recent">Recents</string>

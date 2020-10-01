@@ -29,7 +29,7 @@
 
         <provider
             android:name=".providers.FavoriteSongsProvider"
-            android:authorities="com.bkav.android.mymusic.provider.FavoriteSongsProvider"
+            android:authorities="com.bkav.android.mymusic.providers"
             android:enabled="true"
             android:exported="false" />
     </application>

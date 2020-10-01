@@ -27,6 +27,8 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
+import com.bkav.android.mymusic.fragments.BaseSongListFragment;
+import com.bkav.android.mymusic.fragments.FavoriteSongsFragment;
 import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.google.android.material.navigation.NavigationView;
@@ -39,9 +41,10 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     private static final String AUDIO_INDEX = "com.bkav.android.mymusic.activities.AUDIO_INDEX";
     public AllSongsFragment mAllSongsFragment;
     public MediaPlaybackFragment mMediaPlaybackFragment;
+    public BaseSongListFragment mBaseSongListFragment;
     protected MediaPlaybackService mMediaService;
-    private OnServiceConnectedListener mOnServiceConnectedListener;
-    private OnServiceConnectedListener1 mOnServiceConnectedListener1;
+    private OnServiceConnectedListenerForAllSong mOnServiceConnectedListenerForAllSong;
+    private OnServiceConnectedListenerForMedia mOnServiceConnectedListenerForMedia;
     private int mCurrentPosition;
     private boolean mIsVertical = false;
     private boolean mServiceBound = false;
@@ -57,9 +60,9 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
             mMediaService = binder.getService();
             mServiceBound = true;
-            mOnServiceConnectedListener.onConnect();
-            if (mMediaPlaybackFragment.getView() != null){
-                mOnServiceConnectedListener1.onConnect();
+            mOnServiceConnectedListenerForAllSong.onConnect();
+            if (mMediaPlaybackFragment.getView() != null) {
+                mOnServiceConnectedListenerForMedia.onConnect();
             }
 //            if (mMediaService.getActiveAudio() != null){
 //                updateFragment();
@@ -100,7 +103,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         Toolbar toolbar = findViewById(R.id.toolbar);
         //set toolbar
         setSupportActionBar(toolbar);
-        toolbar.setTitle(R.string.titleToolbar);
+        toolbar.setTitle(R.string.titleToolbarAllSong);
         toolbar.setTitleTextColor(Color.WHITE);
         createFragment();
         //check permission
@@ -201,7 +204,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         }
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
@@ -226,15 +228,17 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
                 Toast.makeText(this, "listen now", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_recents:
-                Toast.makeText(this, "recents", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "recent", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_music_library:
-                getSupportActionBar().setTitle("Music");
-                Toast.makeText(this, "music library", Toast.LENGTH_SHORT).show();
+                getSupportActionBar().setTitle(R.string.titleToolbarAllSong);
+                mBaseSongListFragment = new AllSongsFragment();
+                Toast.makeText(this, "all song", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_music_favorite:
-                getSupportActionBar().setTitle("Music Favorite");
-                Toast.makeText(this, "music library", Toast.LENGTH_SHORT).show();
+                getSupportActionBar().setTitle(R.string.titleToolbarFavoriteSong);
+                mBaseSongListFragment = new FavoriteSongsFragment();
+                Toast.makeText(this, "favorite song", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_setting:
                 Toast.makeText(this, "setting", Toast.LENGTH_SHORT).show();
@@ -243,6 +247,8 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
                 Toast.makeText(this, "help", Toast.LENGTH_SHORT).show();
                 break;
         }
+        getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout_all_song, mBaseSongListFragment).commit();
+        mDrawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
@@ -255,19 +261,19 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         }
     }
 
-    public void listenServiceConnected(OnServiceConnectedListener onServiceConnectedListener) {
-        this.mOnServiceConnectedListener = onServiceConnectedListener;
+    public void listenServiceConnectedForAllSong(OnServiceConnectedListenerForAllSong onServiceConnectedListenerForAllSong) {
+        this.mOnServiceConnectedListenerForAllSong = onServiceConnectedListenerForAllSong;
     }
 
-    public void listenServiceConnected1(OnServiceConnectedListener1 onServiceConnectedListener) {
-        this.mOnServiceConnectedListener1 = onServiceConnectedListener;
+    public void listenServiceConnectedForMedia(OnServiceConnectedListenerForMedia onServiceConnectedListener) {
+        this.mOnServiceConnectedListenerForMedia = onServiceConnectedListener;
     }
 
-    public interface OnServiceConnectedListener {
+    public interface OnServiceConnectedListenerForAllSong {
         void onConnect();
     }
 
-    public interface OnServiceConnectedListener1 {
+    public interface OnServiceConnectedListenerForMedia {
         void onConnect();
     }
 

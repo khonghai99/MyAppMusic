@@ -2,11 +2,13 @@ package com.bkav.android.mymusic.providers;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,30 +20,42 @@ public class FavoriteSongsProvider extends ContentProvider {
     public static final int MUSIC_ID = 2;
     // The authority of music content provider.
     public static final String AUTHORITY = "com.bkav.android.mymusic.providers";
+
     static final String SINGLE_MUSIC_MIME_TYPE =
             "vnd.android.cursor.item/vnd.com.bkav.android.mymusic.providers";
     static final String MULTIPLE_MUSICS_MIME_TYPE =
             "vnd.android.cursor.dir/vnd.com.bkav.android.mymusic.providers";
+    private static final Integer DEFAULT_INSERT_COUNT_OF_PLAY = 1;
     // Represent music table.
     private static final int MUSICS = 1;
     private static final String MUSIC_PATH = "music";
     public static final String URL = "content://" + AUTHORITY + "/" + MUSIC_PATH;
     public static final Uri CONTENT_URI = Uri.parse(URL);
+    private static final int IS_NUMBER_FAVORITE = 2;
     // Base uri for this content provider.
     private static String TAG_CONTENT_PROVIDER = "CONTENT_PROVIDER";
     // Declare UriMatcher object.
-    private static UriMatcher uriMatcher;
+    private static UriMatcher mUriMatcher;
 
     // Initialize uriMatcher, add matched uri.
     static {
-        uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+        mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         // Match uri to music table.
-        uriMatcher.addURI(AUTHORITY, MUSIC_PATH, MUSICS);
+        mUriMatcher.addURI(AUTHORITY, MUSIC_PATH, MUSICS);
         // Match uri to music table row.
-        uriMatcher.addURI(AUTHORITY, MUSIC_PATH + "/#", MUSIC_ID);
+        mUriMatcher.addURI(AUTHORITY, MUSIC_PATH + "/#", MUSIC_ID);
     }
 
+    private Context mContext;
+    private ContentValues mContentValues;
     private MusicDBHelper mMusicDBHelper;
+
+    public FavoriteSongsProvider(Context mContext) {
+        this.mContext = mContext;
+    }
+
+    public FavoriteSongsProvider() {
+    }
 
     @Override
     public boolean onCreate() {
@@ -57,7 +71,7 @@ public class FavoriteSongsProvider extends ContentProvider {
         // Get music db object.
         SQLiteDatabase db = mMusicDBHelper.getWritableDatabase();
 
-        switch (uriMatcher.match(uri)) {
+        switch (mUriMatcher.match(uri)) {
             case MUSICS:
                 // Return all rows that match query condition in music table.
                 ret = db.query(TABLE_NAME_MUSIC, projection, selection, selectionArgs, null, null, sortOrder);
@@ -80,7 +94,7 @@ public class FavoriteSongsProvider extends ContentProvider {
     @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
-        switch (uriMatcher.match(uri)) {
+        switch (mUriMatcher.match(uri)) {
             case MUSICS:
                 return MULTIPLE_MUSICS_MIME_TYPE;
             case MUSIC_ID:
@@ -97,7 +111,7 @@ public class FavoriteSongsProvider extends ContentProvider {
         Uri ret = null;
         SQLiteDatabase db = mMusicDBHelper.getWritableDatabase();
         // Get uri match code.
-        int matchCode = uriMatcher.match(uri);
+        int matchCode = mUriMatcher.match(uri);
 
         // Both match code means insert data into music table.
         if (matchCode == MUSICS || matchCode == MUSIC_ID) {
@@ -122,7 +136,7 @@ public class FavoriteSongsProvider extends ContentProvider {
         // Return deleted rows count.
         int ret;
         SQLiteDatabase db = mMusicDBHelper.getWritableDatabase();
-        switch (uriMatcher.match(uri)) {
+        switch (mUriMatcher.match(uri)) {
             case MUSICS:
 
                 // Delete all rows in music table.
@@ -152,7 +166,7 @@ public class FavoriteSongsProvider extends ContentProvider {
         int ret;
         //get music db object
         SQLiteDatabase db = mMusicDBHelper.getWritableDatabase();
-        switch (uriMatcher.match(uri)) {
+        switch (mUriMatcher.match(uri)) {
             case MUSICS:
                 // Update all rows in music table.
                 ret = db.update(TABLE_NAME_MUSIC, values, selection, selectionArgs);
@@ -171,4 +185,57 @@ public class FavoriteSongsProvider extends ContentProvider {
         Log.d(TAG_CONTENT_PROVIDER, "Music content provider update method is called.");
         return ret;
     }
+
+    public void insertDefaultFavoriteSong(int id) {
+        mContentValues = new ContentValues();
+        mContentValues.put(MusicDBHelper.ID_PROVIDER, id);
+        mContentValues.put(MusicDBHelper.COUNT_OF_PLAY, DEFAULT_INSERT_COUNT_OF_PLAY);
+        mContext.getContentResolver().insert(FavoriteSongsProvider.CONTENT_URI, mContentValues);
+    }
+
+    public void updateCount(int id, int count) {
+        mContentValues = new ContentValues();
+        mContentValues.put(MusicDBHelper.COUNT_OF_PLAY, count);
+        mContext.getContentResolver().update(FavoriteSongsProvider.CONTENT_URI, mContentValues,
+                MusicDBHelper.ID_PROVIDER + "=" + id, null);
+    }
+
+    public void updateFavorite(int id, int favorite) {
+        mContentValues = new ContentValues();
+        mContentValues.put(MusicDBHelper.IS_FAVORITE, favorite);
+        mContext.getContentResolver().update(FavoriteSongsProvider.CONTENT_URI, mContentValues,
+                MusicDBHelper.ID_PROVIDER + "=" + id, null);
+    }
+
+    public void insertFavoriteSongToDB(int id) {
+        Cursor cursor = mContext.getContentResolver().query(FavoriteSongsProvider.CONTENT_URI, new String[]{MusicDBHelper.COUNT_OF_PLAY,
+                MusicDBHelper.ID_PROVIDER}, MusicDBHelper.ID_PROVIDER + " = " + id, null, null);
+        if (cursor != null) {
+            cursor.moveToFirst();
+            if (cursor.getCount() > 0) {
+                int count = cursor.getInt(cursor.getColumnIndex(MusicDBHelper.COUNT_OF_PLAY));
+                updateCount(id, ++count);
+                if (count >= 3) {
+                    updateFavorite(id, IS_NUMBER_FAVORITE);
+                }
+            } else {
+                insertDefaultFavoriteSong(id);
+            }
+        }
+    }
+
+    public void loginf(){
+        Cursor c = mContext.getContentResolver().query(FavoriteSongsProvider.CONTENT_URI, new String[]{MusicDBHelper.COUNT_OF_PLAY,
+                MusicDBHelper.ID_PROVIDER}, null, null, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Log.d("ContentProvider",
+                        c.getString(c.getColumnIndex(MusicDBHelper.ID_PROVIDER)) + ", " +
+                                c.getString(c.getColumnIndex(MusicDBHelper.IS_FAVORITE)) + ", " +
+                                c.getString(c.getColumnIndex(MusicDBHelper.COUNT_OF_PLAY)));
+            } while (c.moveToNext());
+        }
+    }
+
 }

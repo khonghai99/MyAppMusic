@@ -109,7 +109,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mMediaPlaybackService = getMediaPlayerService();
-        Objects.requireNonNull(getMusicActivity()).listenServiceConnected1(new MusicActivity.OnServiceConnectedListener1() {
+        Objects.requireNonNull(getMusicActivity()).listenServiceConnectedForMedia(new MusicActivity.OnServiceConnectedListenerForMedia() {
             @Override
             public void onConnect() {
                 mMediaPlaybackService = getMediaPlayerService();
@@ -123,7 +123,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mStorageUtil = new StorageUtil(getContext());
-        mSongList = mStorageUtil.loadAudio();
+        mSongList = mStorageUtil.loadAllSongList();
 
         getNewStateRepeatAndShuffle();
 

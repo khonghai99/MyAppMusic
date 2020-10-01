@@ -1,13 +1,16 @@
 package com.bkav.android.mymusic.fragments;
 
-import android.content.ContentValues;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -34,7 +37,7 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class BaseSongListFragment extends Fragment implements View.OnClickListener, SongAdapter.OnNewClickListener {
+public class BaseSongListFragment extends Fragment implements View.OnClickListener, SongAdapter.OnNewClickListener, SearchView.OnQueryTextListener {
     protected RelativeLayout mBottomAllSongRelativeLayout;
     protected SongAdapter mSongAdapter;
     protected RecyclerView mRecyclerView;
@@ -58,8 +61,9 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
         init(view);
+        setHasOptionsMenu(true);
         mMediaPlaybackService = getMediaPlayerService();
-        Objects.requireNonNull(getMusicActivity()).listenServiceConnected(new MusicActivity.OnServiceConnectedListener() {
+        Objects.requireNonNull(getMusicActivity()).listenServiceConnectedForAllSong(new MusicActivity.OnServiceConnectedListenerForAllSong() {
             @Override
             public void onConnect() {
                 mMediaPlaybackService = getMediaPlayerService();
@@ -75,8 +79,6 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mRecyclerView.setAdapter(mSongAdapter);
         mImagePauseBottomAllSongImageView.setOnClickListener(this);
         mBottomAllSongRelativeLayout.setOnClickListener(this);
-
-
         return view;
     }
 
@@ -94,7 +96,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     public void onNewClick(ArrayList<Song> songList, int position) {
         mSongList = songList;
         mSong = mSongList.get(position);
-        mStorage.storeAudio(mSongList);
+        mStorage.storeAllSongList(mSongList);
         mStorage.storeAudioIndex(position);
         mStorage.storeAudioID(mSong.getID());
         if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
@@ -110,7 +112,31 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mMediaPlaybackService.playSong(songList.get(position));
         mSongAdapter.setService(mMediaPlaybackService);
         mSongAdapter.notifyDataSetChanged();
+        FavoriteSongsProvider favoriteSongsProvider = new FavoriteSongsProvider(getContext());
+        favoriteSongsProvider.insertFavoriteSongToDB(mSong.getID());
+    }
 
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_search, menu);
+        MenuItem menuItem = menu.findItem(R.id.menu_item_search);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setIconified(false);
+        searchView.setFocusable(true);
+        searchView.setQueryHint("Search here");
+        searchView.setOnQueryTextListener(this);
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String s) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String s) {
+        mSongAdapter.getFilter().filter(s);
+        return true;
     }
 
     @Override
