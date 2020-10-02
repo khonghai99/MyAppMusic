@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -64,15 +65,19 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             if (mMediaPlaybackFragment.getView() != null) {
                 mOnServiceConnectedListenerForMedia.onConnect();
             }
-//            if (mMediaService.getActiveAudio() != null){
-//                updateFragment();
-//            }
+            if (mMediaService.getActiveAudio() != null) {
+                updateFragment();
+            }
             mMediaService.setOnNotificationListener(new MediaPlaybackService.OnNotificationListener() {
                 @Override
                 public void onUpdate() {
                     updateFragment();
                 }
             });
+            Log.i("HaiKH", "onServiceConnected: " + mMediaService.getActiveAudio());
+            if (mMediaService.getActiveAudio() == null) {
+
+            }
         }
 
         @Override
@@ -161,7 +166,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
      * initialization fragment
      */
     public void initFragment() {
-        mAllSongsFragment = new AllSongsFragment();
+        mBaseSongListFragment = new AllSongsFragment();
         mMediaPlaybackFragment = new MediaPlaybackFragment();
     }
 
@@ -178,11 +183,11 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         mIsVertical = orientation != Configuration.ORIENTATION_LANDSCAPE;
 
         if (mIsVertical) {
-            mFragmentTransactionOne.replace(R.id.frame_layout_all_song, mAllSongsFragment);
+            mFragmentTransactionOne.replace(R.id.frame_layout_all_song, mBaseSongListFragment);
             mFragmentTransactionOne.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             mFragmentTransactionOne.commit();
         } else {
-            mFragmentTransactionOne.replace(R.id.frame_layout_land_all_song, mAllSongsFragment);
+            mFragmentTransactionOne.replace(R.id.frame_layout_land_all_song, mBaseSongListFragment);
             mFragmentTransactionOne.commit();
 
             FragmentTransaction mFragmentTransactionTwo = mFragmentManager.beginTransaction();
@@ -195,11 +200,13 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
      * update fragment when click change from notification
      */
     public void updateFragment() {
-        if (mAllSongsFragment.getView() != null) {
-            mAllSongsFragment.update();
-        }
-
-        if (mMediaPlaybackFragment.getView() != null) {
+        if (mIsVertical) {
+            if (mMediaPlaybackFragment.getView() != null) {
+                mMediaPlaybackFragment.update();
+            }
+            mBaseSongListFragment.update();
+        } else {
+            mBaseSongListFragment.update();
             mMediaPlaybackFragment.update();
         }
     }

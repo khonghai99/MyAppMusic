@@ -28,6 +28,7 @@ import com.bkav.android.mymusic.ImageSong;
 import com.bkav.android.mymusic.MediaPlaybackStatus;
 import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
+import com.bkav.android.mymusic.activities.MusicActivity;
 import com.bkav.android.mymusic.models.Song;
 
 import java.io.IOException;
@@ -234,9 +235,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             playPauseAction = playbackAction(NUMBER_ACTION_PLAY);
         }
 
-        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
-                R.drawable.ic_launcher_background); //replace with your own image
-
         RemoteViews notificationLayout = new RemoteViews(getPackageName(), R.layout.notification_small);
         notificationLayout.setOnClickPendingIntent(R.id.small_previous, playbackAction(NUMBER_ACTION_PREVIOUS));
         notificationLayout.setOnClickPendingIntent(R.id.small_next, playbackAction(NUMBER_ACTION_NEXT));
@@ -265,7 +263,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             notificationChannel.enableVibration(false);
             notificationChannel.setDescription("Notification");
             mNotifyManager.createNotificationChannel(notificationChannel);
-
+            Intent intent = new Intent(getApplicationContext(), MusicActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), NOTIFICATION_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             // Create a new Notification
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL_ID)
                     .setShowWhen(false)
@@ -273,14 +272,15 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                     // Set the Notification color
                     .setColor(getResources().getColor(R.color.colorPrimary, null))
-                    // Set the large and small icons
-                    .setLargeIcon(largeIcon)
                     .setSmallIcon(R.mipmap.stat_notify_musicplayer)
                     // Set Notification content information
                     .setContentText(mSongActive.getArtist())
                     .setCustomContentView(notificationLayout)
+                    .setContentIntent(pendingIntent)
                     .setCustomBigContentView(notificationLayoutExpanded)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setContentTitle(mSongActive.getTitle());
+
             startForeground(NOTIFICATION_ID, notificationBuilder.build());
         }
     }

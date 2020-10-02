@@ -1,5 +1,6 @@
 package com.bkav.android.mymusic.fragments;
 
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,13 +10,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
-import android.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -49,6 +51,10 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     protected MediaPlaybackService mMediaPlaybackService;
     protected Song mSong;
     protected StorageUtil mStorage;
+    protected PopupMenu mPopup;
+    protected int mPositionPopup;
+    protected ArrayList<Song> mAllSongList;
+    protected ArrayList<Song> mFavoriteSongList;
 
     @Override
     public void onResume() {
@@ -62,16 +68,32 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         View view = inflater.inflate(R.layout.fragment_all_song, container, false);
         init(view);
         setHasOptionsMenu(true);
-        mMediaPlaybackService = getMediaPlayerService();
+        mSongAdapter = new SongAdapter(getContext());
+        final int orientation = getResources().getConfiguration().orientation;
+        if (getMediaPlayerService() != null) {
+            mMediaPlaybackService = getMediaPlayerService();
+            mSongAdapter.setService(mMediaPlaybackService);
+            if (mMediaPlaybackService.getActiveAudio() != null && orientation == Configuration.ORIENTATION_PORTRAIT) {
+                setDataBottom();
+                setVisible(true);
+            } else {
+                setVisible(false);
+            }
+        }
         Objects.requireNonNull(getMusicActivity()).listenServiceConnectedForAllSong(new MusicActivity.OnServiceConnectedListenerForAllSong() {
             @Override
             public void onConnect() {
                 mMediaPlaybackService = getMediaPlayerService();
-
+                mSongAdapter.setService(mMediaPlaybackService);
+                if (mMediaPlaybackService.getActiveAudio() != null && orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    setDataBottom();
+                    setVisible(true);
+                } else {
+                    setVisible(false);
+                }
             }
         });
-        mStorage = new StorageUtil(Objects.requireNonNull(getContext()).getApplicationContext());
-        mSongAdapter = new SongAdapter(getContext());
+        mStorage = new StorageUtil(getContext());
         mSongAdapter.setOnClick(this);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -101,7 +123,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mStorage.storeAudioID(mSong.getID());
         if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
             setDataBottom();
-            setVisible();
+            setVisible(true);
 
         } else {
             MediaPlaybackFragment mediaPlaybackFragment = (MediaPlaybackFragment) getMusicActivity().getSupportFragmentManager().findFragmentById(R.id.frame_layout_land_media);
@@ -110,7 +132,6 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
             }
         }
         mMediaPlaybackService.playSong(songList.get(position));
-        mSongAdapter.setService(mMediaPlaybackService);
         mSongAdapter.notifyDataSetChanged();
         FavoriteSongsProvider favoriteSongsProvider = new FavoriteSongsProvider(getContext());
         favoriteSongsProvider.insertFavoriteSongToDB(mSong.getID());
@@ -123,7 +144,6 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         MenuItem menuItem = menu.findItem(R.id.menu_item_search);
         SearchView searchView = (SearchView) menuItem.getActionView();
         searchView.setIconified(false);
-        searchView.setFocusable(true);
         searchView.setQueryHint("Search here");
         searchView.setOnQueryTextListener(this);
     }
@@ -148,14 +168,15 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      * set data for layout bottom allSongFragment when click recycler view
      */
     public void setDataBottom() {
-        byte[] art = ImageSong.getByteImageSong(mSong.getPath());
+        mStorage = new StorageUtil(getContext());
+        byte[] art = ImageSong.getByteImageSong(mStorage.loadAllSongList().get(mStorage.loadAudioIndex()).getPath());
         Glide.with(Objects.requireNonNull(getContext())).asBitmap()
                 .error(R.mipmap.ic_music_not_picture)
                 .load(art)
                 .into(mImageBottomAllSongImageView);
 
-        mTitleBottomAllSongTextView.setText(mSong.getTitle());
-        mArtistBottomAllSongTextView.setText(mSong.getArtist());
+        mTitleBottomAllSongTextView.setText(mStorage.loadAllSongList().get(mStorage.loadAudioIndex()).getTitle());
+        mArtistBottomAllSongTextView.setText(mStorage.loadAllSongList().get(mStorage.loadAudioIndex()).getArtist());
         mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
     }
 
@@ -190,8 +211,12 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     /**
      * show layout bottom allSongFragment when click item recyclerView
      */
-    public void setVisible() {
-        mBottomAllSongRelativeLayout.setVisibility(View.VISIBLE);
+    public void setVisible(boolean b) {
+        if (b) {
+            mBottomAllSongRelativeLayout.setVisibility(View.VISIBLE);
+        } else {
+            mBottomAllSongRelativeLayout.setVisibility(View.GONE);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -251,10 +276,10 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
             } else if (mMediaPlaybackService.isPlayingState() == MediaPlaybackStatus.PAUSED) {
                 mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
             }
-            mSongAdapter.notifyDataSetChanged();
             //giu bai hat dang phat tren man hinh
-            mRecyclerView.smoothScrollToPosition(getMediaPlayerService().getAudioIndex());
+//            mRecyclerView.smoothScrollToPosition(getMediaPlayerService().getAudioIndex());
         }
+        mSongAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -275,4 +300,5 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         }
         return null;
     }
+
 }

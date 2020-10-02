@@ -31,7 +31,9 @@ public class FavoriteSongsProvider extends ContentProvider {
     private static final String MUSIC_PATH = "music";
     public static final String URL = "content://" + AUTHORITY + "/" + MUSIC_PATH;
     public static final Uri CONTENT_URI = Uri.parse(URL);
-    private static final int IS_NUMBER_FAVORITE = 2;
+    public static final int IS_NUMBER_FAVORITE = 2;
+    public static final int IS_NUMBER_NOT_FAVORITE = 1;
+    public static final int NUMBER_COUNT_DEFAULT = 0;
     // Base uri for this content provider.
     private static String TAG_CONTENT_PROVIDER = "CONTENT_PROVIDER";
     // Declare UriMatcher object.

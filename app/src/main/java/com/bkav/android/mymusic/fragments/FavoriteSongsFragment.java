@@ -4,10 +4,12 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,7 +17,9 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
+import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
+import com.bkav.android.mymusic.adapters.SongAdapter;
 import com.bkav.android.mymusic.models.Song;
 import com.bkav.android.mymusic.providers.FavoriteSongsProvider;
 import com.bkav.android.mymusic.providers.MusicDBHelper;
@@ -23,7 +27,7 @@ import com.bkav.android.mymusic.providers.MusicDBHelper;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class FavoriteSongsFragment extends BaseSongListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class FavoriteSongsFragment extends BaseSongListFragment implements LoaderManager.LoaderCallbacks<Cursor>, SongAdapter.OnClickPopupListener, PopupMenu.OnMenuItemClickListener {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,15 +57,13 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
-        ArrayList<Song> mFavoriteSongList = new ArrayList<>();
-
+        mFavoriteSongList = new ArrayList<>();
         if (cursor != null) {
             cursor.moveToFirst();
 
             while (!cursor.isAfterLast()) {
 
                 int idProvider = cursor.getInt(cursor.getColumnIndex(MusicDBHelper.ID_PROVIDER));
-                Log.i("HaiKH", "onLoadFinished: "+idProvider);
                 Cursor cursorAllSong = getContext().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         null, MediaStore.Audio.Media.IS_MUSIC + " != 0",
                         null, MediaStore.Audio.Media.TITLE + " ASC");
@@ -69,7 +71,6 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
                     cursorAllSong.moveToFirst();
                     while (!cursorAllSong.isAfterLast()) {
                         int id = cursorAllSong.getInt(cursorAllSong.getColumnIndex(MediaStore.Audio.AudioColumns._ID));
-                        Log.i("HaiKH", "onLoadFinished:1 "+id);
                         String title = cursorAllSong.getString(cursorAllSong.getColumnIndex(MediaStore.Audio.AudioColumns.TITLE));
                         String artist = cursorAllSong.getString(cursorAllSong.getColumnIndex(MediaStore.Audio.AudioColumns.ARTIST));
                         String duration = cursorAllSong.getString(cursorAllSong.getColumnIndex(MediaStore.Audio.AudioColumns.DURATION));
@@ -89,12 +90,35 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
         }
         StorageUtil storageUtil = new StorageUtil(getContext());
         storageUtil.storeFavoriteSongList(mFavoriteSongList);
-        Log.i("HaiKH", "onLoadFinished: " + mFavoriteSongList.size());
         mSongAdapter.updateSongList(mFavoriteSongList);
+        mSongAdapter.setOnClickPopup(this);
     }
 
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> loader) {
 
+    }
+
+    @Override
+    public void onClickPopup(View view, int position) {
+        mPositionPopup = position;
+        mPopup = new PopupMenu(getContext(), view.findViewById(R.id.popup_one_row));
+        mPopup.getMenuInflater().inflate(R.menu.menu_popup_not_favorite, mPopup.getMenu());
+        mPopup.setOnMenuItemClickListener(this);
+        mPopup.show();
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        FavoriteSongsProvider favoriteSongsProvider = new FavoriteSongsProvider(getContext());
+        if (mPositionPopup < mFavoriteSongList.size()) {
+            Song song = mFavoriteSongList.get(mPositionPopup);
+            int id = song.getID();
+            favoriteSongsProvider.updateFavorite(id, FavoriteSongsProvider.IS_NUMBER_NOT_FAVORITE);
+            favoriteSongsProvider.updateCount(id, FavoriteSongsProvider.NUMBER_COUNT_DEFAULT);
+            Toast.makeText(getContext(), R.string.title_remove_favorite, Toast.LENGTH_SHORT).show();
+        }
+        mSongAdapter.notifyDataSetChanged();
+        return true;
     }
 }

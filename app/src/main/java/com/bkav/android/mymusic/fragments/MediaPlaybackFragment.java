@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +25,7 @@ import com.bkav.android.mymusic.R;
 import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.activities.MusicActivity;
 import com.bkav.android.mymusic.models.Song;
+import com.bkav.android.mymusic.providers.FavoriteSongsProvider;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
@@ -253,6 +255,9 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         switch (id) {
             case R.id.image_background_media:
             case R.id.like:
+                FavoriteSongsProvider favoriteSongsProvider = new FavoriteSongsProvider(getContext());
+
+                break;
             case R.id.dislike:
                 break;
             case R.id.repeat:

@@ -2,11 +2,13 @@ package com.bkav.android.mymusic.adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -27,6 +29,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
     private ArrayList<Song> mSongList;
     private MediaPlaybackService mMediaPlaybackService;
     private OnNewClickListener mOnNewClickListener;
+    private OnClickPopupListener mOnClickPopupListener;
     private ArrayList<Song> mSongListFilter;
     private CustomFilter filter;
 
@@ -54,6 +57,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
 
     @Override
     public void onBindViewHolder(@NonNull final SongHolder holder, final int position) {
+        Log.i("HaiKH", "onBindViewHolder: on");
         final Song song = mSongList.get(position);
         StorageUtil mStorageUtil = new StorageUtil(mContext.getApplicationContext());
         if (song != null) {
@@ -72,6 +76,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
                 @Override
                 public void onClick(View view) {
                     mOnNewClickListener.onNewClick(mSongList, position);
+                }
+            });
+            holder.ivShowPopupMenu.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mOnClickPopupListener.onClickPopup(view,position);
                 }
             });
         }
@@ -94,8 +104,16 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
         this.mOnNewClickListener = onNewClickListener;
     }
 
+    public void setOnClickPopup(OnClickPopupListener onClickPopupListener) {
+        this.mOnClickPopupListener = onClickPopupListener;
+    }
+
     public interface OnNewClickListener {
         void onNewClick(ArrayList<Song> songList, int position);
+    }
+
+    public interface OnClickPopupListener {
+        void onClickPopup(View view,int position);
     }
 
     public static class SongHolder extends RecyclerView.ViewHolder {
@@ -103,6 +121,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
         private TextView tvID;
         private TextView tvTitleSong;
         private TextView tvDuration;
+        private ImageView ivShowPopupMenu;
 
         public SongHolder(@NonNull final View itemView) {
             super(itemView);
@@ -110,6 +129,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
             tvTitleSong = itemView.findViewById(R.id.title_one_row);
             tvDuration = itemView.findViewById(R.id.duration_one_row);
             equalizer = (EqualizerView) itemView.findViewById(R.id.equalizer_view);
+            ivShowPopupMenu = itemView.findViewById(R.id.popup_one_row);
 
         }
 
@@ -121,6 +141,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
         public void toBind(Song song) {
             tvTitleSong.setText(song.getTitle());
             tvDuration.setText(song.getDuration());
+
         }
 
         /**
