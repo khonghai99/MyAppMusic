@@ -2,7 +2,6 @@ package com.bkav.android.mymusic.adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +56,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
 
     @Override
     public void onBindViewHolder(@NonNull final SongHolder holder, final int position) {
-        Log.i("HaiKH", "onBindViewHolder: on");
         final Song song = mSongList.get(position);
         StorageUtil mStorageUtil = new StorageUtil(mContext.getApplicationContext());
         if (song != null) {

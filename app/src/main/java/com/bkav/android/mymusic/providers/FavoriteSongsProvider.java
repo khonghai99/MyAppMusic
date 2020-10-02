@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
-import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -223,20 +222,6 @@ public class FavoriteSongsProvider extends ContentProvider {
             } else {
                 insertDefaultFavoriteSong(id);
             }
-        }
-    }
-
-    public void loginf(){
-        Cursor c = mContext.getContentResolver().query(FavoriteSongsProvider.CONTENT_URI, new String[]{MusicDBHelper.COUNT_OF_PLAY,
-                MusicDBHelper.ID_PROVIDER}, null, null, null);
-
-        if (c.moveToFirst()) {
-            do {
-                Log.d("ContentProvider",
-                        c.getString(c.getColumnIndex(MusicDBHelper.ID_PROVIDER)) + ", " +
-                                c.getString(c.getColumnIndex(MusicDBHelper.IS_FAVORITE)) + ", " +
-                                c.getString(c.getColumnIndex(MusicDBHelper.COUNT_OF_PLAY)));
-            } while (c.moveToNext());
         }
     }
 

@@ -11,7 +11,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -74,7 +73,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
                     updateFragment();
                 }
             });
-            Log.i("HaiKH", "onServiceConnected: " + mMediaService.getActiveAudio());
             if (mMediaService.getActiveAudio() == null) {
 
             }
