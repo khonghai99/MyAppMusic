@@ -6,13 +6,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -59,22 +59,10 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     private ImageView mShuffleImageView;
     private TextView mStartTimeTextView;
     private TextView mEndTimeTextView;
-    private UpdateSeekBarThread mUpdateSeekBarThread;
     private ArrayList<Song> mSongList;
     private MediaPlaybackService mMediaPlaybackService;
     private boolean mStateShuffle;
     private int mStateRepeat;
-
-    public static MediaPlaybackFragment getInstancesMedia(Song song, MediaPlaybackStatus mediaPlaybackStatus) {
-        MediaPlaybackFragment fragment = new MediaPlaybackFragment();
-        Bundle bundle = new Bundle();
-        Gson gson = new Gson();
-        String jsonSong = gson.toJson(song);
-        bundle.putString(KEY_SONG, jsonSong);
-        bundle.putSerializable(KEY_PLAYBACK, mediaPlaybackStatus);
-        fragment.setArguments(bundle);
-        return fragment;
-    }
 
     /**
      * get service
@@ -91,7 +79,8 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     }
 
     private Song getSong() {
-        return getMediaPlayerService().getActiveAudio();
+        StorageUtil storageUtil = new StorageUtil(getContext());
+        return storageUtil.loadAllSongList().get(storageUtil.loadAudioIndex());
     }
 
     @Nullable
@@ -101,24 +90,20 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         init(view);
         runSeekBar(mSeekBar);
         setOnClick();
-        if (getArguments() != null) {
-            setUIMedia(getArguments());
-        }
-        return view;
-    }
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        mMediaPlaybackService = getMediaPlayerService();
+        if (getMediaPlayerService() != null) {
+            mMediaPlaybackService = getMediaPlayerService();
+            update();
+        }
         Objects.requireNonNull(getMusicActivity()).listenServiceConnectedForMedia(new MusicActivity.OnServiceConnectedListenerForMedia() {
             @Override
             public void onConnect() {
                 mMediaPlaybackService = getMediaPlayerService();
-
+                update();
             }
         });
 
+        return view;
     }
 
     @Override
@@ -128,10 +113,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         mSongList = mStorageUtil.loadAllSongList();
 
         getNewStateRepeatAndShuffle();
-
-        mUpdateSeekBarThread = new UpdateSeekBarThread();
-        mUpdateSeekBarThread.start();
-
     }
 
     private void runSeekBar(SeekBar seekBar) {
@@ -191,22 +172,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         mShuffleImageView = view.findViewById(R.id.shuffle);
     }
 
-    public void setUIMedia(Bundle bundle) {
-        String jsonSong = bundle.getString(KEY_SONG);
-        MediaPlaybackStatus mediaPlaybackStatus = (MediaPlaybackStatus) bundle.getSerializable(KEY_PLAYBACK);
-        Gson gson = new Gson();
-        Type type = new TypeToken<Song>() {
-        }.getType();
-        Song song = gson.fromJson(jsonSong, type);
 
-        setTitleMedia(song);
-        if (mediaPlaybackStatus == MediaPlaybackStatus.PAUSED) {
-            mPauseImageView.setImageResource(R.drawable.ic_button_pause);
-        } else if (mediaPlaybackStatus == MediaPlaybackStatus.PLAYING) {
-            mPauseImageView.setImageResource(R.drawable.ic_button_playing);
-        }
-
-    }
 
     private void getNewStateRepeatAndShuffle() {
         mStateRepeat = mStorageUtil.loadStateRepeat();
@@ -214,7 +180,8 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     }
 
     public void setTitleMedia(Song song) {
-        String path = song.getPath();
+        Song songActive = mStorageUtil.loadAllSongList().get(mStorageUtil.loadAudioIndex());
+        String path = songActive.getPath();
         byte[] art = ImageSong.getByteImageSong(path);
         Glide.with(Objects.requireNonNull(getContext())).asBitmap()
                 .error(R.mipmap.ic_music_not_picture)
@@ -224,8 +191,8 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                 .error(R.mipmap.ic_music_not_picture)
                 .load(art)
                 .into(mBackgroundMediaImageView);
-        mArtistTopMediaTextView.setText(song.getArtist());
-        mTitleTopMediaTextView.setText(song.getTitle());
+        mArtistTopMediaTextView.setText(songActive.getArtist());
+        mTitleTopMediaTextView.setText(songActive.getTitle());
         getNewStateRepeatAndShuffle();
         if (mStateRepeat == NO_REPEAT) {
             mRepeatImageView.setImageResource(R.mipmap.ic_repeat_white);
@@ -245,7 +212,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mUpdateSeekBarThread.exit();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -313,7 +279,12 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                     mPauseImageView.setImageResource(R.drawable.ic_button_pause);
                     setBottomAllSong(getSong(), MediaPlaybackStatus.PAUSED);
                 } else {
-                    mMediaPlaybackService.playMedia();
+                    StorageUtil storageUtil = new StorageUtil(getContext());
+                    if (mMediaPlaybackService.getMediaPlayer().getCurrentPosition() == 0) {
+                        mMediaPlaybackService.playSong(storageUtil.loadAllSongList().get(storageUtil.loadAudioIndex()));
+                    } else {
+                        mMediaPlaybackService.playMedia();
+                    }
                     mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PLAYING);
                     mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                     setBottomAllSong(getSong(), MediaPlaybackStatus.PLAYING);
@@ -340,53 +311,18 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
 
     private void updateSeekBar() {
         if (mMediaPlaybackService != null) {
-            mUpdateSeekBarThread.updateSeekBar();
-        }
-
-    }
-
-    public class UpdateSeekBarThread extends Thread {
-        private Handler handler;
-
-        @Override
-        public void run() {
-            super.run();
-            Looper.prepare();
-            handler = new Handler();
-            Looper.loop();
-        }
-
-        public void updateSeekBar() {
-            @SuppressLint("SimpleDateFormat") final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("mm:ss");
+            final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("mm:ss");
             mEndTimeTextView.setText(mMediaPlaybackService.getActiveAudio().getDuration());
             mSeekBar.setMax(mMediaPlaybackService.getMediaPlayer().getDuration());
-            handler.post(new Runnable() {
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if (mMediaPlaybackService.getAudioIndex() >= 0) {
-                        while (mMediaPlaybackService.getMediaPlayer() != null) {
-                            try {
-                                if (getActivity() != null && mSongList.size() > 0) {
-                                    getActivity().runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mSeekBar.setProgress(mMediaPlaybackService.getMediaPlayer().getCurrentPosition());
-                                            mStartTimeTextView.setText(simpleDateFormat.format(mMediaPlaybackService.getMediaPlayer().getCurrentPosition()));
-                                        }
-                                    });
-                                }
-                                Thread.sleep(100);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
+                    mSeekBar.setProgress(mMediaPlaybackService.getMediaPlayer().getCurrentPosition());
+                    mStartTimeTextView.setText(simpleDateFormat.format(mMediaPlaybackService.getMediaPlayer().getCurrentPosition()));
+                    handler.postDelayed(this,100);
                 }
-            });
-        }
-
-        public void exit() {
-            handler.getLooper().quit();
+            },100);
         }
     }
 }

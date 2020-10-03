@@ -26,6 +26,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.bkav.android.mymusic.R;
+import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.fragments.AllSongsFragment;
 import com.bkav.android.mymusic.fragments.BaseSongListFragment;
 import com.bkav.android.mymusic.fragments.FavoriteSongsFragment;
@@ -39,7 +40,6 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 1;
     private static final String SERVICE_STATE = "com.bkav.android.mymusic.activities.SERVICE_STATE";
     private static final String AUDIO_INDEX = "com.bkav.android.mymusic.activities.AUDIO_INDEX";
-    public AllSongsFragment mAllSongsFragment;
     public MediaPlaybackFragment mMediaPlaybackFragment;
     public BaseSongListFragment mBaseSongListFragment;
     protected MediaPlaybackService mMediaService;
@@ -74,7 +74,14 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
                 }
             });
             if (mMediaService.getActiveAudio() == null) {
-
+                StorageUtil storageUtil = new StorageUtil(getApplicationContext());
+                if (storageUtil.loadAudioIndex() != -1) {
+                    mMediaService.setSongActive(storageUtil.loadAllSongList().get(storageUtil.loadAudioIndex()));
+                    mMediaService.setSongList(storageUtil.loadAllSongList());
+                    mMediaService.setSongIndex(storageUtil.loadAudioIndex());
+                    mBaseSongListFragment.setDataBottom();
+                    mBaseSongListFragment.setVisible(true);
+                }
             }
         }
 
@@ -202,8 +209,10 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             if (mMediaPlaybackFragment.getView() != null) {
                 mMediaPlaybackFragment.update();
             }
-            mBaseSongListFragment.update();
-        } else {
+            if (mBaseSongListFragment.getView() != null) {
+                mBaseSongListFragment.update();
+            }
+        } else if (mBaseSongListFragment != null && mMediaPlaybackFragment.getView() != null) {
             mBaseSongListFragment.update();
             mMediaPlaybackFragment.update();
         }
@@ -229,21 +238,15 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
         switch (menuItem.getItemId()) {
-            case R.id.nav_listen_now:
-                Toast.makeText(this, "listen now", Toast.LENGTH_SHORT).show();
-                break;
-            case R.id.nav_recents:
-                Toast.makeText(this, "recent", Toast.LENGTH_SHORT).show();
-                break;
             case R.id.nav_music_library:
                 getSupportActionBar().setTitle(R.string.titleToolbarAllSong);
                 mBaseSongListFragment = new AllSongsFragment();
-                Toast.makeText(this, "all song", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.titleToolbarAllSong, Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_music_favorite:
                 getSupportActionBar().setTitle(R.string.titleToolbarFavoriteSong);
                 mBaseSongListFragment = new FavoriteSongsFragment();
-                Toast.makeText(this, "favorite song", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.titleToolbarFavoriteSong, Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_setting:
                 Toast.makeText(this, "setting", Toast.LENGTH_SHORT).show();

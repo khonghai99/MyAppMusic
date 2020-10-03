@@ -3,6 +3,7 @@ package com.bkav.android.mymusic.fragments;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -121,6 +122,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
         mStorage.storeAllSongList(mSongList);
         mStorage.storeAudioIndex(position);
         mStorage.storeAudioID(mSong.getID());
+        mMediaPlaybackService.playSong(songList.get(position));
         if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
             setDataBottom();
             setVisible(true);
@@ -131,7 +133,6 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
                 mediaPlaybackFragment.setTitleMedia(songList.get(position));
             }
         }
-        mMediaPlaybackService.playSong(songList.get(position));
         mSongAdapter.notifyDataSetChanged();
         FavoriteSongsProvider favoriteSongsProvider = new FavoriteSongsProvider(getContext());
         favoriteSongsProvider.insertFavoriteSongToDB(mSong.getID());
@@ -140,6 +141,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
         inflater.inflate(R.menu.menu_search, menu);
         MenuItem menuItem = menu.findItem(R.id.menu_item_search);
         SearchView searchView = (SearchView) menuItem.getActionView();
@@ -177,7 +179,12 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
 
         mTitleBottomAllSongTextView.setText(mStorage.loadAllSongList().get(mStorage.loadAudioIndex()).getTitle());
         mArtistBottomAllSongTextView.setText(mStorage.loadAllSongList().get(mStorage.loadAudioIndex()).getArtist());
-        mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
+        if (mMediaPlaybackService.isPlayingState() == MediaPlaybackStatus.PAUSED) {
+            mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
+        } else {
+            mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
+        }
+
     }
 
     @Override
@@ -230,7 +237,11 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
                     mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
                     mSongAdapter.notifyDataSetChanged();
                 } else if (MediaPlaybackStatus.PAUSED == mMediaPlaybackService.isPlayingState()) {
-                    mMediaPlaybackService.playMedia();
+                    if (mMediaPlaybackService.getMediaPlayer().getCurrentPosition() == 0) {
+                        mMediaPlaybackService.playSong(mStorage.loadAllSongList().get(mStorage.loadAudioIndex()));
+                    } else {
+                        mMediaPlaybackService.playMedia();
+                    }
                     mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PLAYING);
                     mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
                     mSongAdapter.notifyDataSetChanged();
@@ -251,7 +262,7 @@ public class BaseSongListFragment extends Fragment implements View.OnClickListen
      */
     public void showMediaFragment(MediaPlaybackStatus mediaPlaybackStatus) {
         FragmentManager mFragmentManager = Objects.requireNonNull(getMusicActivity()).getSupportFragmentManager();
-        getMusicActivity().mMediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(mMediaPlaybackService.getActiveAudio(), mediaPlaybackStatus);
+//        getMusicActivity().mMediaPlaybackFragment = MediaPlaybackFragment.getInstancesMedia(/*mMediaPlaybackService.getActiveAudio(),*/ mediaPlaybackStatus);
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout_media, getMusicActivity().mMediaPlaybackFragment);
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);

@@ -75,7 +75,7 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
                     mAllSongList.add(new Song(id, title, artist, duration, path));
                 }
             }
-            cursor.close();
+
         }
         StorageUtil storageUtil = new StorageUtil(getContext());
         storageUtil.storeAllSongList(mAllSongList);
@@ -90,6 +90,7 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
 
     /**
      * get all id song favorite from DB
+     *
      * @return array list id song favorite
      */
     private ArrayList<Integer> getAllIdFavorite() {
@@ -104,8 +105,8 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
                     idList.add(cursor.getInt(NUMBER_ID));
                     cursor.moveToNext();
                 }
-                cursor.close();
             }
+            cursor.close();
         }
         return idList;
     }

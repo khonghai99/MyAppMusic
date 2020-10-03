@@ -4,20 +4,12 @@
     tools:showIn="navigation_view">
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_listen_now"
-            android:icon="@mipmap/ic_headphone_large"
-            android:title="@string/title_drawer_listen_now" />
-        <item
-            android:id="@+id/nav_recents"
-            android:icon="@mipmap/ic_search_recent"
-            android:title="@string/title_drawer_recent" />
-        <item
             android:id="@+id/nav_music_library"
             android:icon="@mipmap/ic_library_music"
             android:title="@string/title_drawer_music_library" />
         <item
             android:id="@+id/nav_music_favorite"
-            android:icon="@mipmap/ic_favorite"
+            android:icon="@mipmap/ic_favorite_dark"
             android:title="@string/title_drawer_music_favorite" />
     </group>
     <group

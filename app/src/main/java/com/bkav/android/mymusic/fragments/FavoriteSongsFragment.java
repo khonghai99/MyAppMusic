@@ -3,6 +3,7 @@ package com.bkav.android.mymusic.fragments;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -118,7 +119,7 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
             favoriteSongsProvider.updateCount(id, FavoriteSongsProvider.NUMBER_COUNT_DEFAULT);
             Toast.makeText(getContext(), R.string.title_remove_favorite, Toast.LENGTH_SHORT).show();
         }
-        mSongAdapter.notifyDataSetChanged();
+        getLoaderManager().restartLoader(0, null, this);
         return true;
     }
 }

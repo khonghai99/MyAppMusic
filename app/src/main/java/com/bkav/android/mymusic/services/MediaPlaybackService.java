@@ -18,6 +18,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
@@ -35,9 +36,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class MediaPlaybackService extends Service implements MediaPlayer.OnCompletionListener,
-        MediaPlayer.OnPreparedListener, MediaPlayer.OnSeekCompleteListener,
-        AudioManager.OnAudioFocusChangeListener {
+public class MediaPlaybackService extends Service implements MediaPlayer.OnPreparedListener,
+        MediaPlayer.OnSeekCompleteListener, AudioManager.OnAudioFocusChangeListener {
 
     public static final String ACTION_PLAY = "com.bkav.musictest.ACTION_PLAY";
     public static final String ACTION_PAUSE = "com.bkav.musictest.ACTION_PAUSE";
@@ -110,6 +110,17 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
     public Song getActiveAudio() {
         return mSongActive;
     }
+    public void setSongActive(Song song){
+        this.mSongActive = song;
+    }
+
+    public void setSongList(ArrayList<Song> songs){
+        this.mSongList = songs;
+    }
+
+    public void setSongIndex(int i){
+        this.mSongIndex = i;
+    }
 
     public void playMedia() {
         if (!mMediaPlayer.isPlaying()) {
@@ -143,6 +154,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             mResumePosition = mMediaPlayer.getCurrentPosition();
             buildNotification(MediaPlaybackStatus.PLAYING);
             mOnNotificationListener.onUpdate();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                stopForeground(STOP_FOREGROUND_DETACH);
+            }
         }
     }
 
@@ -166,7 +180,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
 
         //Set up MediaPlayer event listeners
         //được gọi khi bài hát chạy xong
-        mMediaPlayer.setOnCompletionListener(this);
+//        mMediaPlayer.setOnCompletionListener(this);
 
         //được gọi khi một hoạt động tìm kiếm đã hoàn thành.
         mMediaPlayer.setOnSeekCompleteListener(this);
@@ -184,10 +198,18 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
             mMediaPlayer.setDataSource(mSongActive.getPath());
             mMediaPlayer.prepare();
             mMediaPlayer.start();
+            mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    songCompletion();
+                    mOnNotificationListener.onUpdate();
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
             stopSelf();
         }
+        mOnNotificationListener.onUpdate();
         buildNotification(MediaPlaybackStatus.PLAYING);
     }
 
@@ -330,13 +352,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         mSongManager.abandonAudioFocus(this);
     }
 
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        songCompletion();
-        mOnNotificationListener.onUpdate();
-
-    }
-
     /**
      * goi khi bai hat tu dong chuyen tiep
      */
@@ -344,6 +359,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
         StorageUtil storageUtil = new StorageUtil(getApplicationContext());
         mStateRepeat = storageUtil.loadStateRepeat();
         mStateShuffle = storageUtil.loadStateShuffle();
+        mSongList = storageUtil.loadAllSongList();
+        mSongIndex = storageUtil.loadAudioIndex();
         if (mStateShuffle) {
             mSongIndex = random.nextInt(mSongList.size());
         }
@@ -353,6 +370,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnCompl
                     mMediaPlayer.pause();
                     buildNotification(MediaPlaybackStatus.PAUSED);
                     mOnNotificationListener.onUpdate();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        stopForeground(STOP_FOREGROUND_DETACH);
+                    }
                 } else {
 
                     //get next in playlist
