@@ -13,7 +13,6 @@ import java.util.ArrayList;
 public class StorageUtil {
     private final String STORAGE = "com.bkav.android.mymusic..STORAGE";
     private final String ALL_SONG_LIST = "com.bkav.android.mymusic.ALL_SONG_LIST";
-    private final String FAVORITE_SONG_LIST = "com.bkav.android.mymusic.FAVORITE_SONG_LIST";
     private final String SONG_INDEX = "com.bkav.android.mymusic.SONG_INDEX";
     private final String SONG_ID = "com.bkav.android.mymusic.SONG_ID";
     private final String STATE_REPEAT = "com.bkav.android.mymusic.STATE_REPEAT";
@@ -25,7 +24,7 @@ public class StorageUtil {
         this.context = context;
     }
 
-    public void storeAllSongList(ArrayList<Song> arrayList) {
+    public void storeSongList(ArrayList<Song> arrayList) {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         Gson gson = new Gson();
@@ -34,28 +33,10 @@ public class StorageUtil {
         editor.apply();
     }
 
-    public ArrayList<Song> loadAllSongList() {
+    public ArrayList<Song> loadSongList() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         Gson gson = new Gson();
         String json = preferences.getString(ALL_SONG_LIST, null);
-        Type type = new TypeToken<ArrayList<Song>>() {
-        }.getType();
-        return gson.fromJson(json, type);
-    }
-
-    public void storeFavoriteSongList(ArrayList<Song> arrayList) {
-        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(arrayList);
-        editor.putString(FAVORITE_SONG_LIST, json);
-        editor.apply();
-    }
-
-    public ArrayList<Song> loadFavoriteSongList() {
-        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
-        Gson gson = new Gson();
-        String json = preferences.getString(FAVORITE_SONG_LIST, null);
         Type type = new TypeToken<ArrayList<Song>>() {
         }.getType();
         return gson.fromJson(json, type);
@@ -115,5 +96,15 @@ public class StorageUtil {
         SharedPreferences.Editor editor = preferences.edit();
         editor.clear();
         editor.commit();
+    }
+
+    public Song loadSongActive() {
+        Song songActive = null;
+        for (Song song : loadSongList()) {
+            if (song.getID() == loadAudioID()) {
+                songActive = song;
+            }
+        }
+        return songActive;
     }
 }

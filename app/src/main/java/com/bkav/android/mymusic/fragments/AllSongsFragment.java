@@ -4,6 +4,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,6 +36,11 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
     public static final int NUMBER_DATA = 4;
 
 
+    @Override
+    public void updateAdapter() {
+        mSongAdapter.notifyDataSetChanged();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -60,10 +66,8 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
         mAllSongList = new ArrayList<>();
-
         if (cursor != null) {
             cursor.moveToFirst();
-
             while (!cursor.isAfterLast()) {
                 int id = cursor.getInt(NUMBER_ID);
                 String title = cursor.getString(NUMBER_TITLE);
@@ -78,7 +82,7 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
 
         }
         StorageUtil storageUtil = new StorageUtil(getContext());
-        storageUtil.storeAllSongList(mAllSongList);
+        storageUtil.storeSongList(mAllSongList);
         mSongAdapter.updateSongList(mAllSongList);
         mSongAdapter.setOnClickPopup(this);
     }
@@ -147,7 +151,6 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
                 Toast.makeText(getContext(), R.string.title_add_to_favorite, Toast.LENGTH_SHORT).show();
                 break;
         }
-        mSongAdapter.notifyDataSetChanged();
         return true;
     }
 }

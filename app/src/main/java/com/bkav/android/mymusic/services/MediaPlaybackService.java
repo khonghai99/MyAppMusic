@@ -18,7 +18,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
@@ -37,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class MediaPlaybackService extends Service implements MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnSeekCompleteListener, AudioManager.OnAudioFocusChangeListener {
+        MediaPlayer.OnSeekCompleteListener {
 
     public static final String ACTION_PLAY = "com.bkav.musictest.ACTION_PLAY";
     public static final String ACTION_PAUSE = "com.bkav.musictest.ACTION_PAUSE";
@@ -61,7 +60,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
     // Binder given to clients
     private final IBinder mIBinder = new LocalBinder();
-    private int mStateRepeat;
     private boolean mStateShuffle;
     private StorageUtil mStorageUtil;
     //action notify
@@ -84,8 +82,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     //Used to pause/resume MediaPlayer
     private int mResumePosition;
 
-    private AudioManager mSongManager;
-
     //Becoming noisy
     private BroadcastReceiver mBecomingNoisyReceiver = new BroadcastReceiver() {
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -102,23 +98,19 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         }
     };
 
-    public ArrayList<Song> getSongList() {
-        return mSongList;
+    public void setSongList(ArrayList<Song> songs) {
+        this.mSongList = songs;
     }
-
 
     public Song getActiveAudio() {
         return mSongActive;
     }
-    public void setSongActive(Song song){
+
+    public void setSongActive(Song song) {
         this.mSongActive = song;
     }
 
-    public void setSongList(ArrayList<Song> songs){
-        this.mSongList = songs;
-    }
-
-    public void setSongIndex(int i){
+    public void setSongIndex(int i) {
         this.mSongIndex = i;
     }
 
@@ -134,11 +126,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         } else {
             return MediaPlaybackStatus.PAUSED;
         }
-    }
-
-    public int getAudioIndex() {
-
-        return mSongIndex;
     }
 
     private void stopMedia() {
@@ -178,10 +165,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         //được gọi khi nguồn phương tiện sẵn sàng để phát lại
         mMediaPlayer.setOnPreparedListener(this);
 
-        //Set up MediaPlayer event listeners
-        //được gọi khi bài hát chạy xong
-//        mMediaPlayer.setOnCompletionListener(this);
-
         //được gọi khi một hoạt động tìm kiếm đã hoàn thành.
         mMediaPlayer.setOnSeekCompleteListener(this);
 
@@ -191,7 +174,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         //play a song
         mMediaPlayer.reset();
         mSongIndex = mStorageUtil.loadAudioIndex();
-        mSongList = mStorageUtil.loadAllSongList();
+        mSongList = mStorageUtil.loadSongList();
         mSongActive = song;
         try {
             // Set the data source to the mediaFile location
@@ -313,53 +296,14 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         return mIBinder;
     }
 
-    @Override
-    public void onAudioFocusChange(int i) {
-
-        switch (i) {
-            case AudioManager.AUDIOFOCUS_GAIN:
-
-                // resume playback
-                if (mMediaPlayer == null) initMediaPlayer();
-                else if (!mMediaPlayer.isPlaying()) mMediaPlayer.start();
-                mMediaPlayer.setVolume(1.0f, 1.0f);
-                break;
-            case AudioManager.AUDIOFOCUS_LOSS:
-
-                // Lost focus for an unbounded amount of time: stop playback and release media player
-                if (mMediaPlayer.isPlaying()) mMediaPlayer.stop();
-                mMediaPlayer.release();
-                mMediaPlayer = null;
-                break;
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-
-                // Lost focus for a short time, but we have to stop
-                // playback. We don't release the media player because playback
-                // is likely to resume
-                if (mMediaPlayer.isPlaying()) mMediaPlayer.pause();
-                break;
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-
-                // Lost focus for a short time, but it's ok to keep playing
-                // at an attenuated level
-                if (mMediaPlayer.isPlaying()) mMediaPlayer.setVolume(0.1f, 0.1f);
-                break;
-        }
-    }
-
-    //Bỏ tiêu điểm âm thanh khi phát xong
-    private void removeAudioFocus() {
-        mSongManager.abandonAudioFocus(this);
-    }
-
     /**
      * goi khi bai hat tu dong chuyen tiep
      */
     private void songCompletion() {
         StorageUtil storageUtil = new StorageUtil(getApplicationContext());
-        mStateRepeat = storageUtil.loadStateRepeat();
+        int mStateRepeat = storageUtil.loadStateRepeat();
         mStateShuffle = storageUtil.loadStateShuffle();
-        mSongList = storageUtil.loadAllSongList();
+        mSongList = storageUtil.loadSongList();
         mSongIndex = storageUtil.loadAudioIndex();
         if (mStateShuffle) {
             mSongIndex = random.nextInt(mSongList.size());
@@ -500,7 +444,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             stopMedia();
             mMediaPlayer.release();
         }
-        removeAudioFocus();
 
         //Disable the PhoneStateListener
         if (mPhoneStateListener != null) {

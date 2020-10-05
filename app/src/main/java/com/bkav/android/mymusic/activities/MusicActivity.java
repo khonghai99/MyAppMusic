@@ -34,8 +34,10 @@ import com.bkav.android.mymusic.fragments.MediaPlaybackFragment;
 import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.google.android.material.navigation.NavigationView;
 
+import java.util.Objects;
 
-public class MusicActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+public class MusicActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MediaPlaybackFragment.OnReLoadList {
 
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 1;
     private static final String SERVICE_STATE = "com.bkav.android.mymusic.activities.SERVICE_STATE";
@@ -76,8 +78,8 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             if (mMediaService.getActiveAudio() == null) {
                 StorageUtil storageUtil = new StorageUtil(getApplicationContext());
                 if (storageUtil.loadAudioIndex() != -1) {
-                    mMediaService.setSongActive(storageUtil.loadAllSongList().get(storageUtil.loadAudioIndex()));
-                    mMediaService.setSongList(storageUtil.loadAllSongList());
+                    mMediaService.setSongActive(storageUtil.loadSongList().get(storageUtil.loadAudioIndex()));
+                    mMediaService.setSongList(storageUtil.loadSongList());
                     mMediaService.setSongIndex(storageUtil.loadAudioIndex());
                     mBaseSongListFragment.setDataBottom();
                     mBaseSongListFragment.setVisible(true);
@@ -90,6 +92,12 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             mServiceBound = false;
         }
     };
+
+    public void setAnimation() {
+        if (new StorageUtil(getApplicationContext()).loadAudioIndex() != -1) {
+            mBaseSongListFragment.setSmoothScrollToPosition(new StorageUtil(getApplicationContext()).loadAudioIndex());
+        }
+    }
 
     @Override
     protected void onStart() {
@@ -133,6 +141,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             mDrawer.addDrawerListener(toggle);
             toggle.syncState();
         }
+        mMediaPlaybackFragment.actionReLoad(this);
     }
 
     @Override
@@ -239,12 +248,12 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.nav_music_library:
-                getSupportActionBar().setTitle(R.string.titleToolbarAllSong);
+                Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.titleToolbarAllSong);
                 mBaseSongListFragment = new AllSongsFragment();
                 Toast.makeText(this, R.string.titleToolbarAllSong, Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_music_favorite:
-                getSupportActionBar().setTitle(R.string.titleToolbarFavoriteSong);
+                Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.titleToolbarFavoriteSong);
                 mBaseSongListFragment = new FavoriteSongsFragment();
                 Toast.makeText(this, R.string.titleToolbarFavoriteSong, Toast.LENGTH_SHORT).show();
                 break;
@@ -254,6 +263,8 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             case R.id.nav_help_and_feedback:
                 Toast.makeText(this, "help", Toast.LENGTH_SHORT).show();
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + menuItem.getItemId());
         }
         getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout_all_song, mBaseSongListFragment).commit();
         mDrawer.closeDrawer(GravityCompat.START);
@@ -267,6 +278,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         } else {
             super.onBackPressed();
         }
+        mBaseSongListFragment.setSmoothScrollToPosition(new StorageUtil(getApplicationContext()).loadAudioIndex());
     }
 
     public void listenServiceConnectedForAllSong(OnServiceConnectedListenerForAllSong onServiceConnectedListenerForAllSong) {
@@ -275,6 +287,11 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
 
     public void listenServiceConnectedForMedia(OnServiceConnectedListenerForMedia onServiceConnectedListener) {
         this.mOnServiceConnectedListenerForMedia = onServiceConnectedListener;
+    }
+
+    @Override
+    public void reLoad() {
+        mBaseSongListFragment.updateAdapter();
     }
 
     public interface OnServiceConnectedListenerForAllSong {

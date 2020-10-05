@@ -3,7 +3,6 @@ package com.bkav.android.mymusic.fragments;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -19,7 +18,6 @@ import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
 import com.bkav.android.mymusic.R;
-import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.adapters.SongAdapter;
 import com.bkav.android.mymusic.models.Song;
 import com.bkav.android.mymusic.providers.FavoriteSongsProvider;
@@ -28,7 +26,8 @@ import com.bkav.android.mymusic.providers.MusicDBHelper;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class FavoriteSongsFragment extends BaseSongListFragment implements LoaderManager.LoaderCallbacks<Cursor>, SongAdapter.OnClickPopupListener, PopupMenu.OnMenuItemClickListener {
+public class FavoriteSongsFragment extends BaseSongListFragment implements LoaderManager.LoaderCallbacks<Cursor>,
+        SongAdapter.OnClickPopupListener, PopupMenu.OnMenuItemClickListener {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,9 +60,7 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
         mFavoriteSongList = new ArrayList<>();
         if (cursor != null) {
             cursor.moveToFirst();
-
             while (!cursor.isAfterLast()) {
-
                 int idProvider = cursor.getInt(cursor.getColumnIndex(MusicDBHelper.ID_PROVIDER));
                 Cursor cursorAllSong = getContext().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         null, MediaStore.Audio.Media.IS_MUSIC + " != 0",
@@ -89,8 +86,6 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
                 cursor.moveToNext();
             }
         }
-        StorageUtil storageUtil = new StorageUtil(getContext());
-        storageUtil.storeFavoriteSongList(mFavoriteSongList);
         mSongAdapter.updateSongList(mFavoriteSongList);
         mSongAdapter.setOnClickPopup(this);
     }
@@ -121,5 +116,10 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
         }
         getLoaderManager().restartLoader(0, null, this);
         return true;
+    }
+
+    @Override
+    public void updateAdapter() {
+        getLoaderManager().restartLoader(0, null, this);
     }
 }

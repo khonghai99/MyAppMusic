@@ -19,7 +19,9 @@ public class FavoriteSongsProvider extends ContentProvider {
     public static final int MUSIC_ID = 2;
     // The authority of music content provider.
     public static final String AUTHORITY = "com.bkav.android.mymusic.providers";
-
+    public static final int IS_NUMBER_FAVORITE = 2;
+    public static final int IS_NUMBER_NOT_FAVORITE = 1;
+    public static final int NUMBER_COUNT_DEFAULT = 0;
     static final String SINGLE_MUSIC_MIME_TYPE =
             "vnd.android.cursor.item/vnd.com.bkav.android.mymusic.providers";
     static final String MULTIPLE_MUSICS_MIME_TYPE =
@@ -30,9 +32,6 @@ public class FavoriteSongsProvider extends ContentProvider {
     private static final String MUSIC_PATH = "music";
     public static final String URL = "content://" + AUTHORITY + "/" + MUSIC_PATH;
     public static final Uri CONTENT_URI = Uri.parse(URL);
-    public static final int IS_NUMBER_FAVORITE = 2;
-    public static final int IS_NUMBER_NOT_FAVORITE = 1;
-    public static final int NUMBER_COUNT_DEFAULT = 0;
     // Base uri for this content provider.
     private static String TAG_CONTENT_PROVIDER = "CONTENT_PROVIDER";
     // Declare UriMatcher object.
@@ -195,6 +194,7 @@ public class FavoriteSongsProvider extends ContentProvider {
     }
 
     public void updateCount(int id, int count) {
+
         mContentValues = new ContentValues();
         mContentValues.put(MusicDBHelper.COUNT_OF_PLAY, count);
         mContext.getContentResolver().update(FavoriteSongsProvider.CONTENT_URI, mContentValues,
@@ -202,15 +202,30 @@ public class FavoriteSongsProvider extends ContentProvider {
     }
 
     public void updateFavorite(int id, int favorite) {
-        mContentValues = new ContentValues();
-        mContentValues.put(MusicDBHelper.IS_FAVORITE, favorite);
-        mContext.getContentResolver().update(FavoriteSongsProvider.CONTENT_URI, mContentValues,
-                MusicDBHelper.ID_PROVIDER + "=" + id, null);
+        Cursor cursor = mContext.getContentResolver().query(FavoriteSongsProvider.CONTENT_URI,
+                new String[]{MusicDBHelper.ID_PROVIDER}, MusicDBHelper.ID_PROVIDER + " = " + id,
+                null, null);
+        if (cursor != null) {
+            cursor.moveToFirst();
+            if (cursor.getCount() > 0) {
+                mContentValues = new ContentValues();
+                mContentValues.put(MusicDBHelper.IS_FAVORITE, favorite);
+                mContext.getContentResolver().update(FavoriteSongsProvider.CONTENT_URI, mContentValues,
+                        MusicDBHelper.ID_PROVIDER + "=" + id, null);
+            } else {
+                mContentValues = new ContentValues();
+                mContentValues.put(MusicDBHelper.ID_PROVIDER, id);
+                mContentValues.put(MusicDBHelper.COUNT_OF_PLAY, DEFAULT_INSERT_COUNT_OF_PLAY);
+                mContentValues.put(MusicDBHelper.IS_FAVORITE, favorite);
+                mContext.getContentResolver().insert(FavoriteSongsProvider.CONTENT_URI, mContentValues);
+            }
+        }
     }
 
     public void insertFavoriteSongToDB(int id) {
-        Cursor cursor = mContext.getContentResolver().query(FavoriteSongsProvider.CONTENT_URI, new String[]{MusicDBHelper.COUNT_OF_PLAY,
-                MusicDBHelper.ID_PROVIDER}, MusicDBHelper.ID_PROVIDER + " = " + id, null, null);
+        Cursor cursor = mContext.getContentResolver().query(FavoriteSongsProvider.CONTENT_URI,
+                new String[]{MusicDBHelper.COUNT_OF_PLAY, MusicDBHelper.ID_PROVIDER},
+                MusicDBHelper.ID_PROVIDER + " = " + id, null, null);
         if (cursor != null) {
             cursor.moveToFirst();
             if (cursor.getCount() > 0) {
