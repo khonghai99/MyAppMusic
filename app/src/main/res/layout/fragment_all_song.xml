@@ -1,24 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycle_list_song"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignWithParentIfMissing="true"
         android:layout_above="@+id/layout_bottom_all_song"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:layout_weight="1" />
+        android:orientation="vertical">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycle_list_song"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tvIfNotMusic"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignWithParentIfMissing="true"
+            android:gravity="center"
+            android:text="@string/no_music"
+            android:textSize="@dimen/text_size_no_music"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/layout_bottom_all_song"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="55dp"
         android:layout_alignParentBottom="true"
         android:layout_weight="11"
         android:background="@drawable/border_shadow"
@@ -73,9 +88,9 @@
             android:layout_width="@dimen/width_height_image_bottom_all_song"
             android:layout_height="@dimen/width_height_image_bottom_all_song"
             android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
+            android:layout_alignParentBottom="true"
             android:src="@mipmap/ic_media_pause_light" />
     </RelativeLayout>
 
 
-</LinearLayout>
+</RelativeLayout>

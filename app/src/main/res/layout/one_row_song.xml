@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layoutRelativeOneRow"
+    android:id="@+id/layout_relative_one_row"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingTop="@dimen/padding_top"

@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -50,6 +51,7 @@ public abstract class BaseSongListFragment extends Fragment implements View.OnCl
     protected ImageView mImagePauseBottomAllSongImageView;
     protected MediaPlaybackService mMediaPlaybackService;
     protected Song mSong;
+    protected TextView mNoMusicTextView;
     protected StorageUtil mStorage;
     protected PopupMenu mPopup;
     protected int mPositionPopup;
@@ -108,6 +110,7 @@ public abstract class BaseSongListFragment extends Fragment implements View.OnCl
         mImagePauseBottomAllSongImageView = view.findViewById(R.id.pause_bottom_all_song);
         mBottomAllSongRelativeLayout = view.findViewById(R.id.layout_bottom_all_song);
         mTitleBottomAllSongTextView.setSelected(true);
+        mNoMusicTextView = view.findViewById(R.id.tvIfNotMusic);
         mRecyclerView = view.findViewById(R.id.recycle_list_song);
     }
 
@@ -262,10 +265,11 @@ public abstract class BaseSongListFragment extends Fragment implements View.OnCl
     public void showMediaFragment() {
         FragmentManager mFragmentManager = Objects.requireNonNull(getMusicActivity()).getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frame_layout_media, getMusicActivity().mMediaPlaybackFragment);
+        fragmentTransaction.replace(R.id.frame_layout_all_song, getMusicActivity().mMediaPlaybackFragment);
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
+        getMusicActivity().getSupportActionBar().hide();
     }
 
     /**

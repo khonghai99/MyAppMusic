@@ -44,9 +44,9 @@
             android:id="@+id/dislike"
             android:layout_width="@dimen/width_height_icon"
             android:layout_height="@dimen/width_height_icon"
-            android:layout_alignParentEnd="true"
+            android:layout_toRightOf="@id/next"
             android:layout_marginTop="@dimen/icon_margin_top"
-            android:layout_marginEnd="@dimen/like_dislike_margin"
+            android:layout_marginLeft="@dimen/like_dislike_margin"
             android:background="@mipmap/ic_thumbs_down_default" />
 
         <ImageView
@@ -54,8 +54,8 @@
             android:layout_width="@dimen/width_height_icon"
             android:layout_height="@dimen/width_height_icon"
             android:layout_alignTop="@id/dislike"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="@dimen/like_dislike_margin"
+            android:layout_toLeftOf="@id/previous"
+            android:layout_marginRight="@dimen/like_dislike_margin"
             android:background="@mipmap/ic_thumbs_up_default" />
 
         <ImageView

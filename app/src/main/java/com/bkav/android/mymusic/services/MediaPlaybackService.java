@@ -18,6 +18,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
@@ -219,9 +220,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     }
 
     //set text when customContentView
-    private void setTextNotify(RemoteViews remoteViews, int idTitle, int idArtist) {
-        remoteViews.setTextViewText(idTitle, mSongActive.getTitle());
-        remoteViews.setTextViewText(idArtist, mSongActive.getArtist());
+    private void setTextNotify(RemoteViews remoteViews) {
+        remoteViews.setTextViewText(R.id.big_title, mSongActive.getTitle());
+        remoteViews.setTextViewText(R.id.big_artist, mSongActive.getArtist());
     }
 
     private void buildNotification(MediaPlaybackStatus mediaPlaybackStatus) {
@@ -255,7 +256,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         notificationLayoutExpanded.setOnClickPendingIntent(R.id.big_pause, playPauseAction);
         notificationLayoutExpanded.setImageViewResource(R.id.big_pause, notificationAction);
         setImageNotify(notificationLayoutExpanded, R.id.big_picture);
-        setTextNotify(notificationLayoutExpanded, R.id.big_title, R.id.big_artist);
+        setTextNotify(notificationLayoutExpanded);
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             // Create a NotificationChannel
@@ -304,9 +305,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         int mStateRepeat = storageUtil.loadStateRepeat();
         mStateShuffle = storageUtil.loadStateShuffle();
         mSongList = storageUtil.loadSongList();
-        mSongIndex = storageUtil.loadAudioIndex();
         if (mStateShuffle) {
             mSongIndex = random.nextInt(mSongList.size());
+        } else {
+            mSongIndex = storageUtil.loadAudioIndex();
         }
         switch (mStateRepeat) {
             case NO_REPEAT_CODE:
@@ -318,9 +320,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
                         stopForeground(STOP_FOREGROUND_DETACH);
                     }
                 } else {
-
+                    mSongIndex = mSongIndex + 1;
                     //get next in playlist
-                    mSongActive = mSongList.get(++mSongIndex);
+                    mSongActive = mSongList.get(mSongIndex);
+                    Log.i("HaiKH", "songCompletion: " + mSongIndex);
                     playSongWhenComplete();
                 }
                 break;
@@ -351,8 +354,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     public void playSongWhenComplete() {
         playMedia();
         buildNotification(MediaPlaybackStatus.PLAYING);
-        //Update stored index
+        //Update stored index and id
         mStorageUtil.storeAudioIndex(mSongIndex);
+        mStorageUtil.storeAudioID(mSongActive.getID());
         playSong(mSongActive);
 
     }
@@ -500,24 +504,22 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
         StorageUtil storageUtil = new StorageUtil(getApplicationContext());
         mStateShuffle = storageUtil.loadStateShuffle();
-
+        mSongIndex = storageUtil.loadAudioIndex();
+        mSongList = storageUtil.loadSongList();
+        Log.i("HaiKH", "skipToNext: " + mSongList.size());
         if (mStateShuffle) {
             mSongIndex = random.nextInt(mSongList.size());
-            mSongActive = mSongList.get(mSongIndex);
         } else {
             if (mSongIndex == mSongList.size() - 1) {
-
                 //if last in playlist
                 mSongIndex = 0;
-                mSongActive = mSongList.get(mSongIndex);
             } else {
-
                 //get next in playlist
-                mSongActive = mSongList.get(++mSongIndex);
+                mSongIndex = mSongIndex + 1;
             }
         }
+        mSongActive = mSongList.get(mSongIndex);
         mOnNotificationListener.onUpdate();
-
         //Update stored index
         mStorageUtil.storeAudioIndex(mSongIndex);
         mStorageUtil.storeAudioID(mSongActive.getID());

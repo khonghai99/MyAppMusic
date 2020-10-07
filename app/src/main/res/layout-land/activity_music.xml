@@ -1,45 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/layout_horizontal"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:measureAllChildren="true"
+    android:fitsSystemWindows="true"
     tools:context="com.bkav.android.mymusic.activities.MusicActivity">
 
-    <include
-        android:id="@+id/toolbar_include"
-        layout="@layout/drawer_toolbar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true" />
-
-    <LinearLayout
+    <RelativeLayout
+        android:id="@+id/layout_vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/toolbar_include"
-        android:orientation="horizontal">
+        android:clickable="true"
+        android:focusable="true"
+        android:measureAllChildren="true">
 
-        <FrameLayout
-            android:id="@+id/frame_layout_land_all_song"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/toolbar_include"
+        <include
+            android:id="@+id/toolbar_include"
+            layout="@layout/drawer_toolbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_alignParentBottom="true"
-            android:layout_weight="5" />
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true" />
 
-        <FrameLayout
-            android:id="@+id/frame_layout_land_media"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/toolbar_include"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_toRightOf="@id/frame_layout_land_all_song"
-            android:layout_weight="3" />
-    </LinearLayout>
+            android:orientation="horizontal">
 
-</RelativeLayout>
+            <FrameLayout
+                android:id="@+id/frame_layout_all_song"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/toolbar_include"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentBottom="true"
+                android:layout_weight="5" />
+
+            <FrameLayout
+                android:id="@+id/frame_layout_land_media"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/toolbar_include"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentBottom="true"
+                android:layout_toRightOf="@id/frame_layout_all_song"
+                android:layout_weight="3" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/menu_drawer" />
+</androidx.drawerlayout.widget.DrawerLayout>

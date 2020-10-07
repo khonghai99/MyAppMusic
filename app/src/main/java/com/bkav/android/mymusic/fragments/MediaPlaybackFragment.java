@@ -1,12 +1,15 @@
 package com.bkav.android.mymusic.fragments;
 
+import android.annotation.SuppressLint;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -29,19 +32,17 @@ import com.bkav.android.mymusic.services.MediaPlaybackService;
 import com.bumptech.glide.Glide;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Objects;
 
 public class MediaPlaybackFragment extends Fragment implements View.OnClickListener {
-    private static final String KEY_SONG = "com.bkav.android.mymusic.fragments.SONG";
     private static final int NO_REPEAT = 0;
     private static final int REPEAT_ALL_LIST = 1;
     private static final int REPEAT_ONE_SONG = 2;
-    private static final String KEY_PLAYBACK = "com.bkav.android.mymusic.fragments.PLAY_BACK";
     private OnReLoadList mOnReLoadList;
     private StorageUtil mStorageUtil;
     private ImageView mImageTopMediaImageView;
     private TextView mTitleTopMediaTextView;
+    private TextView mNoMusicTextView;
     private TextView mArtistTopMediaTextView;
     private ImageView mPopupTopMediaImageView;
     private ImageView mListMusicImageView;
@@ -56,10 +57,10 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     private ImageView mShuffleImageView;
     private TextView mStartTimeTextView;
     private TextView mEndTimeTextView;
-    private ArrayList<Song> mSongList;
     private MediaPlaybackService mMediaPlaybackService;
     private boolean mStateShuffle;
     private int mStateRepeat;
+    private FrameLayout mMusicLayout;
 
     /**
      * get service
@@ -88,17 +89,22 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         runSeekBar(mSeekBar);
         setOnClick();
 
-        if (getMediaPlayerService() != null) {
-            mMediaPlaybackService = getMediaPlayerService();
-            update();
-        }
+
         Objects.requireNonNull(getMusicActivity()).listenServiceConnectedForMedia(new MusicActivity.OnServiceConnectedListenerForMedia() {
             @Override
             public void onConnect() {
+                Log.i("HaiKH", "onCreateView:1 " + getMediaPlayerService());
                 mMediaPlaybackService = getMediaPlayerService();
+                Log.i("HaiKH", "onCreateView: ommmmmmm");
                 update();
             }
         });
+        if (getMediaPlayerService() != null) {
+            Log.i("HaiKH", "onCreateView:2 " + getMediaPlayerService());
+            mMediaPlaybackService = getMediaPlayerService();
+            update();
+        }
+        Log.i("HaiKH", "onCreateView: " + mMediaPlaybackService);
 
         return view;
     }
@@ -107,8 +113,6 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mStorageUtil = new StorageUtil(getContext());
-        mSongList = mStorageUtil.loadSongList();
-
         getNewStateRepeatAndShuffle();
     }
 
@@ -140,7 +144,10 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         mPreviousImageView.setOnClickListener(this);
         mPauseImageView.setOnClickListener(this);
         mBackgroundMediaImageView.setOnClickListener(this);
-        mListMusicImageView.setOnClickListener(this);
+        if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
+            mListMusicImageView.setOnClickListener(this);
+        }
+        mPopupTopMediaImageView.setOnClickListener(this);
         mRepeatImageView.setOnClickListener(this);
         mShuffleImageView.setOnClickListener(this);
         mTitleTopMediaTextView.setSelected(true);
@@ -154,7 +161,9 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         //top media
         mArtistTopMediaTextView = view.findViewById(R.id.artist_top_media);
         mTitleTopMediaTextView = view.findViewById(R.id.title_top_media);
-        mListMusicImageView = view.findViewById(R.id.back_list_music);
+        if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
+            mListMusicImageView = view.findViewById(R.id.back_list_music);
+        }
 
         //bottom media
         mSeekBar = view.findViewById(R.id.seek_bar);
@@ -167,6 +176,10 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         mEndTimeTextView = view.findViewById(R.id.end_time_seek_bar);
         mRepeatImageView = view.findViewById(R.id.repeat);
         mShuffleImageView = view.findViewById(R.id.shuffle);
+        mNoMusicTextView = view.findViewById(R.id.tvIfNotMusicMedia);
+        mMusicLayout = view.findViewById(R.id.frame_layout);
+
+
     }
 
     private void getNewStateRepeatAndShuffle() {
@@ -176,49 +189,58 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
 
     public void setUIMedia() {
         Song songActive = mStorageUtil.loadSongActive();
-        String path = songActive.getPath();
-        byte[] art = ImageSong.getByteImageSong(path);
-        Glide.with(Objects.requireNonNull(getContext())).asBitmap()
-                .error(R.mipmap.ic_music_not_picture)
-                .load(art)
-                .into(mImageTopMediaImageView);
-        Glide.with(getContext()).asBitmap()
-                .error(R.mipmap.ic_music_not_picture)
-                .load(art)
-                .into(mBackgroundMediaImageView);
-        mArtistTopMediaTextView.setText(songActive.getArtist());
-        mTitleTopMediaTextView.setText(songActive.getTitle());
-        getNewStateRepeatAndShuffle();
-        if (mStateRepeat == NO_REPEAT) {
-            mRepeatImageView.setImageResource(R.mipmap.ic_repeat_white);
-        } else if (mStateRepeat == REPEAT_ALL_LIST) {
-            mRepeatImageView.setImageResource(R.mipmap.ic_repeat_dark_selected);
-        } else if (mStateRepeat == REPEAT_ONE_SONG) {
-            mRepeatImageView.setImageResource(R.mipmap.ic_repeat_one_song_dark);
+        if (songActive != null) {
+            if (!Objects.requireNonNull(getMusicActivity()).getStateUI()){
+                mNoMusicTextView.setVisibility(View.GONE);
+                mMusicLayout.setVisibility(View.VISIBLE);
+            }
+            String path = songActive.getPath();
+            byte[] art = ImageSong.getByteImageSong(path);
+            Glide.with(Objects.requireNonNull(getContext())).asBitmap()
+                    .error(R.mipmap.ic_music_not_picture)
+                    .load(art)
+                    .into(mImageTopMediaImageView);
+            Glide.with(getContext()).asBitmap()
+                    .error(R.mipmap.ic_music_not_picture)
+                    .load(art)
+                    .into(mBackgroundMediaImageView);
+            mArtistTopMediaTextView.setText(songActive.getArtist());
+            mTitleTopMediaTextView.setText(songActive.getTitle());
+            getNewStateRepeatAndShuffle();
+            if (mStateRepeat == NO_REPEAT) {
+                mRepeatImageView.setImageResource(R.mipmap.ic_repeat_white);
+            } else if (mStateRepeat == REPEAT_ALL_LIST) {
+                mRepeatImageView.setImageResource(R.mipmap.ic_repeat_dark_selected);
+            } else if (mStateRepeat == REPEAT_ONE_SONG) {
+                mRepeatImageView.setImageResource(R.mipmap.ic_repeat_one_song_dark);
+            }
+            if (mStateShuffle) {
+                mShuffleImageView.setImageResource(R.mipmap.ic_play_shuffle_orange);
+            } else {
+                mShuffleImageView.setImageResource(R.mipmap.ic_shuffle_white);
+            }
+            if (checkFavorite(new StorageUtil(getContext()).loadAudioID())) {
+                mLikeImageView.setImageResource(R.mipmap.ic_thumbs_up_selected);
+            } else mLikeImageView.setImageResource(R.mipmap.ic_thumbs_up_default);
+            updateSeekBar();
+        }else {
+            if (Objects.requireNonNull(getMusicActivity()).getStateUI()){
+                mNoMusicTextView.setVisibility(View.VISIBLE);
+                mMusicLayout.setVisibility(View.GONE);
+            }
         }
-        if (mStateShuffle) {
-            mShuffleImageView.setImageResource(R.mipmap.ic_play_shuffle_orange);
-        } else {
-            mShuffleImageView.setImageResource(R.mipmap.ic_shuffle_white);
-        }
-        if (checkFavorite(new StorageUtil(getContext()).loadAudioID())) {
-            mLikeImageView.setImageResource(R.mipmap.ic_thumbs_up_selected);
-        } else mLikeImageView.setImageResource(R.mipmap.ic_thumbs_up_default);
-        updateSeekBar();
+
+
     }
 
     private boolean checkFavorite(int id) {
         String selection = MusicDBHelper.IS_FAVORITE + " = 2";
-        Cursor cursor = getContext().getContentResolver().query(FavoriteSongsProvider.CONTENT_URI,
+        @SuppressLint("Recycle") Cursor cursor = Objects.requireNonNull(getContext()).getContentResolver().query(FavoriteSongsProvider.CONTENT_URI,
                 new String[]{MusicDBHelper.ID_PROVIDER}, MusicDBHelper.ID_PROVIDER + " = " + id + " and " + selection,
                 null, null);
         if (cursor != null) {
             cursor.moveToFirst();
-            if (cursor.getCount() > 0) {
-                return true;
-            } else {
-                return false;
-            }
+            return cursor.getCount() > 0;
         } else return false;
     }
 
@@ -232,15 +254,17 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     public void onClick(View view) {
         int id = view.getId();
         switch (id) {
+            case R.id.popup_top_media:
             case R.id.image_background_media:
+                break;
             case R.id.like:
                 if (checkFavorite(new StorageUtil(getContext()).loadAudioID())) {
-                    Toast.makeText(getContext(), "Added to favorite", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), R.string.toast_removed_from_favorite, Toast.LENGTH_SHORT).show();
                     FavoriteSongsProvider favoriteSongsProvider = new FavoriteSongsProvider(getContext());
                     favoriteSongsProvider.updateFavorite(new StorageUtil(getContext()).loadAudioID(), FavoriteSongsProvider.IS_NUMBER_NOT_FAVORITE);
                     mLikeImageView.setImageResource(R.mipmap.ic_thumbs_up_default);
                 } else {
-                    Toast.makeText(getContext(), "Removed from favorite", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), R.string.toast_added_to_favorite, Toast.LENGTH_SHORT).show();
                     FavoriteSongsProvider favoriteSongsProvider = new FavoriteSongsProvider(getContext());
                     favoriteSongsProvider.updateFavorite(new StorageUtil(getContext()).loadAudioID(), FavoriteSongsProvider.IS_NUMBER_FAVORITE);
                     mLikeImageView.setImageResource(R.mipmap.ic_thumbs_up_selected);
@@ -280,6 +304,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
             case R.id.back_list_music:
                 if (getFragmentManager() != null) {
                     getFragmentManager().popBackStack();
+                    getMusicActivity().getSupportActionBar().show();
                 }
                 break;
             case R.id.next:
@@ -288,7 +313,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                 setBottomBaseSong(getSong(), MediaPlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setUIMedia();
-                getMusicActivity().setAnimation();
+                Objects.requireNonNull(getMusicActivity()).setAnimation();
                 break;
             case R.id.previous:
                 mMediaPlaybackService.skipToPrevious();
@@ -296,7 +321,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                 setBottomBaseSong(getSong(), MediaPlaybackStatus.PLAYING);
                 mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                 setUIMedia();
-                getMusicActivity().setAnimation();
+                Objects.requireNonNull(getMusicActivity()).setAnimation();
                 break;
             case R.id.pause:
                 if (mMediaPlaybackService.isPlayingState() == MediaPlaybackStatus.PLAYING) {
@@ -315,6 +340,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                     mPauseImageView.setImageResource(R.drawable.ic_button_playing);
                     setBottomBaseSong(getSong(), MediaPlaybackStatus.PLAYING);
                 }
+                mOnReLoadList.reLoad();
                 break;
         }
     }
@@ -337,7 +363,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
 
     private void updateSeekBar() {
         if (mMediaPlaybackService != null) {
-            final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("mm:ss");
+            @SuppressLint("SimpleDateFormat") final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("mm:ss");
             if (mMediaPlaybackService.getActiveAudio() == null) {
                 mMediaPlaybackService.setSongActive(mStorageUtil.loadSongActive());
             }

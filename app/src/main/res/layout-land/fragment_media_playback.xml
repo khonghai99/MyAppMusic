@@ -1,47 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layoutFragmentMedia"
+    android:id="@+id/layout_fragment_media"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ImageView
-        android:id="@+id/image_background_media"
-        android:layout_width="300dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:scaleType="fitXY"
-        android:src="@mipmap/chieu_hom_ay" />
-
-    <include
-        layout="@layout/layout_top_media"
+    <FrameLayout
+        android:id="@+id/frame_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top" />
+        android:layout_height="match_parent">
 
-    <ImageView
-        android:id="@+id/repeat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_marginStart="25dp"
-        android:layout_marginBottom="120dp"
-        android:scaleType="center"
-        android:src="@mipmap/ic_repeat_white" />
+        <ImageView
+            android:id="@+id/image_background_media"
+            android:layout_width="@dimen/width_image_background"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:scaleType="fitXY"
+            android:src="@mipmap/chieu_hom_ay" />
 
-    <ImageView
-        android:id="@+id/shuffle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="25dp"
-        android:layout_marginBottom="120dp"
-        android:scaleType="center"
-        android:src="@mipmap/ic_shuffle_white" />
+        <include
+            layout="@layout/layout_top_media"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top" />
 
-    <include
-        layout="@layout/layout_bottom_media"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom" />
+        <ImageView
+            android:id="@+id/repeat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="@dimen/repeat_and_shuffle_margin_land"
+            android:layout_marginBottom="@dimen/repeat_and_shuffle_margin_bottom"
+            android:scaleType="center"
+            android:src="@mipmap/ic_repeat_white" />
 
+        <ImageView
+            android:id="@+id/shuffle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="@dimen/repeat_and_shuffle_margin_land"
+            android:layout_marginBottom="@dimen/repeat_and_shuffle_margin_bottom"
+            android:scaleType="center"
+            android:src="@mipmap/ic_shuffle_white" />
+
+        <include
+            layout="@layout/layout_bottom_media"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvIfNotMusicMedia"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/no_music"
+        android:textSize="@dimen/text_size_no_music"
+        android:textStyle="bold"
+        android:visibility="gone" />
 </FrameLayout>

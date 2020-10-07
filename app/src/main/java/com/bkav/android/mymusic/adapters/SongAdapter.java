@@ -5,9 +5,11 @@ import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -68,7 +70,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
             } else {
                 holder.isSongDefault();
             }
-            holder.tvID.setText(String.valueOf(position + 1));
+            holder.mIdTextView.setText(String.valueOf(position + 1));
             holder.toBind(song);
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -76,12 +78,13 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
                     mOnNewClickListener.onNewClick(mSongList, position);
                 }
             });
-            holder.ivShowPopupMenu.setOnClickListener(new View.OnClickListener() {
+            holder.mPopupMenuImageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     mOnClickPopupListener.onClickPopup(view,position);
                 }
             });
+//            holder.mRelativeLayoutOneRow.setAnimation(AnimationUtils.loadAnimation(mContext,R.anim.fade_scale_animation));
         }
     }
 
@@ -115,19 +118,21 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
     }
 
     public static class SongHolder extends RecyclerView.ViewHolder {
-        private EqualizerView equalizer;
-        private TextView tvID;
-        private TextView tvTitleSong;
-        private TextView tvDuration;
-        private ImageView ivShowPopupMenu;
+        private EqualizerView mEqualizer;
+        private TextView mIdTextView;
+        private TextView mTitleTextView;
+        private TextView mDurationTextView;
+        private ImageView mPopupMenuImageView;
+//        private RelativeLayout mRelativeLayoutOneRow;
 
         public SongHolder(@NonNull final View itemView) {
             super(itemView);
-            tvID = itemView.findViewById(R.id.id);
-            tvTitleSong = itemView.findViewById(R.id.title_one_row);
-            tvDuration = itemView.findViewById(R.id.duration_one_row);
-            equalizer = (EqualizerView) itemView.findViewById(R.id.equalizer_view);
-            ivShowPopupMenu = itemView.findViewById(R.id.popup_one_row);
+            mIdTextView = itemView.findViewById(R.id.id);
+            mTitleTextView = itemView.findViewById(R.id.title_one_row);
+            mDurationTextView = itemView.findViewById(R.id.duration_one_row);
+            mEqualizer = (EqualizerView) itemView.findViewById(R.id.equalizer_view);
+            mPopupMenuImageView = itemView.findViewById(R.id.popup_one_row);
+//            mRelativeLayoutOneRow = itemView.findViewById(R.id.layout_relative_one_row);
 
         }
 
@@ -137,8 +142,8 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
          * @param song object Song
          */
         public void toBind(Song song) {
-            tvTitleSong.setText(song.getTitle());
-            tvDuration.setText(song.getDuration());
+            mTitleTextView.setText(song.getTitle());
+            mDurationTextView.setText(song.getDuration());
 
         }
 
@@ -146,24 +151,24 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
          * set item recycler on play song
          */
         public void isClickSong(MediaPlaybackStatus status) {
-            tvID.setVisibility(View.INVISIBLE);
-            equalizer.setVisibility(View.VISIBLE);
+            mIdTextView.setVisibility(View.INVISIBLE);
+            mEqualizer.setVisibility(View.VISIBLE);
             if (status.equals(MediaPlaybackStatus.PLAYING)) {
-                equalizer.animateBars();
+                mEqualizer.animateBars();
             } else {
-                equalizer.stopBars();
+                mEqualizer.stopBars();
             }
-            tvTitleSong.setTypeface(Typeface.DEFAULT_BOLD);
+            mTitleTextView.setTypeface(Typeface.DEFAULT_BOLD);
         }
 
         /**
          * set item recycler default
          */
         public void isSongDefault() {
-            tvID.setVisibility(View.VISIBLE);
-            equalizer.setVisibility(View.INVISIBLE);
-            equalizer.animateBars();
-            tvTitleSong.setTypeface(Typeface.DEFAULT);
+            mIdTextView.setVisibility(View.VISIBLE);
+            mEqualizer.setVisibility(View.INVISIBLE);
+            mEqualizer.animateBars();
+            mTitleTextView.setTypeface(Typeface.DEFAULT);
         }
 
     }

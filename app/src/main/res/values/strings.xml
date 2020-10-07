@@ -6,8 +6,8 @@
     <string name="default_album_song">Jaykii</string>
     <string name="default_start_time_song">0:0</string>
     <string name="description_service">Service play music</string>
-    <string name="titleToolbarAllSong">Music</string>
-    <string name="titleToolbarFavoriteSong">Favorite Song</string>
+    <string name="title_toolbar_all_song">Music</string>
+    <string name="title_toolbar_favorite_song">Favorite Song</string>
     <string name="title_drawer_setting">Setting</string>
     <string name="title_drawer_listen_now">Listen Now</string>
     <string name="title_drawer_recent">Recents</string>
@@ -17,5 +17,8 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="title_add_to_favorite">Add to Favorite</string>
+    <string name="toast_added_to_favorite">Added to Favorite</string>
     <string name="title_remove_favorite">Remove from Favorite</string>
+    <string name="toast_removed_from_favorite">Removed from Favorite</string>
+    <string name="no_music">No song yet</string>
 </resources>

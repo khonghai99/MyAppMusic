@@ -4,6 +4,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +19,7 @@ import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
 import com.bkav.android.mymusic.R;
+import com.bkav.android.mymusic.StorageUtil;
 import com.bkav.android.mymusic.adapters.SongAdapter;
 import com.bkav.android.mymusic.models.Song;
 import com.bkav.android.mymusic.providers.FavoriteSongsProvider;
@@ -86,8 +88,16 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
                 cursor.moveToNext();
             }
         }
+
         mSongAdapter.updateSongList(mFavoriteSongList);
         mSongAdapter.setOnClickPopup(this);
+        if (mFavoriteSongList.size() == 0) {
+            mRecyclerView.setVisibility(View.GONE);
+            mNoMusicTextView.setVisibility(View.VISIBLE);
+        }else {
+            mRecyclerView.setVisibility(View.VISIBLE);
+            mNoMusicTextView.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -121,5 +131,6 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
     @Override
     public void updateAdapter() {
         getLoaderManager().restartLoader(0, null, this);
+        mSongAdapter.notifyDataSetChanged();
     }
 }

@@ -14,5 +14,6 @@
     <color name="progressTintSeekBar">#FF5722</color>
     <color name="thumbTintSeekBar">#FF5722</color>
     <color name="colorLineHorizontal">#ACAAAB</color>
+    <color name="colorBorderCircleImage">#00FF0A</color>
 
 </resources>

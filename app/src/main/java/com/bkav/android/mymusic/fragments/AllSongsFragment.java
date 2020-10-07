@@ -85,6 +85,13 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
         storageUtil.storeSongList(mAllSongList);
         mSongAdapter.updateSongList(mAllSongList);
         mSongAdapter.setOnClickPopup(this);
+        if (mAllSongList.size() == 0) {
+            mRecyclerView.setVisibility(View.GONE);
+            mNoMusicTextView.setVisibility(View.VISIBLE);
+        }else {
+            mRecyclerView.setVisibility(View.VISIBLE);
+            mNoMusicTextView.setVisibility(View.GONE);
+        }
     }
 
     @Override
