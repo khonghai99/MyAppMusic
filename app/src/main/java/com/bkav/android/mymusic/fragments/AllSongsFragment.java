@@ -4,7 +4,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -60,7 +59,8 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
                 MediaStore.Audio.AudioColumns.DATA
         };
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        return new CursorLoader(Objects.requireNonNull(getContext()), uri, projection, selection, null, null);
+        return new CursorLoader(Objects.requireNonNull(getContext()), uri, projection, selection,
+                null, null);
     }
 
     @Override
@@ -79,16 +79,16 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
                     mAllSongList.add(new Song(id, title, artist, duration, path));
                 }
             }
-
         }
         StorageUtil storageUtil = new StorageUtil(getContext());
         storageUtil.storeSongList(mAllSongList);
+        storageUtil.storeStateFavorite(false);
         mSongAdapter.updateSongList(mAllSongList);
         mSongAdapter.setOnClickPopup(this);
         if (mAllSongList.size() == 0) {
             mRecyclerView.setVisibility(View.GONE);
             mNoMusicTextView.setVisibility(View.VISIBLE);
-        }else {
+        } else {
             mRecyclerView.setVisibility(View.VISIBLE);
             mNoMusicTextView.setVisibility(View.GONE);
         }
@@ -109,7 +109,9 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
         String[] projection = {MusicDBHelper.ID_PROVIDER};
         ArrayList<Integer> idList = new ArrayList<>();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            Cursor cursor = getContext().getContentResolver().query(FavoriteSongsProvider.CONTENT_URI, projection, selection, null, null);
+            Cursor cursor = Objects.requireNonNull(getContext()).getContentResolver().
+                    query(FavoriteSongsProvider.CONTENT_URI, projection, selection,
+                            null, null);
             if (cursor != null) {
                 cursor.moveToFirst();
                 while (!cursor.isAfterLast()) {
@@ -117,7 +119,9 @@ public class AllSongsFragment extends BaseSongListFragment implements LoaderMana
                     cursor.moveToNext();
                 }
             }
-            cursor.close();
+            if (cursor != null) {
+                cursor.close();
+            }
         }
         return idList;
     }

@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -37,33 +38,31 @@ import com.google.android.material.navigation.NavigationView;
 import java.util.Objects;
 
 
-public class MusicActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MediaPlaybackFragment.OnReLoadList {
+public class MusicActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
+        MediaPlaybackFragment.OnReLoadList {
 
+    // permission request
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 1;
-    private static final String SERVICE_STATE = "com.bkav.android.mymusic.activities.SERVICE_STATE";
-    private static final String AUDIO_INDEX = "com.bkav.android.mymusic.activities.AUDIO_INDEX";
+
     public MediaPlaybackFragment mMediaPlaybackFragment;
     public BaseSongListFragment mBaseSongListFragment;
     protected MediaPlaybackService mMediaService;
     private OnServiceConnectedListenerForAllSong mOnServiceConnectedListenerForAllSong;
     private OnServiceConnectedListenerForMedia mOnServiceConnectedListenerForMedia;
-    private int mCurrentPosition;
     private boolean mIsVertical = false;
-    private boolean mServiceBound = false;
     private Intent mPlayIntent;
     private DrawerLayout mDrawer;
-    private ActionBarDrawerToggle mToggle;
-    private NavigationView mNavigationView;
 
-    // Ràng buộc Client này với MusicPlayer
+    // Binding this Client to the Service
     private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
 
-            // Đã liên kết với LocalService, truyền IBinder
+            // Bound to LocalService, cast the IBinder and get LocalService instance
             MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
             mMediaService = binder.getService();
-            mServiceBound = true;
+            // Connect service for fragment all song
             mOnServiceConnectedListenerForAllSong.onConnect();
             if (mMediaPlaybackFragment.getView() != null) {
                 mOnServiceConnectedListenerForMedia.onConnect();
@@ -91,10 +90,12 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            mServiceBound = false;
         }
     };
 
+    /**
+     * set animation for item of recycler view: show in screen
+     */
     public void setAnimation() {
         if (new StorageUtil(getApplicationContext()).loadAudioIndex() != -1) {
             mBaseSongListFragment.setSmoothScrollToPosition(new StorageUtil(getApplicationContext()).loadAudioIndex());
@@ -132,12 +133,13 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             ActivityCompat.requestPermissions(MusicActivity.this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
         }
-        mNavigationView = findViewById(R.id.nav_view);
+        NavigationView mNavigationView = findViewById(R.id.nav_view);
         mDrawer = findViewById(R.id.drawer_layout);
 
-        mToggle = new ActionBarDrawerToggle(this, mDrawer, toolbar,
+        ActionBarDrawerToggle mToggle = new ActionBarDrawerToggle(this, mDrawer, toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawer.addDrawerListener(mToggle);
         mNavigationView.setNavigationItemSelectedListener(this);
@@ -147,40 +149,11 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     }
 
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (mToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        ;
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putBoolean(SERVICE_STATE, mServiceBound);
-        savedInstanceState.putInt(AUDIO_INDEX, mCurrentPosition);
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (mMediaService != null) {
             unbindService(mServiceConnection);
         }
-
-    }
-
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        mServiceBound = savedInstanceState.getBoolean(SERVICE_STATE);
-        mCurrentPosition = savedInstanceState.getInt(AUDIO_INDEX);
     }
 
     /**
@@ -218,7 +191,8 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         } else {
 
             FragmentTransaction mFragmentTransactionTwo = mFragmentManager.beginTransaction();
-            mFragmentTransactionTwo.replace(R.id.frame_layout_all_song, mBaseSongListFragment).replace(R.id.frame_layout_land_media, mMediaPlaybackFragment);
+            mFragmentTransactionTwo.replace(R.id.frame_layout_all_song, mBaseSongListFragment).
+                    replace(R.id.frame_layout_land_media, mMediaPlaybackFragment);
             mFragmentTransactionTwo.commit();
         }
 
@@ -227,6 +201,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     /**
      * update fragment when click change from notification
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void updateFragment() {
         if (mIsVertical) {
             if (mMediaPlaybackFragment.getView() != null) {
@@ -242,10 +217,12 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         if (requestCode == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (ContextCompat.checkSelfPermission(MusicActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                if (ContextCompat.checkSelfPermission(MusicActivity.this,
+                        Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     createFragment();
                 }
             } else {
@@ -254,6 +231,10 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         }
     }
 
+    /**
+     * call to get service
+     * @return service
+     */
     public MediaPlaybackService getPlayerService() {
         return mMediaService;
     }
@@ -280,7 +261,8 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             default:
                 throw new IllegalStateException("Unexpected value: " + menuItem.getItemId());
         }
-        getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout_all_song, mBaseSongListFragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout_all_song,
+                mBaseSongListFragment).commit();
         mDrawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -292,20 +274,27 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         } else {
             super.onBackPressed();
         }
-        getSupportActionBar().show();
+        Objects.requireNonNull(getSupportActionBar()).show();
         mBaseSongListFragment.setSmoothScrollToPosition(new StorageUtil(getApplicationContext()).loadAudioIndex());
     }
 
+    /**
+     * listener service for all song fragment
+     * @param onServiceConnectedListenerForAllSong is listener
+     */
     public void listenServiceConnectedForAllSong(OnServiceConnectedListenerForAllSong onServiceConnectedListenerForAllSong) {
         this.mOnServiceConnectedListenerForAllSong = onServiceConnectedListenerForAllSong;
     }
-
+    /**
+     * listener service for media playback fragment
+     * @param onServiceConnectedListener is listener
+     */
     public void listenServiceConnectedForMedia(OnServiceConnectedListenerForMedia onServiceConnectedListener) {
         this.mOnServiceConnectedListenerForMedia = onServiceConnectedListener;
     }
 
     @Override
-    public void reLoad() {
+    public void reLoadListFragment() {
         mBaseSongListFragment.updateAdapter();
     }
 

@@ -14,7 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
 
-        <activity android:name="com.bkav.android.mymusic.activities.MusicActivity">
+        <activity
+            android:name="com.bkav.android.mymusic.activities.MusicActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -1,5 +1,6 @@
 package com.bkav.android.mymusic.providers;
 
+import android.annotation.SuppressLint;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
@@ -11,6 +12,8 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import java.util.Objects;
 
 import static com.bkav.android.mymusic.providers.MusicDBHelper.TABLE_NAME_MUSIC;
 
@@ -66,7 +69,8 @@ public class FavoriteSongsProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
+                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         Cursor ret;
         // Get music db object.
         SQLiteDatabase db = mMusicDBHelper.getWritableDatabase();
@@ -74,14 +78,16 @@ public class FavoriteSongsProvider extends ContentProvider {
         switch (mUriMatcher.match(uri)) {
             case MUSICS:
                 // Return all rows that match query condition in music table.
-                ret = db.query(TABLE_NAME_MUSIC, projection, selection, selectionArgs, null, null, sortOrder);
+                ret = db.query(TABLE_NAME_MUSIC, projection, selection, selectionArgs,
+                        null, null, sortOrder);
                 break;
             case MUSIC_ID:
                 // Update rows with request row id.
                 String musicId = uri.getPathSegments().get(1);
                 String whereClause = " _id = ? ";
                 String[] whereArgsArr = {musicId};
-                ret = db.query(TABLE_NAME_MUSIC, projection, whereClause, whereArgsArr, null, null, sortOrder);
+                ret = db.query(TABLE_NAME_MUSIC, projection, whereClause, whereArgsArr,
+                        null, null, sortOrder);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported URI: " + uri);
@@ -121,7 +127,7 @@ public class FavoriteSongsProvider extends ContentProvider {
             // Create new music uri. Uri string format : "content://<authority>/path/id".
             String newMusicUriStr = "content://" + AUTHORITY + "/" + MUSIC_PATH + "/" + newMusicId;
             ret = Uri.parse(newMusicUriStr);
-            getContext().getContentResolver().notifyChange(ret, null);
+            Objects.requireNonNull(getContext()).getContentResolver().notifyChange(ret, null);
 
         }
 
@@ -154,7 +160,7 @@ public class FavoriteSongsProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("Unsupported URI: " + uri);
         }
-        getContext().getContentResolver().notifyChange(uri, null);
+        Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
         Log.d(TAG_CONTENT_PROVIDER, "Music content provider delete method is called.");
         return ret;
     }
@@ -181,11 +187,15 @@ public class FavoriteSongsProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("Unsupported URI: " + uri);
         }
-        getContext().getContentResolver().notifyChange(uri, null);
+        Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
         Log.d(TAG_CONTENT_PROVIDER, "Music content provider update method is called.");
         return ret;
     }
 
+    /**
+     * insert song to database favorite song
+     * @param id song
+     */
     public void insertDefaultFavoriteSong(int id) {
         mContentValues = new ContentValues();
         mContentValues.put(MusicDBHelper.ID_PROVIDER, id);
@@ -193,6 +203,11 @@ public class FavoriteSongsProvider extends ContentProvider {
         mContext.getContentResolver().insert(FavoriteSongsProvider.CONTENT_URI, mContentValues);
     }
 
+    /**
+     * update count of play follow id
+     * @param id song
+     * @param count number click of song
+     */
     public void updateCount(int id, int count) {
 
         mContentValues = new ContentValues();
@@ -201,7 +216,13 @@ public class FavoriteSongsProvider extends ContentProvider {
                 MusicDBHelper.ID_PROVIDER + "=" + id, null);
     }
 
+    /**
+     * Update favorite songs by id and favorites
+     * @param id of song
+     * @param favorite is favorite index
+     */
     public void updateFavorite(int id, int favorite) {
+        @SuppressLint("Recycle")
         Cursor cursor = mContext.getContentResolver().query(FavoriteSongsProvider.CONTENT_URI,
                 new String[]{MusicDBHelper.ID_PROVIDER}, MusicDBHelper.ID_PROVIDER + " = " + id,
                 null, null);
@@ -222,7 +243,12 @@ public class FavoriteSongsProvider extends ContentProvider {
         }
     }
 
+    /**
+     * insert song to database favorite song and conditions attached
+     * @param id of song
+     */
     public void insertFavoriteSongToDB(int id) {
+        @SuppressLint("Recycle")
         Cursor cursor = mContext.getContentResolver().query(FavoriteSongsProvider.CONTENT_URI,
                 new String[]{MusicDBHelper.COUNT_OF_PLAY, MusicDBHelper.ID_PROVIDER},
                 MusicDBHelper.ID_PROVIDER + " = " + id, null, null);

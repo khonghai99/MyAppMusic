@@ -5,11 +5,9 @@ import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AnimationUtils;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -81,7 +79,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
             holder.mPopupMenuImageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    mOnClickPopupListener.onClickPopup(view,position);
+                    mOnClickPopupListener.onClickPopup(view, position);
                 }
             });
 //            holder.mRelativeLayoutOneRow.setAnimation(AnimationUtils.loadAnimation(mContext,R.anim.fade_scale_animation));
@@ -101,10 +99,18 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
         return filter;
     }
 
+    /**
+     * listener event click item recycler
+     * @param onNewClickListener is listener
+     */
     public void setOnClick(OnNewClickListener onNewClickListener) {
         this.mOnNewClickListener = onNewClickListener;
     }
 
+    /**
+     * listener event click popup menu in item recycler
+     * @param onClickPopupListener is listener
+     */
     public void setOnClickPopup(OnClickPopupListener onClickPopupListener) {
         this.mOnClickPopupListener = onClickPopupListener;
     }
@@ -114,7 +120,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
     }
 
     public interface OnClickPopupListener {
-        void onClickPopup(View view,int position);
+        void onClickPopup(View view, int position);
     }
 
     public static class SongHolder extends RecyclerView.ViewHolder {
@@ -182,7 +188,11 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongHolder> im
                 ArrayList<Song> filterSong = new ArrayList<>();
                 for (int i = 0; i < mSongListFilter.size(); i++) {
                     if (mSongListFilter.get(i).getTitle().toUpperCase().contains(constraint)) {
-                        Song song = new Song(mSongListFilter.get(i).getID(), mSongListFilter.get(i).getTitle(), mSongListFilter.get(i).getArtist(), mSongListFilter.get(i).getDurationReal(), mSongListFilter.get(i).getPath());
+                        Song song = new Song(mSongListFilter.get(i).getID(),
+                                mSongListFilter.get(i).getTitle(),
+                                mSongListFilter.get(i).getArtist(),
+                                mSongListFilter.get(i).getDurationReal(),
+                                mSongListFilter.get(i).getPath());
                         filterSong.add(song);
                     }
                 }

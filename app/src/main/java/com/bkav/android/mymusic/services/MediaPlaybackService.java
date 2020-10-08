@@ -18,7 +18,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
@@ -111,13 +110,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         this.mSongActive = song;
     }
 
-    public void setSongIndex(int i) {
-        this.mSongIndex = i;
-    }
-
     public void playMedia() {
         if (!mMediaPlayer.isPlaying()) {
             mMediaPlayer.start();
+            mOnNotificationListener.onUpdate();
         }
     }
 
@@ -197,7 +193,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         buildNotification(MediaPlaybackStatus.PLAYING);
     }
 
-
     //Hệ thống gọi phương thức này khi một hoạt động, yêu cầu dịch vụ được bắt đầu
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -270,7 +265,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             notificationChannel.setDescription("Notification");
             mNotifyManager.createNotificationChannel(notificationChannel);
             Intent intent = new Intent(getApplicationContext(), MusicActivity.class);
-            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), NOTIFICATION_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(),
+                    NOTIFICATION_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             // Create a new Notification
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL_ID)
                     .setShowWhen(false)
@@ -308,7 +304,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         if (mStateShuffle) {
             mSongIndex = random.nextInt(mSongList.size());
         } else {
-            mSongIndex = storageUtil.loadAudioIndex();
+            mSongIndex = getSongIndex();
         }
         switch (mStateRepeat) {
             case NO_REPEAT_CODE:
@@ -323,7 +319,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
                     mSongIndex = mSongIndex + 1;
                     //get next in playlist
                     mSongActive = mSongList.get(mSongIndex);
-                    Log.i("HaiKH", "songCompletion: " + mSongIndex);
                     playSongWhenComplete();
                 }
                 break;
@@ -392,8 +387,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             public void onCallStateChanged(int state, String incomingNumber) {
                 switch (state) {
 
-                    //nếu có ít nhất một cuộc gọi hoặc điện thoại đang đổ chuông
-                    //tạm dừng MediaPlayer
+                    //If there is at least one call or the device is ringing, MediaPlayer stops
                     case TelephonyManager.CALL_STATE_RINGING:
                         if (mMediaPlayer != null) {
                             pauseMedia();
@@ -402,7 +396,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
                         break;
                     case TelephonyManager.CALL_STATE_IDLE:
 
-                        // Nếu không có hoạt động nào của cuộc gọi thì tiếp tục phát
+                        // If there is no call activity, continue playing
                         if (mMediaPlayer != null) {
                             if (mOngoingCall) {
                                 mOngoingCall = false;
@@ -498,15 +492,36 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     }
 
     /**
+     * get position song by id
+     * @return position song
+     */
+    public int getSongIndex() {
+        int idActive = new StorageUtil(getApplicationContext()).loadAudioID();
+        for (int i = 0; i < mSongList.size(); i++) {
+            if (mSongList.get(i).getID() == idActive) {
+                mSongIndex = i;
+            }
+        }
+        return mSongIndex;
+    }
+
+    /**
+     * set position song
+     * @param i is position
+     */
+    public void setSongIndex(int i) {
+        this.mSongIndex = i;
+    }
+
+    /**
      * Next song
      */
     public void skipToNext() {
 
         StorageUtil storageUtil = new StorageUtil(getApplicationContext());
         mStateShuffle = storageUtil.loadStateShuffle();
-        mSongIndex = storageUtil.loadAudioIndex();
         mSongList = storageUtil.loadSongList();
-        Log.i("HaiKH", "skipToNext: " + mSongList.size());
+        mSongIndex = getSongIndex();
         if (mStateShuffle) {
             mSongIndex = random.nextInt(mSongList.size());
         } else {
@@ -524,7 +539,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         mStorageUtil.storeAudioIndex(mSongIndex);
         mStorageUtil.storeAudioID(mSongActive.getID());
         playSong(mSongActive);
-
     }
 
     /**
@@ -533,9 +547,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     public void skipToPrevious() {
         StorageUtil storageUtil = new StorageUtil(getApplicationContext());
         mStateShuffle = storageUtil.loadStateShuffle();
+        mSongList = storageUtil.loadSongList();
+        mSongIndex = getSongIndex();
         if (mMediaPlayer.getCurrentPosition() <= TIME_LIMIT) {
             if (mSongIndex == 0) {
-
                 //if first in playlist
                 //set index to the last of audioList
                 mSongIndex = mSongList.size() - 1;
@@ -549,7 +564,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
                 mSongActive = mSongList.get(--mSongIndex);
             }
         } else {
-
             mSongActive = mSongList.get(mSongIndex);
         }
         mOnNotificationListener.onUpdate();
@@ -599,6 +613,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         return null;
     }
 
+    /**
+     * listener event notification
+     * @param listener is listener of notify
+     */
     public void setOnNotificationListener(OnNotificationListener listener) {
         this.mOnNotificationListener = listener;
     }

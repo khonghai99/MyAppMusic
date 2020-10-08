@@ -4,7 +4,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -54,7 +53,8 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
                 MusicDBHelper.COUNT_OF_PLAY,
         };
         Uri uri = FavoriteSongsProvider.CONTENT_URI;
-        return new CursorLoader(Objects.requireNonNull(getContext()), uri, projection, selection, null, null);
+        return new CursorLoader(Objects.requireNonNull(getContext()), uri, projection, selection,
+                null, null);
     }
 
     @Override
@@ -64,7 +64,8 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {
                 int idProvider = cursor.getInt(cursor.getColumnIndex(MusicDBHelper.ID_PROVIDER));
-                Cursor cursorAllSong = getContext().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                Cursor cursorAllSong = Objects.requireNonNull(getContext()).getContentResolver()
+                        .query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         null, MediaStore.Audio.Media.IS_MUSIC + " != 0",
                         null, MediaStore.Audio.Media.TITLE + " ASC");
                 if (cursorAllSong != null) {
@@ -88,13 +89,14 @@ public class FavoriteSongsFragment extends BaseSongListFragment implements Loade
                 cursor.moveToNext();
             }
         }
-
+        new StorageUtil(getContext()).storeFavoriteSongList(mFavoriteSongList);
+        new StorageUtil(getContext()).storeStateFavorite(true);
         mSongAdapter.updateSongList(mFavoriteSongList);
         mSongAdapter.setOnClickPopup(this);
         if (mFavoriteSongList.size() == 0) {
             mRecyclerView.setVisibility(View.GONE);
             mNoMusicTextView.setVisibility(View.VISIBLE);
-        }else {
+        } else {
             mRecyclerView.setVisibility(View.VISIBLE);
             mNoMusicTextView.setVisibility(View.GONE);
         }
