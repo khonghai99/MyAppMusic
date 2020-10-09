@@ -114,6 +114,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         if (!mMediaPlayer.isPlaying()) {
             mMediaPlayer.start();
             mOnNotificationListener.onUpdate();
+            buildNotification(MediaPlaybackStatus.PLAYING);
         }
     }
 
@@ -136,7 +137,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
             mResumePosition = mMediaPlayer.getCurrentPosition();
-            buildNotification(MediaPlaybackStatus.PLAYING);
+            buildNotification(MediaPlaybackStatus.PAUSED);
             mOnNotificationListener.onUpdate();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH);
@@ -149,6 +150,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             mMediaPlayer.seekTo(mResumePosition);
             mMediaPlayer.start();
             mOnNotificationListener.onUpdate();
+            buildNotification(MediaPlaybackStatus.PLAYING);
         }
     }
 
@@ -205,19 +207,23 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
     //set image when customContentView
     private void setImageNotify(RemoteViews remoteViews, int id) {
-        byte[] art = ImageSong.getByteImageSong(mSongActive.getPath());
-        if (art != null) {
-            Bitmap bitmap = BitmapFactory.decodeByteArray(art, 0, art.length);
-            remoteViews.setImageViewBitmap(id, bitmap);
-        } else {
-            remoteViews.setImageViewResource(id, R.mipmap.ic_music_not_picture);
+        if (mSongActive != null) {
+            byte[] art = ImageSong.getByteImageSong(mSongActive.getPath());
+            if (art != null) {
+                Bitmap bitmap = BitmapFactory.decodeByteArray(art, 0, art.length);
+                remoteViews.setImageViewBitmap(id, bitmap);
+            } else {
+                remoteViews.setImageViewResource(id, R.mipmap.ic_music_not_picture);
+            }
         }
     }
 
     //set text when customContentView
     private void setTextNotify(RemoteViews remoteViews) {
-        remoteViews.setTextViewText(R.id.big_title, mSongActive.getTitle());
-        remoteViews.setTextViewText(R.id.big_artist, mSongActive.getArtist());
+        if (mSongActive != null) {
+            remoteViews.setTextViewText(R.id.big_title, mSongActive.getTitle());
+            remoteViews.setTextViewText(R.id.big_artist, mSongActive.getArtist());
+        }
     }
 
     private void buildNotification(MediaPlaybackStatus mediaPlaybackStatus) {
@@ -276,12 +282,13 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
                     .setColor(getResources().getColor(R.color.colorPrimary, null))
                     .setSmallIcon(R.mipmap.stat_notify_musicplayer)
                     // Set Notification content information
-                    .setContentText(mSongActive.getArtist())
+                    .setContentText(mSongActive!=null?mSongActive.getArtist():"Content Text")
+                    .setContentTitle(mSongActive!=null?mSongActive.getTitle():"Content Title")
                     .setCustomContentView(notificationLayout)
                     .setContentIntent(pendingIntent)
                     .setCustomBigContentView(notificationLayoutExpanded)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setContentTitle(mSongActive.getTitle());
+                    .setPriority(NotificationCompat.PRIORITY_HIGH);
+
 
             startForeground(NOTIFICATION_ID, notificationBuilder.build());
         }
@@ -386,7 +393,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             @Override
             public void onCallStateChanged(int state, String incomingNumber) {
                 switch (state) {
-
                     //If there is at least one call or the device is ringing, MediaPlayer stops
                     case TelephonyManager.CALL_STATE_RINGING:
                         if (mMediaPlayer != null) {
@@ -418,7 +424,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     @Override
     public void onCreate() {
         super.onCreate();
-
         // Thực hiện các thủ tục thiết lập một lần
         initMediaPlayer();
         random = new Random();
@@ -468,31 +473,28 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         if (playbackAction == null || playbackAction.getAction() == null) return;
         if (playbackAction.getAction().equalsIgnoreCase(ACTION_NEXT)) {
             skipToNext();
-            mStorageUtil.storeAudioIndex(mSongIndex);
-            buildNotification(MediaPlaybackStatus.PLAYING);
         } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PREVIOUS)) {
             skipToPrevious();
-            mStorageUtil.storeAudioIndex(mSongIndex);
-            buildNotification(MediaPlaybackStatus.PLAYING);
         } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PAUSE)) {
             pauseMedia();
-            buildNotification(MediaPlaybackStatus.PAUSED);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH);
             }
         } else if (playbackAction.getAction().equalsIgnoreCase(ACTION_PLAY)) {
             resumeMedia();
-            buildNotification(MediaPlaybackStatus.PLAYING);
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void updateMetaDataNotify(MediaPlaybackStatus mediaPlaybackStatus) {
-        buildNotification(mediaPlaybackStatus);
+        if (mSongActive!=null){
+            buildNotification(mediaPlaybackStatus);
+        }
     }
 
     /**
      * get position song by id
+     *
      * @return position song
      */
     public int getSongIndex() {
@@ -507,6 +509,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
     /**
      * set position song
+     *
      * @param i is position
      */
     public void setSongIndex(int i) {
@@ -559,7 +562,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
                 mSongIndex = random.nextInt(mSongList.size());
                 mSongActive = mSongList.get(mSongIndex);
             } else {
-
                 //get previous in playlist
                 mSongActive = mSongList.get(--mSongIndex);
             }
@@ -567,7 +569,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             mSongActive = mSongList.get(mSongIndex);
         }
         mOnNotificationListener.onUpdate();
-
         //Update stored index
         mStorageUtil.storeAudioIndex(mSongIndex);
         mStorageUtil.storeAudioID(mSongActive.getID());
@@ -615,6 +616,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
     /**
      * listener event notification
+     *
      * @param listener is listener of notify
      */
     public void setOnNotificationListener(OnNotificationListener listener) {

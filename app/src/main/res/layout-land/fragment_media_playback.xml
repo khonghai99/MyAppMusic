@@ -51,7 +51,7 @@
     </FrameLayout>
 
     <TextView
-        android:id="@+id/tvIfNotMusicMedia"
+        android:id="@+id/text_view_no_music_media"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"

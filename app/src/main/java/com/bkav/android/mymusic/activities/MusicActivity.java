@@ -43,6 +43,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
 
     // permission request
     private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 1;
+    private static final String STATE_FAVORITE = "com.bkav.android.mymusic.activities.STATE_FAVORITE";
 
     public MediaPlaybackFragment mMediaPlaybackFragment;
     public BaseSongListFragment mBaseSongListFragment;
@@ -52,6 +53,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     private boolean mIsVertical = false;
     private Intent mPlayIntent;
     private DrawerLayout mDrawer;
+    private boolean mStateFavorite;
 
     // Binding this Client to the Service
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -79,7 +81,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
             if (mMediaService.getActiveAudio() == null) {
                 StorageUtil storageUtil = new StorageUtil(getApplicationContext());
                 if (storageUtil.loadAudioIndex() != -1) {
-                    mMediaService.setSongActive(storageUtil.loadSongList().get(storageUtil.loadAudioIndex()));
+                    mMediaService.setSongActive(storageUtil.loadSongActive());
                     mMediaService.setSongList(storageUtil.loadSongList());
                     mMediaService.setSongIndex(storageUtil.loadAudioIndex());
                     mBaseSongListFragment.setDataBottom();
@@ -120,6 +122,9 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mStateFavorite = savedInstanceState.getBoolean(STATE_FAVORITE);
+        }
         setContentView(R.layout.activity_music);
         Toolbar toolbar = findViewById(R.id.toolbar);
         //set toolbar
@@ -165,11 +170,20 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         return mIsVertical;
     }
 
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STATE_FAVORITE, mStateFavorite);
+    }
+
     /**
      * initialization fragment
      */
     public void initFragment() {
-        mBaseSongListFragment = new AllSongsFragment();
+        if (mStateFavorite) {
+            Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.title_toolbar_favorite_song);
+            mBaseSongListFragment = new FavoriteSongsFragment();
+        } else mBaseSongListFragment = new AllSongsFragment();
         mMediaPlaybackFragment = new MediaPlaybackFragment();
     }
 
@@ -183,19 +197,16 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
         FragmentTransaction mFragmentTransactionOne = mFragmentManager.beginTransaction();
         int orientation = getResources().getConfiguration().orientation;
         mIsVertical = orientation != Configuration.ORIENTATION_LANDSCAPE;
-
         if (mIsVertical) {
             mFragmentTransactionOne.replace(R.id.frame_layout_all_song, mBaseSongListFragment);
             mFragmentTransactionOne.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             mFragmentTransactionOne.commit();
         } else {
-
             FragmentTransaction mFragmentTransactionTwo = mFragmentManager.beginTransaction();
             mFragmentTransactionTwo.replace(R.id.frame_layout_all_song, mBaseSongListFragment).
                     replace(R.id.frame_layout_land_media, mMediaPlaybackFragment);
             mFragmentTransactionTwo.commit();
         }
-
     }
 
     /**
@@ -233,6 +244,7 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
 
     /**
      * call to get service
+     *
      * @return service
      */
     public MediaPlaybackService getPlayerService() {
@@ -243,11 +255,13 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.nav_music_library:
+                mStateFavorite = false;
                 Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.title_toolbar_all_song);
                 mBaseSongListFragment = new AllSongsFragment();
                 Toast.makeText(this, R.string.title_toolbar_all_song, Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_music_favorite:
+                mStateFavorite = true;
                 Objects.requireNonNull(getSupportActionBar()).setTitle(R.string.title_toolbar_favorite_song);
                 mBaseSongListFragment = new FavoriteSongsFragment();
                 Toast.makeText(this, R.string.title_toolbar_favorite_song, Toast.LENGTH_SHORT).show();
@@ -280,13 +294,16 @@ public class MusicActivity extends AppCompatActivity implements NavigationView.O
 
     /**
      * listener service for all song fragment
+     *
      * @param onServiceConnectedListenerForAllSong is listener
      */
     public void listenServiceConnectedForAllSong(OnServiceConnectedListenerForAllSong onServiceConnectedListenerForAllSong) {
         this.mOnServiceConnectedListenerForAllSong = onServiceConnectedListenerForAllSong;
     }
+
     /**
      * listener service for media playback fragment
+     *
      * @param onServiceConnectedListener is listener
      */
     public void listenServiceConnectedForMedia(OnServiceConnectedListenerForMedia onServiceConnectedListener) {

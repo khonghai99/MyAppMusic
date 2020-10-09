@@ -224,19 +224,16 @@ public abstract class BaseSongListFragment extends Fragment implements View.OnCl
             case R.id.pause_bottom_all_song:
                 if (MediaPlaybackStatus.PLAYING == mMediaPlaybackService.isPlayingState()) {
                     mMediaPlaybackService.pauseMedia();
-                    mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PAUSED);
                     mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
-                    mSongAdapter.notifyDataSetChanged();
                 } else if (MediaPlaybackStatus.PAUSED == mMediaPlaybackService.isPlayingState()) {
                     if (mMediaPlaybackService.getMediaPlayer().getCurrentPosition() == 0) {
-                        mMediaPlaybackService.playSong(mStorage.loadSongList().get(mStorage.loadAudioIndex()));
+                        mMediaPlaybackService.playSong(mStorage.loadSongActive());
                     } else {
                         mMediaPlaybackService.playMedia();
                     }
-                    mMediaPlaybackService.updateMetaDataNotify(MediaPlaybackStatus.PLAYING);
                     mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
-                    mSongAdapter.notifyDataSetChanged();
                 }
+                mSongAdapter.notifyDataSetChanged();
                 break;
             case R.id.layout_bottom_all_song:
                 showMediaFragment();
@@ -273,18 +270,7 @@ public abstract class BaseSongListFragment extends Fragment implements View.OnCl
      */
     public void update() {
         if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
-            mTitleBottomAllSongTextView.setText(getMediaPlayerService().getActiveAudio().getTitle());
-            mArtistBottomAllSongTextView.setText(getMediaPlayerService().getActiveAudio().getArtist());
-            byte[] art = ImageSong.getByteImageSong(getMediaPlayerService().getActiveAudio().getPath());
-            Glide.with(Objects.requireNonNull(getContext())).asBitmap()
-                    .error(R.mipmap.ic_music_not_picture)
-                    .load(art)
-                    .into(mImageBottomAllSongImageView);
-            if (mMediaPlaybackService.isPlayingState() == MediaPlaybackStatus.PLAYING) {
-                mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_pause_light);
-            } else if (mMediaPlaybackService.isPlayingState() == MediaPlaybackStatus.PAUSED) {
-                mImagePauseBottomAllSongImageView.setImageResource(R.mipmap.ic_media_play_light);
-            }
+           setDataBottom();
         }
         mSongAdapter.notifyDataSetChanged();
     }

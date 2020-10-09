@@ -167,7 +167,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
         mEndTimeTextView = view.findViewById(R.id.end_time_seek_bar);
         mRepeatImageView = view.findViewById(R.id.repeat);
         mShuffleImageView = view.findViewById(R.id.shuffle);
-        mNoMusicTextView = view.findViewById(R.id.tvIfNotMusicMedia);
+        mNoMusicTextView = view.findViewById(R.id.text_view_no_music_media);
         mMusicLayout = view.findViewById(R.id.frame_layout);
 
 
@@ -218,13 +218,9 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
             } else mLikeImageView.setImageResource(R.mipmap.ic_thumbs_up_default);
             updateSeekBar();
         } else {
-            if (Objects.requireNonNull(getMusicActivity()).getStateUI()) {
-                mNoMusicTextView.setVisibility(View.VISIBLE);
-                mMusicLayout.setVisibility(View.GONE);
-            }
+            mNoMusicTextView.setVisibility(View.VISIBLE);
+            mMusicLayout.setVisibility(View.GONE);
         }
-
-
     }
 
     private boolean checkFavorite(int id) {
@@ -248,6 +244,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
     @Override
     public void onClick(View view) {
         int id = view.getId();
+        FavoriteSongsProvider favoriteSongsProvider = new FavoriteSongsProvider(getContext());
         switch (id) {
             case R.id.popup_top_media:
             case R.id.image_background_media:
@@ -255,13 +252,11 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
             case R.id.like:
                 if (checkFavorite(new StorageUtil(getContext()).loadAudioID())) {
                     Toast.makeText(getContext(), R.string.toast_removed_from_favorite, Toast.LENGTH_SHORT).show();
-                    FavoriteSongsProvider favoriteSongsProvider = new FavoriteSongsProvider(getContext());
                     favoriteSongsProvider.updateFavorite(new StorageUtil(getContext()).loadAudioID(),
                             FavoriteSongsProvider.IS_NUMBER_NOT_FAVORITE);
                     mLikeImageView.setImageResource(R.mipmap.ic_thumbs_up_default);
                 } else {
                     Toast.makeText(getContext(), R.string.toast_added_to_favorite, Toast.LENGTH_SHORT).show();
-                    FavoriteSongsProvider favoriteSongsProvider = new FavoriteSongsProvider(getContext());
                     favoriteSongsProvider.updateFavorite(new StorageUtil(getContext()).loadAudioID(),
                             FavoriteSongsProvider.IS_NUMBER_FAVORITE);
                     mLikeImageView.setImageResource(R.mipmap.ic_thumbs_up_selected);
@@ -321,7 +316,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
                 } else {
                     StorageUtil storageUtil = new StorageUtil(getContext());
                     if (mMediaPlaybackService.getMediaPlayer().getCurrentPosition() == 0) {
-                        mMediaPlaybackService.playSong(storageUtil.loadSongList().get(storageUtil.loadAudioIndex()));
+                        mMediaPlaybackService.playSong(storageUtil.loadSongActive());
                     } else {
                         mMediaPlaybackService.playMedia();
                     }
@@ -370,6 +365,7 @@ public class MediaPlaybackFragment extends Fragment implements View.OnClickListe
 
     /**
      * reload list for adapter
+     *
      * @param onReLoadList is listener
      */
     public void actionReLoad(OnReLoadList onReLoadList) {
